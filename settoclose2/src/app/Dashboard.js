@@ -113,6 +113,22 @@ export default function Dashboard() {
 
   useEffect(()=>{ if(activeId) fetchMeta(activeId,dateFrom,dateTo); },[activeId,dateFrom,dateTo]);
 
+  // ── GHL FETCH ────────────────────────────────────────────────────
+  const [ghlData, setGhlData] = useState({});
+
+  const fetchGHL = useCallback(async (offId, from, to) => {
+    try {
+      const p = new URLSearchParams({ officeId: offId, dateFrom: from, dateTo: to });
+      const r = await fetch('/api/ghl?' + p);
+      const j = await r.json();
+      if (j.error) { console.warn('GHL:', j.error); return; }
+      setGhlData(prev => ({ ...prev, [offId]: j.days || [] }));
+    } catch(e) { console.warn('GHL fetch error:', e.message); }
+  }, []);
+
+  useEffect(() => { if(activeId) fetchGHL(activeId, dateFrom, dateTo); }, [activeId, dateFrom, dateTo]);
+  // ────────────────────────────────────────────────────────────────
+
   const raw = useMemo(()=>{
     if(!activeId) return [];
     const api = apiData[activeId]||[];
@@ -137,10 +153,15 @@ export default function Dashboard() {
 
   const data = useMemo(()=>{
     const manual = manualData[activeId]||{};
+    const ghl    = (ghlData[activeId]||[]).reduce((acc,d)=>{ acc[d.date]=d; return acc; }, {});
     const payout = office?.payout||750;
     return raw.map(d=>{
       const m=manual[d.date]||{};
-      const ab=m.appsBooked||0,as_=m.appsShowed||0,s=m.sales||0;
+      const g=ghl[d.date]||{};
+      // GHL takes priority over manual entry
+      const ab=g.appsBooked??m.appsBooked??0;
+      const as_=g.appsShowed??m.appsShowed??0;
+      const s=g.sales??m.sales??0;
       const rc=s*7990,ro=s*3000,ct=s*payout,co=ro-ct-d.spent;
       return {...d,appsBooked:ab,appsShowed:as_,showRate:ab>0?+((as_/ab)*100).toFixed(1):0,sales:s,revCompany:rc,revOffice:ro,cashTiago:ct,cashOffice:co,roasCash:d.spent>0?+(co/d.spent).toFixed(2):0};
     });
