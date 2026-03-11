@@ -164,6 +164,9 @@ export default function Dashboard() {
   const [nColor,    setNColor]    = useState('#38BDF8');
   const [nPayout,   setNPayout]   = useState('750');
   const [nAccount,  setNAccount]  = useState('');
+  const [nLocId,    setNLocId]    = useState('');
+  const [nPipeId,   setNPipeId]   = useState('');
+  const [nGhlToken, setNGhlToken] = useState('');
   const [nLogo,     setNLogo]     = useState(null);
   const [editing,   setEditing]   = useState(null);
   const mediaRef = useRef(); const newLogoRef = useRef(); const editLogoRef = useRef();
@@ -642,13 +645,20 @@ export default function Dashboard() {
             <div style={{display:'flex',flexDirection:'column',gap:12}}>
               <div><div style={{fontSize:11,color:'#555',marginBottom:5}}>CLIENT ID (e.g. TX)</div><input value={nId} onChange={e=>setNId(e.target.value)} placeholder="TX" style={inp} maxLength={4}/></div>
               <div><div style={{fontSize:11,color:'#555',marginBottom:5}}>NAME</div><input value={nName} onChange={e=>setNName(e.target.value)} placeholder="Texas Office" style={inp}/></div>
-              <div><div style={{fontSize:11,color:'#555',marginBottom:5}}>AD ACCOUNT ID</div><input value={nAccount} onChange={e=>setNAccount(e.target.value)} placeholder="751411627703795" style={inp}/></div>
+              <div><div style={{fontSize:11,color:'#555',marginBottom:5}}>META AD ACCOUNT ID</div><input value={nAccount} onChange={e=>setNAccount(e.target.value)} placeholder="act_751411627703795" style={inp}/></div>
+              <div style={{borderTop:'1px solid rgba(255,255,255,0.05)',paddingTop:12,marginTop:4}}><div style={{fontSize:10,color:'#38BDF8',marginBottom:8,letterSpacing:'.05em'}}>GHL INTEGRATION (opcional)</div>
+                <div style={{display:'flex',flexDirection:'column',gap:8}}>
+                  <div><div style={{fontSize:11,color:'#555',marginBottom:4}}>LOCATION ID</div><input value={nLocId} onChange={e=>setNLocId(e.target.value)} placeholder="cCytukkNAHUpNbtKDk2e" style={inp}/></div>
+                  <div><div style={{fontSize:11,color:'#555',marginBottom:4}}>PIPELINE ID</div><input value={nPipeId} onChange={e=>setNPipeId(e.target.value)} placeholder="66Nwo6mQHylEGha2G3Eq" style={inp}/></div>
+                  <div><div style={{fontSize:11,color:'#555',marginBottom:4}}>GHL TOKEN</div><input value={nGhlToken} onChange={e=>setNGhlToken(e.target.value)} placeholder="eyJhbGciOi..." style={{...inp,fontFamily:'monospace',fontSize:11}}/></div>
+                </div>
+              </div>
               <div><div style={{fontSize:11,color:'#555',marginBottom:5}}>PAYOUT PER DEAL ($)</div><input value={nPayout} onChange={e=>setNPayout(e.target.value)} type="number" style={inp}/></div>
               <div><div style={{fontSize:11,color:'#555',marginBottom:5}}>ACCENT COLOR</div><div style={{display:'flex',gap:8,alignItems:'center'}}><input type="color" value={nColor} onChange={e=>setNColor(e.target.value)} style={{width:40,height:36,borderRadius:6,border:'1px solid rgba(255,255,255,0.1)',background:'none',cursor:'pointer'}}/><span style={{fontSize:12,color:'#555',fontFamily:'monospace'}}>{nColor}</span></div></div>
               <div><div style={{fontSize:11,color:'#555',marginBottom:5}}>PROFILE PHOTO (optional)</div><button onClick={()=>newLogoRef.current?.click()} style={{...inp,cursor:'pointer',color:'#555',textAlign:'left'}}>{nLogo?'✓ Photo uploaded':'Click to upload'}</button><input ref={newLogoRef} type="file" accept="image/*" onChange={e=>{const f=e.target.files[0];if(!f)return;const r=new FileReader();r.onload=ev=>setNLogo(ev.target.result);r.readAsDataURL(f);}} style={{display:'none'}}/></div>
               <div style={{display:'flex',gap:8,marginTop:4}}>
                 <button onClick={()=>setShowAdd(false)} style={{flex:1,padding:'10px',borderRadius:8,border:'1px solid rgba(255,255,255,0.08)',background:'transparent',color:'#555',cursor:'pointer',fontFamily:"'Roboto',sans-serif"}}>Cancel</button>
-                <button onClick={()=>{if(!nId.trim()||!nName.trim())return;const id=nId.toUpperCase().replace(/\s/g,'');setOffices(p=>[...p,{id,name:nName,color:nColor,payout:parseInt(nPayout)||750,adAccountId:nAccount}]);setLogos(p=>({...p,[id]:nLogo||`https://ui-avatars.com/api/?name=${id}&background=222&color=fff&size=64`}));setActions(p=>({...p,[id]:[]}));setShowAdd(false);setNName('');setNId('');setNLogo(null);setNAccount('');}} style={{...btnP('#4ADE80'),flex:1,textAlign:'center'}}>Add Client</button>
+                <button onClick={()=>{if(!nId.trim()||!nName.trim())return;const id=nId.toUpperCase().replace(/\s/g,'');setOffices(p=>[...p,{id,name:nName,color:nColor,payout:parseInt(nPayout)||750,adAccountId:nAccount,locationId:nLocId,pipelineId:nPipeId,ghlToken:nGhlToken}]);setLogos(p=>({...p,[id]:nLogo||`https://ui-avatars.com/api/?name=${id}&background=222&color=fff&size=64`}));setActions(p=>({...p,[id]:[]}));setShowAdd(false);setNName('');setNId('');setNLogo(null);setNAccount('');setNLocId('');setNPipeId('');setNGhlToken('');}} style={{...btnP('#4ADE80'),flex:1,textAlign:'center'}}>Add Client</button>
               </div>
             </div>
           </div>
