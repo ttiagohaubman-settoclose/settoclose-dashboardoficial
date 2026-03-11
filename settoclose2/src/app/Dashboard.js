@@ -102,33 +102,9 @@ export default function Dashboard() {
 
   const doLogin = () => {
     if (loginUser === 'Settoclose' && loginPass === 'Guitarra2018') {
-      setAuthed(true);
-      setLoginErr(false);
-    } else {
-      setLoginErr(true);
-    }
+      setAuthed(true); setLoginErr(false);
+    } else { setLoginErr(true); }
   };
-
-  if (!authed) return (
-    <div style={{minHeight:'100vh',background:'#080a0d',display:'flex',alignItems:'center',justifyContent:'center',fontFamily:"'Roboto',sans-serif"}}>
-      <style>{'@import url(\'https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&family=Roboto:wght@300;400;500&display=swap\');*{box-sizing:border-box;margin:0;padding:0}input:focus{outline:none}'}</style>
-      <div style={{background:'rgba(255,255,255,0.03)',border:'1px solid rgba(255,255,255,0.08)',borderRadius:20,padding:'40px 36px',width:380,maxWidth:'90vw'}}>
-        <img src={LOGOS_INIT.STC} alt="SetToClose" style={{height:36,objectFit:'contain',marginBottom:28,display:'block'}}/>
-        <div style={{fontSize:18,fontWeight:700,fontFamily:"'Poppins',sans-serif",color:'#fff',marginBottom:6}}>Bienvenido</div>
-        <div style={{fontSize:13,color:'#444',marginBottom:28}}>Ingresa tus credenciales para continuar</div>
-        <div style={{marginBottom:14}}>
-          <div style={{fontSize:11,color:'#555',marginBottom:6,textTransform:'uppercase',letterSpacing:'0.1em'}}>Usuario</div>
-          <input value={loginUser} onChange={e=>setLoginUser(e.target.value)} onKeyDown={e=>e.key==='Enter'&&doLogin()} placeholder="Usuario" style={{width:'100%',background:'rgba(255,255,255,0.05)',border:`1px solid ${loginErr?'rgba(248,113,113,0.5)':'rgba(255,255,255,0.1)'}`,borderRadius:8,padding:'11px 14px',color:'#fff',fontSize:13,fontFamily:"'Roboto',sans-serif"}}/>
-        </div>
-        <div style={{marginBottom:20}}>
-          <div style={{fontSize:11,color:'#555',marginBottom:6,textTransform:'uppercase',letterSpacing:'0.1em'}}>Contraseña</div>
-          <input type="password" value={loginPass} onChange={e=>setLoginPass(e.target.value)} onKeyDown={e=>e.key==='Enter'&&doLogin()} placeholder="Contraseña" style={{width:'100%',background:'rgba(255,255,255,0.05)',border:`1px solid ${loginErr?'rgba(248,113,113,0.5)':'rgba(255,255,255,0.1)'}`,borderRadius:8,padding:'11px 14px',color:'#fff',fontSize:13,fontFamily:"'Roboto',sans-serif"}}/>
-        </div>
-        {loginErr&&<div style={{fontSize:12,color:'#F87171',marginBottom:16}}>Usuario o contraseña incorrectos</div>}
-        <button onClick={doLogin} style={{width:'100%',padding:'12px',borderRadius:8,border:'none',background:'#38BDF8',color:'#000',fontSize:14,fontWeight:700,fontFamily:"'Poppins',sans-serif",cursor:'pointer'}}>Ingresar</button>
-      </div>
-    </div>
-  );
   // ────────────────────────────────────────────────────────────────
 
 
@@ -263,6 +239,27 @@ export default function Dashboard() {
 
   const inp={background:'rgba(255,255,255,0.05)',border:'1px solid rgba(255,255,255,0.1)',borderRadius:8,padding:'10px 14px',color:'#fff',fontSize:13,fontFamily:"'Roboto',sans-serif",width:'100%'};
   const btnP=c=>({padding:'10px 20px',borderRadius:8,border:`1px solid ${c}55`,background:c+'20',color:c,fontSize:13,fontWeight:600,fontFamily:"'Roboto',sans-serif",cursor:'pointer'});
+
+  if (!authed) return (
+    <div style={{minHeight:'100vh',background:'#080a0d',display:'flex',alignItems:'center',justifyContent:'center',fontFamily:"'Roboto',sans-serif"}}>
+      <style>{'@import url(\'https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&family=Roboto:wght@300;400;500&display=swap\');*{box-sizing:border-box;margin:0;padding:0}input:focus{outline:none}'}</style>
+      <div style={{background:'rgba(255,255,255,0.03)',border:'1px solid rgba(255,255,255,0.08)',borderRadius:20,padding:'40px 36px',width:380,maxWidth:'90vw'}}>
+        <img src={LOGOS_INIT.STC} alt="SetToClose" style={{height:36,objectFit:'contain',marginBottom:28,display:'block'}}/>
+        <div style={{fontSize:18,fontWeight:700,fontFamily:"'Poppins',sans-serif",color:'#fff',marginBottom:6}}>Bienvenido</div>
+        <div style={{fontSize:13,color:'#444',marginBottom:28}}>Ingresa tus credenciales para continuar</div>
+        <div style={{marginBottom:14}}>
+          <div style={{fontSize:11,color:'#555',marginBottom:6,textTransform:'uppercase',letterSpacing:'0.1em'}}>Usuario</div>
+          <input value={loginUser} onChange={e=>setLoginUser(e.target.value)} onKeyDown={e=>e.key==='Enter'&&doLogin()} placeholder="Usuario" style={{width:'100%',background:'rgba(255,255,255,0.05)',border:`1px solid ${loginErr?'rgba(248,113,113,0.5)':'rgba(255,255,255,0.1)'}`,borderRadius:8,padding:'11px 14px',color:'#fff',fontSize:13,fontFamily:"'Roboto',sans-serif"}}/>
+        </div>
+        <div style={{marginBottom:20}}>
+          <div style={{fontSize:11,color:'#555',marginBottom:6,textTransform:'uppercase',letterSpacing:'0.1em'}}>Contraseña</div>
+          <input type="password" value={loginPass} onChange={e=>setLoginPass(e.target.value)} onKeyDown={e=>e.key==='Enter'&&doLogin()} placeholder="Contraseña" style={{width:'100%',background:'rgba(255,255,255,0.05)',border:`1px solid ${loginErr?'rgba(248,113,113,0.5)':'rgba(255,255,255,0.1)'}`,borderRadius:8,padding:'11px 14px',color:'#fff',fontSize:13,fontFamily:"'Roboto',sans-serif"}}/>
+        </div>
+        {loginErr&&<div style={{fontSize:12,color:'#F87171',marginBottom:16}}>Usuario o contraseña incorrectos</div>}
+        <button onClick={doLogin} style={{width:'100%',padding:'12px',borderRadius:8,border:'none',background:'#38BDF8',color:'#000',fontSize:14,fontWeight:700,fontFamily:"'Poppins',sans-serif",cursor:'pointer'}}>Ingresar</button>
+      </div>
+    </div>
+  );
 
   return (
     <div style={{minHeight:'100vh',background:'#080a0d',color:'#fff',fontFamily:"'Roboto',sans-serif"}}>
