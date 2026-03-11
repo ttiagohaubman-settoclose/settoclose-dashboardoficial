@@ -78,8 +78,8 @@ function CalendarPicker({ dateFrom, dateTo, onSelect }) {
   const handleDay = (day) => {
     const clicked = fmt(new Date(viewYear, viewMonth, day));
     if (!selecting) {
-      onSelect(clicked, clicked); // set both to same date until second click
       setSelecting(clicked);
+      onSelect(clicked, clicked);
     } else {
       const [from, to] = clicked < selecting ? [clicked, selecting] : [selecting, clicked];
       onSelect(from, to);
