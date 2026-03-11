@@ -122,27 +122,6 @@ function CalendarPicker({ dateFrom, dateTo, onSelect }) {
       {selecting&&<div style={{fontSize:11,color:'#38BDF8',marginTop:10,textAlign:'center'}}>Ahora selecciona la fecha final</div>}
       {!selecting&&dateFrom&&<div style={{fontSize:11,color:'#444',marginTop:10,textAlign:'center'}}>{dateFrom} to {dateTo||'...'}</div>}
     </div>
-
-      {/* EDIT ACTION MODAL */}
-      {editingAction&&(
-        <div style={{position:'fixed',inset:0,background:'rgba(0,0,0,0.8)',zIndex:500,display:'flex',alignItems:'center',justifyContent:'center'}} onClick={()=>setEditingAction(null)}>
-          <div style={{background:'#0f1115',border:'1px solid rgba(255,255,255,0.1)',borderRadius:16,padding:28,width:480,maxWidth:'90vw'}} onClick={e=>e.stopPropagation()}>
-            <div style={{fontSize:16,fontWeight:700,fontFamily:"'Poppins',sans-serif",marginBottom:16}}>Editar entrada</div>
-            <div style={{display:'flex',gap:8,marginBottom:10}}>
-              <input type="date" value={editDate} onChange={e=>setEditDate(e.target.value)} style={{background:'rgba(255,255,255,0.05)',border:'1px solid rgba(255,255,255,0.1)',borderRadius:8,padding:'10px 14px',color:'#fff',fontSize:13,fontFamily:"'Roboto',sans-serif",width:150,colorScheme:'dark'}}/>
-              <select value={editType} onChange={e=>setEditType(e.target.value)} style={{background:'rgba(255,255,255,0.05)',border:'1px solid rgba(255,255,255,0.1)',borderRadius:8,padding:'10px 14px',color:'#fff',fontSize:13,fontFamily:"'Roboto',sans-serif",width:120,cursor:'pointer'}}>
-                {Object.entries(ACTION_TYPES).map(([k,v])=><option key={k} value={k} style={{background:'#111'}}>{v.label}</option>)}
-              </select>
-            </div>
-            <textarea value={editText} onChange={e=>setEditText(e.target.value)} rows={5} style={{width:'100%',background:'rgba(255,255,255,0.05)',border:'1px solid rgba(255,255,255,0.1)',borderRadius:8,padding:'10px 14px',color:'#fff',fontSize:13,fontFamily:"'Roboto',sans-serif",resize:'vertical',lineHeight:1.6,marginBottom:16}}/>
-            <div style={{display:'flex',gap:8}}>
-              <button onClick={()=>setEditingAction(null)} style={{flex:1,padding:'10px',borderRadius:8,border:'1px solid rgba(255,255,255,0.08)',background:'transparent',color:'#555',cursor:'pointer',fontFamily:"'Roboto',sans-serif"}}>Cancelar</button>
-              <button onClick={saveEdit} style={{flex:1,padding:'10px',borderRadius:8,border:'1px solid rgba(56,189,248,0.4)',background:'rgba(56,189,248,0.15)',color:'#38BDF8',cursor:'pointer',fontWeight:600,fontFamily:"'Roboto',sans-serif"}}>Guardar cambios</button>
-            </div>
-          </div>
-        </div>
-      )}
-    </div>
   );
 }
 // ────────────────────────────────────────────────────────────────────
@@ -670,7 +649,6 @@ export default function Dashboard() {
           </div>
         </div>
       )}
-    </div>
 
       {/* EDIT ACTION MODAL */}
       {editingAction&&(
