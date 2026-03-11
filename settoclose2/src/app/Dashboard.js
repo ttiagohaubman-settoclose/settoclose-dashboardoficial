@@ -120,7 +120,7 @@ function CalendarPicker({ dateFrom, dateTo, onSelect }) {
         ))}
       </div>
       {selecting&&<div style={{fontSize:11,color:'#38BDF8',marginTop:10,textAlign:'center'}}>Ahora selecciona la fecha final</div>}
-      {!selecting&&dateFrom&&<div style={{fontSize:11,color:'#444',marginTop:10,textAlign:'center'}}>{dateFrom} {'->'} {dateTo||'...'}</div>}
+      {!selecting&&dateFrom&&<div style={{fontSize:11,color:'#444',marginTop:10,textAlign:'center'}}>{dateFrom} to {dateTo||'...'}</div>}
     </div>
 
       {/* EDIT ACTION MODAL */}
@@ -405,7 +405,7 @@ export default function Dashboard() {
         <div style={{display:'flex',alignItems:'center',gap:8,flexWrap:'wrap',position:'relative'}}>
           <span style={{fontSize:12}}>📅</span>
           <button className="hov" onClick={()=>setCalOpen(p=>!p)} style={{padding:'5px 12px',borderRadius:7,border:'1px solid rgba(255,255,255,0.08)',background:'rgba(255,255,255,0.04)',color:'#aaa',fontSize:12,fontFamily:'monospace',cursor:'pointer'}}>
-            {dateFrom} → {dateTo}
+            {dateFrom} to {dateTo}
           </button>
           <div style={{display:'flex',gap:4}}>
             {PRESETS.map(p=>(
