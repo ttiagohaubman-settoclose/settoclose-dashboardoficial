@@ -214,6 +214,7 @@ export default function Dashboard() {
       const j = await r.json();
       if (j.error) { console.warn('GHL:', j.error); return; }
       setGhlData(prev => ({ ...prev, [offId]: j.days || [] }));
+      setVentas(prev => ({ ...prev, [offId]: j.ventas || [] }));
     } catch(e) { console.warn('GHL fetch error:', e.message); }
   }, []);
 
