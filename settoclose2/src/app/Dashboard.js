@@ -79,7 +79,7 @@ function CalendarPicker({ dateFrom, dateTo, onSelect }) {
     const clicked = fmt(new Date(viewYear, viewMonth, day));
     if (!selecting) {
       setSelecting(clicked);
-      onSelect(clicked, clicked);
+      // Don't call onSelect yet — wait for second click
     } else {
       const [from, to] = clicked < selecting ? [clicked, selecting] : [selecting, clicked];
       onSelect(from, to);
@@ -149,6 +149,8 @@ export default function Dashboard() {
   const [editText, setEditText] = useState('');
   const [editType, setEditType] = useState('test');
   const [editDate, setEditDate] = useState('');
+  const [editMedia, setEditMedia] = useState([]);
+  const editMediaRef = useRef();
   const [pendMedia, setPendMedia] = useState([]);
   const [chart,     setChart]     = useState('cpl');
   const [showManual,setShowManual]= useState(false);
@@ -283,9 +285,12 @@ export default function Dashboard() {
     if (!editingAction || !activeId) return;
     setActions(prev => ({
       ...prev,
-      [activeId]: (prev[activeId]||[]).map(a => a.id === editingAction ? {...a, text: editText, type: editType, date: editDate} : a)
+      [activeId]: (prev[activeId]||[]).map(a => a.id === editingAction
+        ? {...a, text: editText, type: editType, date: editDate, media: [...(a.media||[]), ...editMedia]}
+        : a)
     }));
     setEditingAction(null);
+    setEditMedia([]);
   };
 
   const filtActions=useMemo(()=>{
@@ -561,7 +566,7 @@ export default function Dashboard() {
                                 <span style={{fontSize:10,color:'#333',background:'rgba(255,255,255,0.04)',padding:'1px 7px',borderRadius:4}}>{t.label}</span>
                                 {a.media?.length>0&&<span style={{fontSize:10,color:'#444'}}>📎 {a.media.length}</span>}
                                 <div style={{marginLeft:'auto',display:'flex',gap:6,alignItems:'center'}}>
-                  <button onClick={e=>{e.stopPropagation();setEditingAction(a.id);setEditText(a.text);setEditType(a.type);setEditDate(a.date);}} style={{background:'none',border:'none',color:'#333',fontSize:11,cursor:'pointer',padding:'2px 6px'}}>✏️</button>
+                  <button onClick={e=>{e.stopPropagation();setEditingAction(a.id);setEditText(a.text);setEditType(a.type);setEditDate(a.date);setEditMedia([]);}} style={{background:'none',border:'none',color:'#333',fontSize:11,cursor:'pointer',padding:'2px 6px'}}>✏️</button>
                   <span style={{fontSize:10,color:'#333'}}>{isExp?'▲ cerrar':'▼ ver más'}</span>
                 </div>
                               </div>
@@ -661,9 +666,24 @@ export default function Dashboard() {
                 {Object.entries(ACTION_TYPES).map(([k,v])=><option key={k} value={k} style={{background:'#111'}}>{v.label}</option>)}
               </select>
             </div>
-            <textarea value={editText} onChange={e=>setEditText(e.target.value)} rows={5} style={{width:'100%',background:'rgba(255,255,255,0.05)',border:'1px solid rgba(255,255,255,0.1)',borderRadius:8,padding:'10px 14px',color:'#fff',fontSize:13,fontFamily:"'Roboto',sans-serif",resize:'vertical',lineHeight:1.6,marginBottom:16}}/>
+            <textarea value={editText} onChange={e=>setEditText(e.target.value)} rows={5} style={{width:'100%',background:'rgba(255,255,255,0.05)',border:'1px solid rgba(255,255,255,0.1)',borderRadius:8,padding:'10px 14px',color:'#fff',fontSize:13,fontFamily:"'Roboto',sans-serif",resize:'vertical',lineHeight:1.6,marginBottom:10}}/>
+            <div style={{display:'flex',alignItems:'center',gap:10,marginBottom:12}}>
+              <button onClick={()=>editMediaRef.current?.click()} style={{padding:'7px 14px',borderRadius:7,border:'1px solid rgba(255,255,255,0.08)',background:'rgba(255,255,255,0.03)',color:'#666',fontSize:12,cursor:'pointer',fontFamily:"'Roboto',sans-serif"}}>📎 Adjuntar media</button>
+              <input ref={editMediaRef} type="file" accept="image/*,video/*" multiple onChange={e=>{Array.from(e.target.files).forEach(f=>{const r=new FileReader();r.onload=ev=>setEditMedia(p=>[...p,{name:f.name,type:f.type,url:ev.target.result}]);r.readAsDataURL(f);});}} style={{display:'none'}}/>
+              {editMedia.length>0&&<span style={{fontSize:11,color:'#555'}}>{editMedia.length} archivo(s)</span>}
+            </div>
+            {editMedia.length>0&&(
+              <div style={{display:'flex',gap:8,marginBottom:12,flexWrap:'wrap'}}>
+                {editMedia.map((m,i)=>(
+                  <div key={i} style={{position:'relative'}}>
+                    {m.type?.startsWith('image')?<img src={m.url} style={{width:80,height:60,objectFit:'cover',borderRadius:6,border:'1px solid rgba(255,255,255,0.1)'}}/>:<video src={m.url} style={{width:100,height:60,borderRadius:6}}/>}
+                    <button onClick={()=>setEditMedia(p=>p.filter((_,j)=>j!==i))} style={{position:'absolute',top:-4,right:-4,background:'#F87171',border:'none',borderRadius:'50%',width:16,height:16,fontSize:9,cursor:'pointer',color:'#fff',display:'flex',alignItems:'center',justifyContent:'center'}}>✕</button>
+                  </div>
+                ))}
+              </div>
+            )}
             <div style={{display:'flex',gap:8}}>
-              <button onClick={()=>setEditingAction(null)} style={{flex:1,padding:'10px',borderRadius:8,border:'1px solid rgba(255,255,255,0.08)',background:'transparent',color:'#555',cursor:'pointer',fontFamily:"'Roboto',sans-serif"}}>Cancelar</button>
+              <button onClick={()=>{setEditingAction(null);setEditMedia([]);}} style={{flex:1,padding:'10px',borderRadius:8,border:'1px solid rgba(255,255,255,0.08)',background:'transparent',color:'#555',cursor:'pointer',fontFamily:"'Roboto',sans-serif"}}>Cancelar</button>
               <button onClick={saveEdit} style={{flex:1,padding:'10px',borderRadius:8,border:'1px solid rgba(56,189,248,0.4)',background:'rgba(56,189,248,0.15)',color:'#38BDF8',cursor:'pointer',fontWeight:600,fontFamily:"'Roboto',sans-serif"}}>Guardar cambios</button>
             </div>
           </div>
