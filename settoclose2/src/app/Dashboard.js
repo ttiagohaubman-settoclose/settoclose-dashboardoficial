@@ -347,7 +347,94 @@ export default function Dashboard() {
       {t:'Appointments',ks:[{l:'Apps Booked',v:T.appsBooked},{l:'Apps Showed',v:T.appsShowed},{l:'Show Rate',v:showRate.toFixed(1)+'%'},{l:'Deals Closed',v:T.sales},{l:'Close Rate',v:closeRate.toFixed(1)+'%'}]},
       {t:'Revenue & Cash',ks:[{l:'Rev. Company',v:fmtK(T.revCompany)},{l:'Rev. Office',v:fmtK(T.revOffice)},{l:'Cash Tiago',v:fmtK(T.cashTiago)},{l:'Cash Collected',v:fmtK(T.cashOffice)},{l:'ROAS (Cash)',v:roasCash.toFixed(2)+'x'}]},
     ];
-    const html=`<!DOCTYPE html><html><head><meta charset="utf-8"><title>${office.name}</title><style>@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&family=Roboto:wght@300;400;500&display=swap');body{background:#080a0d;color:#fff;font-family:'Roboto',sans-serif;margin:0;padding:28px;-webkit-print-color-adjust:exact;print-color-adjust:exact}h1{font-family:'Poppins',sans-serif;font-size:22px;font-weight:700;color:${office.color};margin:0 0 4px}.meta{font-size:12px;color:#444;margin-bottom:28px}h2{font-family:'Poppins',sans-serif;font-size:13px;font-weight:600;color:#666;text-transform:uppercase;letter-spacing:.1em;margin:24px 0 10px}.grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}.card{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:10px;padding:14px}.cl{font-size:10px;color:#555;text-transform:uppercase;letter-spacing:.1em;margin-bottom:5px}.cv{font-size:20px;font-weight:700;font-family:'Poppins',sans-serif;color:#fff}.badge{display:inline-block;background:${office.color}18;border:1px solid ${office.color}33;color:${office.color};padding:2px 12px;border-radius:20px;font-size:11px;margin-left:10px;vertical-align:middle}</style></head><body><h1>${office.name}<span class="badge">${dateFrom} → ${dateTo}</span></h1><div class="meta">SetToClose Dashboard · ${new Date().toLocaleDateString()}</div>${secs.map(s=>`<h2>${s.t}</h2><div class="grid">${s.ks.map(k=>`<div class="card"><div class="cl">${k.l}</div><div class="cv">${k.v}</div></div>`).join('')}</div>`).join('')}</body></html>`;
+    const ventasHtml = (ventas[activeId]||[]).length > 0 ? `
+  <div class="section-title">Ventas</div>
+  <table class="ventas-table">
+    <thead>
+      <tr>
+        <th>Nombre</th><th>Teléfono</th><th>Email</th><th>Fecha</th><th>Estado</th>
+      </tr>
+    </thead>
+    <tbody>
+      ${(ventas[activeId]||[]).map((v,i)=>`
+        <tr class="${i%2===0?'even':'odd'}">
+          <td class="name">${v.name}</td>
+          <td class="mono">${v.phone||'-'}</td>
+          <td>${v.email||'-'}</td>
+          <td class="mono">${v.date}</td>
+          <td><span class="badge-status ${v.status==='pagada'?'pagada':'venta'}">${v.status==='pagada'?'✓ Pagada':'● Venta'}</span></td>
+        </tr>`).join('')}
+    </tbody>
+  </table>` : '';
+
+    const html=`<!DOCTYPE html><html><head><meta charset="utf-8"><title>${office.name}</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700;800&family=Roboto:wght@300;400;500&display=swap');
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:#080a0d;color:#fff;font-family:'Roboto',sans-serif;padding:36px 40px;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+.header{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:32px;padding-bottom:24px;border-bottom:1px solid rgba(255,255,255,0.06)}
+.header-left h1{font-family:'Poppins',sans-serif;font-size:28px;font-weight:800;color:${office.color};margin-bottom:4px}
+.header-left .period{font-size:13px;color:#555;font-family:'Roboto',sans-serif}
+.header-right{text-align:right}
+.header-right .generated{font-size:11px;color:#333;margin-bottom:6px}
+.stc-badge{background:${office.color}15;border:1px solid ${office.color}30;color:${office.color};padding:4px 14px;border-radius:20px;font-size:12px;font-weight:600;font-family:'Poppins',sans-serif}
+.section-title{font-family:'Poppins',sans-serif;font-size:11px;font-weight:600;color:#444;text-transform:uppercase;letter-spacing:.12em;margin:28px 0 12px;padding-bottom:8px;border-bottom:1px solid rgba(255,255,255,0.05)}
+.grid-4{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
+.grid-5{display:grid;grid-template-columns:repeat(5,1fr);gap:10px}
+.card{background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.07);border-radius:12px;padding:16px;position:relative;overflow:hidden}
+.card::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:${office.color};opacity:.4}
+.card-label{font-size:9px;color:#444;text-transform:uppercase;letter-spacing:.1em;margin-bottom:8px;font-weight:600}
+.card-value{font-size:22px;font-weight:700;font-family:'Poppins',sans-serif;color:#fff;line-height:1}
+.card-value.highlight{color:${office.color}}
+.divider{height:1px;background:rgba(255,255,255,0.04);margin:28px 0}
+.ventas-table{width:100%;border-collapse:collapse;margin-top:4px}
+.ventas-table th{font-size:9px;color:#444;text-transform:uppercase;letter-spacing:.1em;padding:8px 12px;text-align:left;border-bottom:1px solid rgba(255,255,255,0.07);font-weight:600}
+.ventas-table td{font-size:12px;color:#bbb;padding:11px 12px;border-bottom:1px solid rgba(255,255,255,0.04)}
+.ventas-table tr.odd td{background:rgba(255,255,255,0.01)}
+.ventas-table td.name{color:#fff;font-weight:500}
+.ventas-table td.mono{font-family:monospace;color:#666}
+.badge-status{display:inline-block;padding:3px 10px;border-radius:20px;font-size:10px;font-weight:600}
+.badge-status.pagada{background:rgba(74,222,128,0.1);border:1px solid rgba(74,222,128,0.3);color:#4ADE80}
+.badge-status.venta{background:rgba(250,204,21,0.1);border:1px solid rgba(250,204,21,0.3);color:#FACC15}
+.footer{margin-top:40px;padding-top:16px;border-top:1px solid rgba(255,255,255,0.05);display:flex;justify-content:space-between;align-items:center}
+.footer-left{font-size:10px;color:#333}
+.footer-right{font-size:10px;color:#333}
+</style>
+</head>
+<body>
+  <div class="header">
+    <div class="header-left">
+      <h1>${office.name}</h1>
+      <div class="period">${dateFrom} → ${dateTo} &nbsp;·&nbsp; ${T.sales} deals cerrados &nbsp;·&nbsp; $${office.payout}/deal</div>
+    </div>
+    <div class="header-right">
+      <div class="generated">Generado el ${new Date().toLocaleDateString('es-US',{year:'numeric',month:'long',day:'numeric'})}</div>
+      <span class="stc-badge">SetToClose Dashboard</span>
+    </div>
+  </div>
+
+  <div class="section-title">Meta Ads</div>
+  <div class="grid-4">
+    ${secs[0].ks.map(k=>`<div class="card"><div class="card-label">${k.l}</div><div class="card-value">${k.v}</div></div>`).join('')}
+  </div>
+
+  <div class="section-title">Appointments & Sales</div>
+  <div class="grid-5">
+    ${secs[1].ks.map(k=>`<div class="card"><div class="card-label">${k.l}</div><div class="card-value">${k.v}</div></div>`).join('')}
+  </div>
+
+  <div class="section-title">Revenue & Cash</div>
+  <div class="grid-5">
+    ${secs[2].ks.map(k=>`<div class="card"><div class="card-label">${k.l}</div><div class="card-value highlight">${k.v}</div></div>`).join('')}
+  </div>
+
+  ${ventasHtml}
+
+  <div class="footer">
+    <div class="footer-left">SetToClose · Dashboard Report</div>
+    <div class="footer-right">${office.name} &nbsp;·&nbsp; ${dateFrom} to ${dateTo}</div>
+  </div>
+</body></html>`;
     const popup=window.open('','_blank');
     popup.document.write(html); popup.document.close();
     setTimeout(()=>popup.print(),800);
