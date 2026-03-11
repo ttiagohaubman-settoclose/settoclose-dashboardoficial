@@ -576,6 +576,88 @@ body{background:#080a0d;color:#fff;font-family:'Roboto',sans-serif;padding:36px 
             <img src={logos.STC} alt="" style={{height:48,opacity:.15}}/>
             <div style={{color:'#2a2a2a',fontSize:14}}>Select a client from the Clients menu</div>
           </div>
+        ):activeId==='STC'?(
+          <div style={{paddingBottom:60}}>
+            {/* STC Header */}
+            <div style={{display:'flex',alignItems:'center',gap:16,marginBottom:28}}>
+              <img src={LOGOS_INIT.STC} alt="STC" style={{width:52,height:52,borderRadius:12,objectFit:'contain',background:'rgba(255,255,255,0.04)',padding:6,border:'1px solid rgba(255,255,255,0.08)'}}/>
+              <div>
+                <div style={{fontSize:22,fontWeight:700,fontFamily:"'Poppins',sans-serif",color:'#fff'}}>SetToClose</div>
+                <div style={{fontSize:12,color:'#444',marginTop:2}}>{dateFrom} to {dateTo} · {offices.length} oficinas activas</div>
+              </div>
+            </div>
+            <div style={{fontSize:11,fontWeight:600,color:'#555',letterSpacing:'.1em',textTransform:'uppercase',marginBottom:14}}>Métricas Globales</div>
+            <div style={{display:'grid',gridTemplateColumns:'repeat(4,1fr)',gap:12,marginBottom:32}}>
+              {[
+                { id:'spend',      label:'Ad Spend Total',   value: fmt$(stcTotals.spend),       sub: `${offices.length} cuentas`,                                                             vals: allOfficesData.map(o=>({id:o.id,name:o.name,color:o.color,v:fmt$(o.spend)})) },
+                { id:'leads',      label:'Total Leads',      value: fmtN(stcTotals.leads),       sub: `CPL: ${fmt$(stcTotals.leads>0?stcTotals.spend/stcTotals.leads:0)}`,                    vals: allOfficesData.map(o=>({id:o.id,name:o.name,color:o.color,v:fmtN(o.leads)})) },
+                { id:'cpl',        label:'CPL Promedio',     value: fmt$(stcTotals.leads>0?stcTotals.spend/stcTotals.leads:0), sub: 'Costo por lead',                                         vals: allOfficesData.map(o=>({id:o.id,name:o.name,color:o.color,v:fmt$(o.cpl)})) },
+                { id:'apps',       label:'Apps Booked',      value: fmtN(stcTotals.appsBooked),  sub: `Show rate: ${stcTotals.appsBooked>0?((stcTotals.appsShowed/stcTotals.appsBooked)*100).toFixed(1):0}%`, vals: allOfficesData.map(o=>({id:o.id,name:o.name,color:o.color,v:fmtN(o.appsBooked)})) },
+                { id:'showed',     label:'Apps Showed',      value: fmtN(stcTotals.appsShowed),  sub: 'Total presentadas',                                                                    vals: allOfficesData.map(o=>({id:o.id,name:o.name,color:o.color,v:fmtN(o.appsShowed)})) },
+                { id:'sales',      label:'Deals Cerrados',   value: fmtN(stcTotals.sales),       sub: `Close: ${stcTotals.appsShowed>0?((stcTotals.sales/stcTotals.appsShowed)*100).toFixed(1):0}%`, vals: allOfficesData.map(o=>({id:o.id,name:o.name,color:o.color,v:fmtN(o.sales)})) },
+                { id:'cash',       label:'Cash Tiago Total', value: fmt$(stcTotals.cashTiago),   sub: 'Tu revenue personal',                                                                  vals: allOfficesData.map(o=>({id:o.id,name:o.name,color:o.color,v:fmt$(o.cashTiago)})) },
+                { id:'impressions',label:'Impresiones',      value: fmtN(stcTotals.impressions), sub: 'Total alcance',                                                                        vals: allOfficesData.map(o=>({id:o.id,name:o.name,color:o.color,v:fmtN(o.impressions)})) },
+              ].map(kpi=>(
+                <div key={kpi.id} onClick={()=>setExpandedKpi(expandedKpi===kpi.id?null:kpi.id)} style={{background:'rgba(255,255,255,0.03)',border:`1px solid ${expandedKpi===kpi.id?'rgba(255,255,255,0.2)':'rgba(255,255,255,0.07)'}`,borderRadius:14,padding:'16px 18px',cursor:'pointer',transition:'all .2s',position:'relative'}}>
+                  <div style={{fontSize:10,color:'#555',textTransform:'uppercase',letterSpacing:'.1em',marginBottom:8,fontWeight:600}}>{kpi.label}</div>
+                  <div style={{fontSize:24,fontWeight:700,fontFamily:"'Poppins',sans-serif",color:'#fff',marginBottom:4}}>{kpi.value}</div>
+                  <div style={{fontSize:11,color:'#444'}}>{kpi.sub}</div>
+                  <div style={{position:'absolute',top:12,right:12,fontSize:10,color:'#333'}}>{expandedKpi===kpi.id?'▲':'▼'}</div>
+                  {expandedKpi===kpi.id&&(
+                    <div style={{marginTop:14,paddingTop:12,borderTop:'1px solid rgba(255,255,255,0.07)'}}>
+                      {kpi.vals.map(o=>(
+                        <div key={o.id} style={{display:'flex',alignItems:'center',justifyContent:'space-between',marginBottom:8}}>
+                          <div style={{display:'flex',alignItems:'center',gap:7}}>
+                            <img src={logos[o.id]||''} alt="" style={{width:18,height:18,borderRadius:'50%',objectFit:'cover'}}/>
+                            <span style={{fontSize:12,color:'#888'}}>{o.name}</span>
+                          </div>
+                          <span style={{fontSize:13,fontWeight:600,color:o.color}}>{o.v}</span>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+            {allVentas.length>0&&(
+              <>
+                <div style={{fontSize:11,fontWeight:600,color:'#555',letterSpacing:'.1em',textTransform:'uppercase',marginBottom:14}}>Mini CRM — Todas las Ventas</div>
+                <div style={{background:'rgba(255,255,255,0.02)',border:'1px solid rgba(255,255,255,0.06)',borderRadius:14,overflow:'hidden'}}>
+                  <table style={{width:'100%',borderCollapse:'collapse'}}>
+                    <thead>
+                      <tr style={{borderBottom:'1px solid rgba(255,255,255,0.06)'}}>
+                        {['Oficina','Nombre','Teléfono','Email','Fecha','Estado'].map(h=>(
+                          <th key={h} style={{padding:'10px 16px',textAlign:'left',fontSize:10,color:'#444',fontWeight:600,letterSpacing:'.08em',textTransform:'uppercase'}}>{h}</th>
+                        ))}
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {allVentas.map((v,i)=>(
+                        <tr key={v.id+v.officeId} style={{borderBottom:'1px solid rgba(255,255,255,0.04)',background:i%2===0?'transparent':'rgba(255,255,255,0.01)'}}>
+                          <td style={{padding:'11px 16px'}}>
+                            <div style={{display:'flex',alignItems:'center',gap:7}}>
+                              <img src={logos[v.officeId]||''} alt="" style={{width:20,height:20,borderRadius:'50%',objectFit:'cover'}}/>
+                              <span style={{fontSize:12,color:v.officeColor,fontWeight:600}}>{v.officeName}</span>
+                            </div>
+                          </td>
+                          <td style={{padding:'11px 16px',fontSize:13,color:'#ddd',fontWeight:500}}>{v.name}</td>
+                          <td style={{padding:'11px 16px',fontSize:12,color:'#666',fontFamily:'monospace'}}>{v.phone}</td>
+                          <td style={{padding:'11px 16px',fontSize:12,color:'#666'}}>{v.email}</td>
+                          <td style={{padding:'11px 16px',fontSize:12,color:'#555',fontFamily:'monospace'}}>{v.date}</td>
+                          <td style={{padding:'11px 16px'}}>
+                            {v.status==='pagada'
+                              ?<span style={{background:'rgba(74,222,128,0.1)',border:'1px solid rgba(74,222,128,0.3)',color:'#4ADE80',padding:'3px 10px',borderRadius:20,fontSize:11,fontWeight:600}}>✓ Pagada</span>
+                              :<span style={{background:'rgba(250,204,21,0.1)',border:'1px solid rgba(250,204,21,0.3)',color:'#FACC15',padding:'3px 10px',borderRadius:20,fontSize:11,fontWeight:600}}>● Venta</span>
+                            }
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </>
+            )}
+          </div>
         ):(
           <>
             <div style={{display:'flex',alignItems:'center',gap:14,marginBottom:24}}>
