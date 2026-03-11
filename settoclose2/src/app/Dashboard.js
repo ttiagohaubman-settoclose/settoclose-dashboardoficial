@@ -120,7 +120,7 @@ function CalendarPicker({ dateFrom, dateTo, onSelect }) {
         ))}
       </div>
       {selecting&&<div style={{fontSize:11,color:'#38BDF8',marginTop:10,textAlign:'center'}}>Ahora selecciona la fecha final</div>}
-      {!selecting&&dateFrom&&<div style={{fontSize:11,color:'#444',marginTop:10,textAlign:'center'}}>{dateFrom} → {dateTo||'...'}</div>}
+      {!selecting&&dateFrom&&<div style={{fontSize:11,color:'#444',marginTop:10,textAlign:'center'}}>{dateFrom} {'->'} {dateTo||'...'}</div>}
     </div>
 
       {/* EDIT ACTION MODAL */}
