@@ -59,6 +59,94 @@ const Spin = ({color}) => (
   </div>
 );
 
+
+// ── CALENDAR RANGE PICKER ────────────────────────────────────────────
+function CalendarPicker({ dateFrom, dateTo, onSelect }) {
+  const today = new Date();
+  const [viewYear, setViewYear] = useState(today.getFullYear());
+  const [viewMonth, setViewMonth] = useState(today.getMonth());
+  const [selecting, setSelecting] = useState(null); // first click = start
+
+  const MONTHS = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+  const DAYS = ['Su','Mo','Tu','We','Th','Fr','Sa'];
+
+  const firstDay = new Date(viewYear, viewMonth, 1).getDay();
+  const daysInMonth = new Date(viewYear, viewMonth + 1, 0).getDate();
+
+  const fmt = d => d.toISOString().split('T')[0];
+
+  const handleDay = (day) => {
+    const clicked = fmt(new Date(viewYear, viewMonth, day));
+    if (!selecting) {
+      onSelect(clicked, null);
+      setSelecting(clicked);
+    } else {
+      const [from, to] = clicked < selecting ? [clicked, selecting] : [selecting, clicked];
+      onSelect(from, to);
+      setSelecting(null);
+    }
+  };
+
+  const inRange = (day) => {
+    const d = fmt(new Date(viewYear, viewMonth, day));
+    if (!dateFrom || !dateTo) return false;
+    return d > dateFrom && d < dateTo;
+  };
+  const isFrom = (day) => fmt(new Date(viewYear, viewMonth, day)) === dateFrom;
+  const isTo   = (day) => fmt(new Date(viewYear, viewMonth, day)) === dateTo;
+
+  const cells = [];
+  for (let i = 0; i < firstDay; i++) cells.push(null);
+  for (let d = 1; d <= daysInMonth; d++) cells.push(d);
+
+  return (
+    <div style={{userSelect:'none'}}>
+      <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',marginBottom:12}}>
+        <button onClick={()=>{if(viewMonth===0){setViewMonth(11);setViewYear(y=>y-1);}else setViewMonth(m=>m-1);}} style={{background:'none',border:'none',color:'#666',fontSize:16,cursor:'pointer',padding:'2px 8px'}}>‹</button>
+        <span style={{fontSize:13,fontWeight:600,color:'#ccc',fontFamily:"'Poppins',sans-serif"}}>{MONTHS[viewMonth]} {viewYear}</span>
+        <button onClick={()=>{if(viewMonth===11){setViewMonth(0);setViewYear(y=>y+1);}else setViewMonth(m=>m+1);}} style={{background:'none',border:'none',color:'#666',fontSize:16,cursor:'pointer',padding:'2px 8px'}}>›</button>
+      </div>
+      <div style={{display:'grid',gridTemplateColumns:'repeat(7,1fr)',gap:2,marginBottom:4}}>
+        {DAYS.map(d=><div key={d} style={{textAlign:'center',fontSize:10,color:'#444',padding:'2px 0'}}>{d}</div>)}
+      </div>
+      <div style={{display:'grid',gridTemplateColumns:'repeat(7,1fr)',gap:2}}>
+        {cells.map((day,i)=>(
+          <div key={i} onClick={()=>day&&handleDay(day)} style={{
+            textAlign:'center',padding:'6px 2px',borderRadius:6,fontSize:12,cursor:day?'pointer':'default',
+            background: day&&(isFrom(day)||isTo(day)) ? '#38BDF8' : day&&inRange(day) ? 'rgba(56,189,248,0.15)' : 'transparent',
+            color: day&&(isFrom(day)||isTo(day)) ? '#000' : day ? '#bbb' : 'transparent',
+            fontWeight: day&&(isFrom(day)||isTo(day)) ? 700 : 400,
+          }}>{day||''}</div>
+        ))}
+      </div>
+      {selecting&&<div style={{fontSize:11,color:'#38BDF8',marginTop:10,textAlign:'center'}}>Ahora selecciona la fecha final</div>}
+      {!selecting&&dateFrom&&<div style={{fontSize:11,color:'#444',marginTop:10,textAlign:'center'}}>{dateFrom} → {dateTo||'...'}</div>}
+    </div>
+
+      {/* EDIT ACTION MODAL */}
+      {editingAction&&(
+        <div style={{position:'fixed',inset:0,background:'rgba(0,0,0,0.8)',zIndex:500,display:'flex',alignItems:'center',justifyContent:'center'}} onClick={()=>setEditingAction(null)}>
+          <div style={{background:'#0f1115',border:'1px solid rgba(255,255,255,0.1)',borderRadius:16,padding:28,width:480,maxWidth:'90vw'}} onClick={e=>e.stopPropagation()}>
+            <div style={{fontSize:16,fontWeight:700,fontFamily:"'Poppins',sans-serif",marginBottom:16}}>Editar entrada</div>
+            <div style={{display:'flex',gap:8,marginBottom:10}}>
+              <input type="date" value={editDate} onChange={e=>setEditDate(e.target.value)} style={{background:'rgba(255,255,255,0.05)',border:'1px solid rgba(255,255,255,0.1)',borderRadius:8,padding:'10px 14px',color:'#fff',fontSize:13,fontFamily:"'Roboto',sans-serif",width:150,colorScheme:'dark'}}/>
+              <select value={editType} onChange={e=>setEditType(e.target.value)} style={{background:'rgba(255,255,255,0.05)',border:'1px solid rgba(255,255,255,0.1)',borderRadius:8,padding:'10px 14px',color:'#fff',fontSize:13,fontFamily:"'Roboto',sans-serif",width:120,cursor:'pointer'}}>
+                {Object.entries(ACTION_TYPES).map(([k,v])=><option key={k} value={k} style={{background:'#111'}}>{v.label}</option>)}
+              </select>
+            </div>
+            <textarea value={editText} onChange={e=>setEditText(e.target.value)} rows={5} style={{width:'100%',background:'rgba(255,255,255,0.05)',border:'1px solid rgba(255,255,255,0.1)',borderRadius:8,padding:'10px 14px',color:'#fff',fontSize:13,fontFamily:"'Roboto',sans-serif",resize:'vertical',lineHeight:1.6,marginBottom:16}}/>
+            <div style={{display:'flex',gap:8}}>
+              <button onClick={()=>setEditingAction(null)} style={{flex:1,padding:'10px',borderRadius:8,border:'1px solid rgba(255,255,255,0.08)',background:'transparent',color:'#555',cursor:'pointer',fontFamily:"'Roboto',sans-serif"}}>Cancelar</button>
+              <button onClick={saveEdit} style={{flex:1,padding:'10px',borderRadius:8,border:'1px solid rgba(56,189,248,0.4)',background:'rgba(56,189,248,0.15)',color:'#38BDF8',cursor:'pointer',fontWeight:600,fontFamily:"'Roboto',sans-serif"}}>Guardar cambios</button>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+// ────────────────────────────────────────────────────────────────────
+
 export default function Dashboard() {
   const [offices,   setOffices]   = useState(INIT_OFFICES);
   const [logos,     setLogos]     = useState(LOGOS_INIT);
@@ -71,12 +159,17 @@ export default function Dashboard() {
   const [dateFrom,  setDateFrom]  = useState(dAgo(30));
   const [dateTo,    setDateTo]    = useState(today());
   const [preset,    setPreset]    = useState(30);
+  const [calOpen,   setCalOpen]   = useState(false);
   const [actions,   setActions]   = useState({SC:[],VA:[],MD:[],NC:[]});
   const [newText,   setNewText]   = useState('');
   const [newType,   setNewType]   = useState('test');
   const [newDate,   setNewDate]   = useState(today());
   const [filterDate,setFilterDate]= useState('');
   const [expanded,  setExpanded]  = useState(null);
+  const [editingAction, setEditingAction] = useState(null);
+  const [editText, setEditText] = useState('');
+  const [editType, setEditType] = useState('test');
+  const [editDate, setEditDate] = useState('');
   const [pendMedia, setPendMedia] = useState([]);
   const [chart,     setChart]     = useState('cpl');
   const [showManual,setShowManual]= useState(false);
@@ -207,6 +300,15 @@ export default function Dashboard() {
     setNewText(''); setPendMedia([]);
   };
 
+  const saveEdit = () => {
+    if (!editingAction || !activeId) return;
+    setActions(prev => ({
+      ...prev,
+      [activeId]: (prev[activeId]||[]).map(a => a.id === editingAction ? {...a, text: editText, type: editType, date: editDate} : a)
+    }));
+    setEditingAction(null);
+  };
+
   const filtActions=useMemo(()=>{
     if(!activeId) return [];
     const all=actions[activeId]||[];
@@ -299,17 +401,22 @@ export default function Dashboard() {
 
         <div style={{width:1,height:26,background:'rgba(255,255,255,0.07)'}}/>
 
-        {/* Date range */}
-        <div style={{display:'flex',alignItems:'center',gap:8,flexWrap:'wrap'}}>
+        {/* Date range - single calendar picker */}
+        <div style={{display:'flex',alignItems:'center',gap:8,flexWrap:'wrap',position:'relative'}}>
           <span style={{fontSize:12}}>📅</span>
-          <input type="date" value={dateFrom} onChange={e=>{setDateFrom(e.target.value);setPreset(null);}} style={{background:'rgba(255,255,255,0.04)',border:'1px solid rgba(255,255,255,0.08)',borderRadius:7,padding:'5px 10px',color:'#aaa',fontSize:12,fontFamily:'monospace',colorScheme:'dark',cursor:'pointer'}}/>
-          <span style={{color:'#333',fontSize:12}}>→</span>
-          <input type="date" value={dateTo} onChange={e=>{setDateTo(e.target.value);setPreset(null);}} style={{background:'rgba(255,255,255,0.04)',border:'1px solid rgba(255,255,255,0.08)',borderRadius:7,padding:'5px 10px',color:'#aaa',fontSize:12,fontFamily:'monospace',colorScheme:'dark',cursor:'pointer'}}/>
+          <button className="hov" onClick={()=>setCalOpen(p=>!p)} style={{padding:'5px 12px',borderRadius:7,border:'1px solid rgba(255,255,255,0.08)',background:'rgba(255,255,255,0.04)',color:'#aaa',fontSize:12,fontFamily:'monospace',cursor:'pointer'}}>
+            {dateFrom} → {dateTo}
+          </button>
           <div style={{display:'flex',gap:4}}>
             {PRESETS.map(p=>(
-              <button key={p.days} onClick={()=>applyPreset(p.days)} style={{padding:'4px 9px',borderRadius:6,border:`1px solid ${preset===p.days?'rgba(255,255,255,0.2)':'rgba(255,255,255,0.07)'}`,background:preset===p.days?'rgba(255,255,255,0.1)':'transparent',color:preset===p.days?'#fff':'#444',fontSize:11,cursor:'pointer',fontFamily:'monospace'}}>{p.label}</button>
+              <button key={p.days} onClick={()=>{applyPreset(p.days);setCalOpen(false);}} style={{padding:'4px 9px',borderRadius:6,border:`1px solid ${preset===p.days?'rgba(255,255,255,0.2)':'rgba(255,255,255,0.07)'}`,background:preset===p.days?'rgba(255,255,255,0.1)':'transparent',color:preset===p.days?'#fff':'#444',fontSize:11,cursor:'pointer',fontFamily:'monospace'}}>{p.label}</button>
             ))}
           </div>
+          {calOpen&&(
+            <div style={{position:'absolute',top:'calc(100% + 8px)',left:0,zIndex:500,background:'#0f1115',border:'1px solid rgba(255,255,255,0.1)',borderRadius:14,padding:16,boxShadow:'0 20px 60px rgba(0,0,0,0.7)',minWidth:280}}>
+              <CalendarPicker dateFrom={dateFrom} dateTo={dateTo} onSelect={(from,to)=>{setDateFrom(from);setDateTo(to);setPreset(null);if(from&&to)setCalOpen(false);}}/>
+            </div>
+          )}
         </div>
 
         <div style={{flex:1}}/>
@@ -474,7 +581,10 @@ export default function Dashboard() {
                                 <span style={{fontSize:11,color:t.border,fontFamily:'monospace'}}>{a.date}</span>
                                 <span style={{fontSize:10,color:'#333',background:'rgba(255,255,255,0.04)',padding:'1px 7px',borderRadius:4}}>{t.label}</span>
                                 {a.media?.length>0&&<span style={{fontSize:10,color:'#444'}}>📎 {a.media.length}</span>}
-                                <span style={{marginLeft:'auto',fontSize:10,color:'#333'}}>{isExp?'▲ cerrar':'▼ ver más'}</span>
+                                <div style={{marginLeft:'auto',display:'flex',gap:6,alignItems:'center'}}>
+                  <button onClick={e=>{e.stopPropagation();setEditingAction(a.id);setEditText(a.text);setEditType(a.type);setEditDate(a.date);}} style={{background:'none',border:'none',color:'#333',fontSize:11,cursor:'pointer',padding:'2px 6px'}}>✏️</button>
+                  <span style={{fontSize:10,color:'#333'}}>{isExp?'▲ cerrar':'▼ ver más'}</span>
+                </div>
                               </div>
                               <div style={{fontSize:13,color:isExp?'#ddd':'#888',lineHeight:1.6,whiteSpace:isExp?'pre-wrap':'nowrap',overflow:'hidden',textOverflow:'ellipsis'}}>{a.text}</div>
                               {isExp&&a.media?.length>0&&(
@@ -556,6 +666,27 @@ export default function Dashboard() {
                 <button onClick={()=>{setOffices(p=>p.filter(o=>o.id!==editing.id));if(activeId===editing.id)setActiveId(null);setEditing(null);}} style={{flex:1,padding:'10px',borderRadius:8,border:'1px solid rgba(248,113,113,0.3)',background:'rgba(248,113,113,0.08)',color:'#F87171',cursor:'pointer',fontSize:13,fontFamily:"'Roboto',sans-serif"}}>🗑 Delete</button>
                 <button onClick={()=>setEditing(null)} style={{...btnP(editing.color),flex:1,textAlign:'center'}}>Done</button>
               </div>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+
+      {/* EDIT ACTION MODAL */}
+      {editingAction&&(
+        <div style={{position:'fixed',inset:0,background:'rgba(0,0,0,0.8)',zIndex:500,display:'flex',alignItems:'center',justifyContent:'center'}} onClick={()=>setEditingAction(null)}>
+          <div style={{background:'#0f1115',border:'1px solid rgba(255,255,255,0.1)',borderRadius:16,padding:28,width:480,maxWidth:'90vw'}} onClick={e=>e.stopPropagation()}>
+            <div style={{fontSize:16,fontWeight:700,fontFamily:"'Poppins',sans-serif",marginBottom:16}}>Editar entrada</div>
+            <div style={{display:'flex',gap:8,marginBottom:10}}>
+              <input type="date" value={editDate} onChange={e=>setEditDate(e.target.value)} style={{background:'rgba(255,255,255,0.05)',border:'1px solid rgba(255,255,255,0.1)',borderRadius:8,padding:'10px 14px',color:'#fff',fontSize:13,fontFamily:"'Roboto',sans-serif",width:150,colorScheme:'dark'}}/>
+              <select value={editType} onChange={e=>setEditType(e.target.value)} style={{background:'rgba(255,255,255,0.05)',border:'1px solid rgba(255,255,255,0.1)',borderRadius:8,padding:'10px 14px',color:'#fff',fontSize:13,fontFamily:"'Roboto',sans-serif",width:120,cursor:'pointer'}}>
+                {Object.entries(ACTION_TYPES).map(([k,v])=><option key={k} value={k} style={{background:'#111'}}>{v.label}</option>)}
+              </select>
+            </div>
+            <textarea value={editText} onChange={e=>setEditText(e.target.value)} rows={5} style={{width:'100%',background:'rgba(255,255,255,0.05)',border:'1px solid rgba(255,255,255,0.1)',borderRadius:8,padding:'10px 14px',color:'#fff',fontSize:13,fontFamily:"'Roboto',sans-serif",resize:'vertical',lineHeight:1.6,marginBottom:16}}/>
+            <div style={{display:'flex',gap:8}}>
+              <button onClick={()=>setEditingAction(null)} style={{flex:1,padding:'10px',borderRadius:8,border:'1px solid rgba(255,255,255,0.08)',background:'transparent',color:'#555',cursor:'pointer',fontFamily:"'Roboto',sans-serif"}}>Cancelar</button>
+              <button onClick={saveEdit} style={{flex:1,padding:'10px',borderRadius:8,border:'1px solid rgba(56,189,248,0.4)',background:'rgba(56,189,248,0.15)',color:'#38BDF8',cursor:'pointer',fontWeight:600,fontFamily:"'Roboto',sans-serif"}}>Guardar cambios</button>
             </div>
           </div>
         </div>
