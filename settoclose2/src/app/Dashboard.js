@@ -139,6 +139,7 @@ export default function Dashboard() {
   const [dateTo,    setDateTo]    = useState(today());
   const [preset,    setPreset]    = useState(30);
   const [calOpen,   setCalOpen]   = useState(false);
+  const [expandedKpi, setExpandedKpi] = useState(null);
   const [actions,   setActions]   = useState({SC:[],VA:[],MD:[],NC:[]});
   const [newText,   setNewText]   = useState('');
   const [newType,   setNewType]   = useState('test');
@@ -222,6 +223,40 @@ export default function Dashboard() {
   useEffect(() => { if(activeId) fetchGHL(activeId, dateFrom, dateTo); }, [activeId, dateFrom, dateTo]);
 
   // ── PERSIST ACTION LOGS via API ──────────────────────────────────
+  // ── ALL OFFICES AGGREGATED DATA ────────────────────────────────
+  const allOfficesData = useMemo(() => {
+    return offices.map(o => {
+      const raw2 = apiData[o.id] || [];
+      const ghl2 = (ghlData[o.id] || []).reduce((acc,d) => { acc[d.date]=d; return acc; }, {});
+      const man2 = manualData[o.id] || {};
+      let spend=0,impressions=0,linkClicks=0,leads=0,appsBooked=0,appsShowed=0,sales=0;
+      raw2.forEach(d => {
+        spend += d.spent||0; impressions += d.impressions||0; linkClicks += d.linkClicks||0; leads += d.leads||0;
+        const g = ghl2[d.date]||{}; const m = man2[d.date]||{};
+        appsBooked += g.appsBooked??m.appsBooked??0;
+        appsShowed += g.appsShowed??m.appsShowed??0;
+        sales += g.sales??m.sales??0;
+      });
+      const cashTiago = sales * (o.payout||750);
+      return { id:o.id, name:o.name, color:o.color, spend, impressions, linkClicks, leads, appsBooked, appsShowed, sales, cashTiago, cpl: leads>0?spend/leads:0 };
+    });
+  }, [offices, apiData, ghlData, manualData]);
+
+  const stcTotals = useMemo(() => {
+    return allOfficesData.reduce((acc, o) => {
+      acc.spend += o.spend; acc.impressions += o.impressions; acc.linkClicks += o.linkClicks;
+      acc.leads += o.leads; acc.appsBooked += o.appsBooked; acc.appsShowed += o.appsShowed;
+      acc.sales += o.sales; acc.cashTiago += o.cashTiago;
+      return acc;
+    }, {spend:0,impressions:0,linkClicks:0,leads:0,appsBooked:0,appsShowed:0,sales:0,cashTiago:0});
+  }, [allOfficesData]);
+
+  const allVentas = useMemo(() => {
+    return offices.flatMap(o => (ventas[o.id]||[]).map(v => ({...v, officeId:o.id, officeName:o.name, officeColor:o.color})))
+      .sort((a,b) => new Date(b.date) - new Date(a.date));
+  }, [offices, ventas]);
+  // ────────────────────────────────────────────────────────────────
+
   const saveLogs = useCallback(async (offId, logs) => {
     try {
       await fetch('/api/logs', {
@@ -481,7 +516,12 @@ body{background:#080a0d;color:#fff;font-family:'Roboto',sans-serif;padding:36px 
           </button>
           {menuOpen&&(
             <div style={{position:'absolute',top:'calc(100% + 8px)',left:0,background:'#0f1115',border:'1px solid rgba(255,255,255,0.09)',borderRadius:12,padding:8,minWidth:220,zIndex:400,boxShadow:'0 20px 60px rgba(0,0,0,0.6)'}}>
-              {offices.map(o=>(
+              <button className="hov" onClick={()=>{setActiveId('STC');setMenuOpen(false);}} style={{width:'100%',padding:'9px 12px',borderRadius:8,border:'none',cursor:'pointer',background:activeId==='STC'?'rgba(255,255,255,0.08)':'transparent',display:'flex',alignItems:'center',gap:10,marginBottom:6,borderLeft:activeId==='STC'?'2px solid #fff':'2px solid transparent',transition:'all .15s'}}>
+                  <img src={LOGOS_INIT.STC} alt="" style={{width:20,height:20,borderRadius:'50%',objectFit:'contain',background:'#111',padding:2}}/>
+                  <span style={{fontSize:13,fontWeight:600,color:'#fff',fontFamily:"'Roboto',sans-serif"}}>SetToClose</span>
+                </button>
+                <div style={{borderTop:'1px solid rgba(255,255,255,0.06)',marginBottom:6,marginTop:2}}/>
+                {offices.map(o=>(
                 <button key={o.id} className="hov" onClick={()=>{setActiveId(o.id);setMenuOpen(false);}} style={{width:'100%',padding:'9px 12px',borderRadius:8,border:'none',cursor:'pointer',background:activeId===o.id?o.color+'15':'transparent',display:'flex',alignItems:'center',gap:10,marginBottom:2,borderLeft:activeId===o.id?`2px solid ${o.color}`:'2px solid transparent',transition:'all .15s'}}>
                   <img src={logos[o.id]||`https://ui-avatars.com/api/?name=${o.id}&background=222&color=fff&size=64`} alt="" style={{width:28,height:28,borderRadius:'50%',objectFit:'cover',border:`1px solid ${o.color}33`}}/>
                   <div style={{textAlign:'left',flex:1}}>
