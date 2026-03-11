@@ -215,6 +215,29 @@ export default function Dashboard() {
   }, []);
 
   useEffect(() => { if(activeId) fetchGHL(activeId, dateFrom, dateTo); }, [activeId, dateFrom, dateTo]);
+
+  // ── PERSIST ACTION LOGS via API ──────────────────────────────────
+  const saveLogs = useCallback(async (offId, logs) => {
+    try {
+      await fetch('/api/logs', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ officeId: offId, logs })
+      });
+    } catch(e) { console.warn('Save logs error:', e); }
+  }, []);
+
+  const loadLogs = useCallback(async (offId) => {
+    try {
+      const r = await fetch(`/api/logs?officeId=${offId}`);
+      const j = await r.json();
+      if (j.logs?.length > 0) {
+        setActions(prev => ({ ...prev, [offId]: j.logs }));
+      }
+    } catch(e) { console.warn('Load logs error:', e); }
+  }, []);
+
+  useEffect(() => { if(activeId) loadLogs(activeId); }, [activeId]);
   // ────────────────────────────────────────────────────────────────
 
   const raw = useMemo(()=>{
@@ -277,18 +300,20 @@ export default function Dashboard() {
 
   const addAction=()=>{
     if(!newText.trim()||!activeId) return;
-    setActions(prev=>({...prev,[activeId]:[{id:++uid,date:newDate,text:newText,type:newType,media:pendMedia},...(prev[activeId]||[])]}));
+    const newEntry = {id:++uid,date:newDate,text:newText,type:newType,media:pendMedia};
+    const updated = [newEntry, ...(actions[activeId]||[])];
+    setActions(prev=>({...prev,[activeId]:updated}));
+    saveLogs(activeId, updated);
     setNewText(''); setPendMedia([]);
   };
 
   const saveEdit = () => {
     if (!editingAction || !activeId) return;
-    setActions(prev => ({
-      ...prev,
-      [activeId]: (prev[activeId]||[]).map(a => a.id === editingAction
-        ? {...a, text: editText, type: editType, date: editDate, media: [...(a.media||[]), ...editMedia]}
-        : a)
-    }));
+    const updated = (actions[activeId]||[]).map(a => a.id === editingAction
+      ? {...a, text: editText, type: editType, date: editDate, media: [...(a.media||[]), ...editMedia]}
+      : a);
+    setActions(prev => ({ ...prev, [activeId]: updated }));
+    saveLogs(activeId, updated);
     setEditingAction(null);
     setEditMedia([]);
   };
