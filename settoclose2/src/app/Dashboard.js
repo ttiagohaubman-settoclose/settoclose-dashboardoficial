@@ -203,7 +203,18 @@ export default function Dashboard() {
     setLoading(false);
   },[offices]);
 
-  useEffect(()=>{ if(activeId) fetchMeta(activeId,dateFrom,dateTo); },[activeId,dateFrom,dateTo]);
+  useEffect(()=>{
+    if(!activeId) return;
+    if(activeId==='STC') {
+      // Load all offices data in parallel
+      offices.forEach(o => {
+        fetchMeta(o.id, dateFrom, dateTo);
+        fetchGHL(o.id, dateFrom, dateTo);
+      });
+    } else {
+      fetchMeta(activeId, dateFrom, dateTo);
+    }
+  },[activeId,dateFrom,dateTo]);
 
   // ── GHL FETCH ────────────────────────────────────────────────────
   const [ghlData,   setGhlData]   = useState({});
@@ -220,7 +231,7 @@ export default function Dashboard() {
     } catch(e) { console.warn('GHL fetch error:', e.message); }
   }, []);
 
-  useEffect(() => { if(activeId) fetchGHL(activeId, dateFrom, dateTo); }, [activeId, dateFrom, dateTo]);
+  useEffect(() => { if(activeId && activeId!=='STC') fetchGHL(activeId, dateFrom, dateTo); }, [activeId, dateFrom, dateTo]);
 
   // ── PERSIST ACTION LOGS via API ──────────────────────────────────
   // ── ALL OFFICES AGGREGATED DATA ────────────────────────────────
