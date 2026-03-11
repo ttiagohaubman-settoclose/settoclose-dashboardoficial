@@ -555,6 +555,40 @@ export default function Dashboard() {
                   </div>
                 </div>
 
+                {/* Ventas */}
+                {(ventas[activeId]||[]).length > 0 && (
+                  <div style={{marginBottom:32}}>
+                    <div style={{fontSize:11,fontWeight:600,color:'#555',letterSpacing:'.1em',textTransform:'uppercase',marginBottom:14}}>Ventas</div>
+                    <div style={{background:'rgba(255,255,255,0.02)',border:'1px solid rgba(255,255,255,0.06)',borderRadius:14,overflow:'hidden'}}>
+                      <table style={{width:'100%',borderCollapse:'collapse'}}>
+                        <thead>
+                          <tr style={{borderBottom:'1px solid rgba(255,255,255,0.06)'}}>
+                            {['Nombre','Teléfono','Email','Fecha','Estado'].map(h=>(
+                              <th key={h} style={{padding:'10px 16px',textAlign:'left',fontSize:10,color:'#444',fontWeight:600,letterSpacing:'.08em',textTransform:'uppercase'}}>{h}</th>
+                            ))}
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {(ventas[activeId]||[]).map((v,i)=>(
+                            <tr key={v.id} style={{borderBottom:'1px solid rgba(255,255,255,0.04)',background:i%2===0?'transparent':'rgba(255,255,255,0.01)'}}>
+                              <td style={{padding:'12px 16px',fontSize:13,color:'#ddd',fontWeight:500}}>{v.name}</td>
+                              <td style={{padding:'12px 16px',fontSize:12,color:'#666',fontFamily:'monospace'}}>{v.phone}</td>
+                              <td style={{padding:'12px 16px',fontSize:12,color:'#666'}}>{v.email}</td>
+                              <td style={{padding:'12px 16px',fontSize:12,color:'#555',fontFamily:'monospace'}}>{v.date}</td>
+                              <td style={{padding:'12px 16px'}}>
+                                {v.status==='pagada'
+                                  ? <span style={{background:'rgba(74,222,128,0.1)',border:'1px solid rgba(74,222,128,0.3)',color:'#4ADE80',padding:'3px 10px',borderRadius:20,fontSize:11,fontWeight:600}}>✓ Pagada</span>
+                                  : <span style={{background:'rgba(250,204,21,0.1)',border:'1px solid rgba(250,204,21,0.3)',color:'#FACC15',padding:'3px 10px',borderRadius:20,fontSize:11,fontWeight:600}}>● Venta</span>
+                                }
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+                )}
+
                 {/* Action Log */}
                 <div style={{background:'rgba(255,255,255,0.02)',border:'1px solid rgba(255,255,255,0.06)',borderRadius:14,padding:20}}>
                   <div style={{fontSize:13,fontWeight:600,marginBottom:16,fontFamily:"'Poppins',sans-serif"}}>Action Log</div>
