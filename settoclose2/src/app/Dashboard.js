@@ -205,7 +205,8 @@ export default function Dashboard() {
   useEffect(()=>{ if(activeId) fetchMeta(activeId,dateFrom,dateTo); },[activeId,dateFrom,dateTo]);
 
   // ── GHL FETCH ────────────────────────────────────────────────────
-  const [ghlData, setGhlData] = useState({});
+  const [ghlData,   setGhlData]   = useState({});
+  const [ventas,    setVentas]    = useState({SC:[],VA:[],MD:[],NC:[]});
 
   const fetchGHL = useCallback(async (offId, from, to) => {
     try {
