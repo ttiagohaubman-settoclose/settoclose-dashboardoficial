@@ -22,55 +22,89 @@ export async function GET(request) {
   }
 
   try {
-    const startTime = new Date(dateFrom).getTime()
-    const endTime   = new Date(dateTo + 'T23:59:59').getTime()
-    const from      = new Date(dateFrom)
-    const to        = new Date(dateTo + 'T23:59:59')
+    // Date range — use full day boundaries in UTC
+    const startTime = new Date(dateFrom + 'T00:00:00.000Z').getTime()
+    const endTime   = new Date(dateTo   + 'T23:59:59.999Z').getTime()
+    const fromDate  = new Date(dateFrom + 'T00:00:00.000Z')
+    const toDate    = new Date(dateTo   + 'T23:59:59.999Z')
 
     // ── 1. APPOINTMENTS ──────────────────────────────────────────────
     const allEvents = []
     await Promise.all(cfg.calendarIds.map(async (calId) => {
-      const p = new URLSearchParams({ locationId: cfg.locationId, calendarId: calId, startTime, endTime })
-      const r = await fetch(`https://services.leadconnectorhq.com/calendars/events?${p}`, { headers })
-      const j = await r.json()
-      if (j.events) allEvents.push(...j.events)
+      try {
+        const p = new URLSearchParams({ locationId: cfg.locationId, calendarId: calId, startTime, endTime })
+        const r = await fetch(`https://services.leadconnectorhq.com/calendars/events?${p}`, { headers })
+        const j = await r.json()
+        if (j.events) allEvents.push(...j.events)
+      } catch(e) { console.warn(`Calendar ${calId} error:`, e.message) }
     }))
 
     const bookedByDate = {}
     const showedByDate = {}
     allEvents.forEach(ev => {
-      const date = ev.startTime?.split('T')[0]
-      if (!date) return
+      // Use startTime of appointment for the date
+      const raw = ev.startTime || ev.dateAdded
+      if (!raw) return
+      const date = new Date(raw).toISOString().split('T')[0]
       bookedByDate[date] = (bookedByDate[date] || 0) + 1
       if (ev.appointmentStatus === 'showed' || ev.appointmentStatus === 'completed') {
         showedByDate[date] = (showedByDate[date] || 0) + 1
       }
     })
 
-    // ── 2. CONTACTS WITH TAG "venta" ─────────────────────────────────
-    let page = 1, allContacts = [], hasMore = true
-    while (hasMore) {
-      const p = new URLSearchParams({ locationId: cfg.locationId, tag: 'venta', limit: 100, page })
+    // ── 2. CONTACTS WITH TAG "venta" — full pagination ───────────────
+    let allContacts = []
+    // Use startAfterDate cursor-based pagination (more reliable than page)
+    let startAfter = null
+    let startAfterId = null
+    let keepGoing = true
+
+    while (keepGoing) {
+      const p = new URLSearchParams({
+        locationId: cfg.locationId,
+        tags: 'venta',    // some GHL versions use 'tags' plural
+        limit: 100,
+      })
+      if (startAfter)   p.set('startAfter', startAfter)
+      if (startAfterId) p.set('startAfterId', startAfterId)
+
       const r = await fetch(`https://services.leadconnectorhq.com/contacts/?${p}`, { headers })
       const j = await r.json()
       const contacts = j.contacts || []
       allContacts = [...allContacts, ...contacts]
-      hasMore = contacts.length === 100
-      page++
-      if (page > 20) break
+
+      if (contacts.length < 100 || !j.meta?.startAfter) {
+        keepGoing = false
+      } else {
+        startAfter   = j.meta.startAfter
+        startAfterId = j.meta.startAfterId || null
+      }
+      if (allContacts.length > 2000) break // safety cap
     }
 
-    // Filter by date range
+    // Also try with tag singular param in case of GHL version difference
+    if (allContacts.length === 0) {
+      const p2 = new URLSearchParams({ locationId: cfg.locationId, tag: 'venta', limit: 100 })
+      const r2 = await fetch(`https://services.leadconnectorhq.com/contacts/?${p2}`, { headers })
+      const j2 = await r2.json()
+      allContacts = j2.contacts || []
+    }
+
+    // Filter contacts by date range
+    // Use dateAdded as the "sale date" — more stable than dateUpdated
     const ventasInRange = allContacts.filter(c => {
-      const d = new Date(c.dateUpdated || c.dateAdded)
-      return d >= from && d <= to
+      // Prefer custom field "closeDate" if exists, fallback to dateAdded
+      const rawDate = c.dateAdded
+      if (!rawDate) return false
+      const d = new Date(rawDate)
+      return d >= fromDate && d <= toDate
     })
 
     const closedByDate = {}
     const ventasList = []
 
     ventasInRange.forEach(c => {
-      const date = new Date(c.dateUpdated || c.dateAdded).toISOString().split('T')[0]
+      const date = new Date(c.dateAdded).toISOString().split('T')[0]
       closedByDate[date] = (closedByDate[date] || 0) + 1
       const tags = c.tags || []
       ventasList.push({
@@ -83,17 +117,23 @@ export async function GET(request) {
       })
     })
 
-    // Sort by date desc
     ventasList.sort((a, b) => new Date(b.date) - new Date(a.date))
 
     // ── 3. DAILY ARRAY ───────────────────────────────────────────────
     const days = []
-    for (let d = new Date(dateFrom); d <= new Date(dateTo); d.setDate(d.getDate() + 1)) {
-      const date = d.toISOString().split('T')[0]
+    const cursor = new Date(dateFrom + 'T00:00:00.000Z')
+    const end    = new Date(dateTo   + 'T00:00:00.000Z')
+    while (cursor <= end) {
+      const date       = cursor.toISOString().split('T')[0]
       const appsBooked = bookedByDate[date] || 0
       const appsShowed = showedByDate[date] || 0
       const sales      = closedByDate[date] || 0
-      days.push({ date, appsBooked, appsShowed, showRate: appsBooked > 0 ? +((appsShowed/appsBooked)*100).toFixed(1) : 0, sales })
+      days.push({
+        date, appsBooked, appsShowed,
+        showRate: appsBooked > 0 ? +((appsShowed / appsBooked) * 100).toFixed(1) : 0,
+        sales,
+      })
+      cursor.setDate(cursor.getDate() + 1)
     }
 
     return Response.json({ days, ventas: ventasList })
