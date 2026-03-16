@@ -57,13 +57,22 @@ const METRIC_OPTIONS = [
 ];
 
 const BG_PRESETS = [
-  { id:'dark',    label:'Pure Dark',    preview:'#080a0d', bg:'#080a0d', overlay:'' },
-  { id:'nebula',  label:'Teal Nebula',  preview:'linear-gradient(135deg,#071418,#080a0d)', bg:'#070c10', overlay:'radial-gradient(ellipse at 10% 40%, rgba(0,200,220,0.07) 0%, transparent 55%), radial-gradient(ellipse at 90% 10%, rgba(0,80,255,0.05) 0%, transparent 50%)' },
-  { id:'aurora',  label:'Aurora',       preview:'linear-gradient(135deg,#08060f,#070a0d)', bg:'#07070e', overlay:'radial-gradient(ellipse at 0% 0%, rgba(130,0,255,0.08) 0%, transparent 55%), radial-gradient(ellipse at 100% 100%, rgba(0,255,160,0.06) 0%, transparent 50%)' },
-  { id:'solar',   label:'Solar Flare',  preview:'linear-gradient(135deg,#0d0800,#080a0d)', bg:'#090806', overlay:'radial-gradient(ellipse at 75% 25%, rgba(255,120,0,0.07) 0%, transparent 45%)' },
-  { id:'matrix',  label:'Matrix Grid',  preview:'linear-gradient(135deg,#040a04,#080a0d)', bg:'#050a05', overlay:'radial-gradient(ellipse at 50% 50%, rgba(0,255,70,0.05) 0%, transparent 60%)' },
-  { id:'crimson', label:'Crimson Deep', preview:'linear-gradient(135deg,#0a0508,#080a0d)', bg:'#090507', overlay:'radial-gradient(ellipse at 80% 20%, rgba(200,0,80,0.07) 0%, transparent 50%)' },
-  { id:'light',   label:'Light Mode',   preview:'linear-gradient(135deg,#f0f4f8,#e8ecf0)', bg:'#f0f4f8', overlay:'' },
+  { id:'dark',      label:'Void',          preview:'#080a0d', bg:'#080a0d', overlay:'' },
+  { id:'grid',      label:'Neon Grid',     preview:'#07090c', bg:'#07090c',
+    overlay:`url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='48' height='48'%3E%3Cpath d='M 48 0 L 0 0 0 48' fill='none' stroke='rgba(0,200,255,0.06)' stroke-width='0.5'/%3E%3C/svg%3E"), radial-gradient(ellipse at 80% 20%, rgba(0,180,255,0.05) 0%, transparent 60%)` },
+  { id:'dots',      label:'Dot Field',     preview:'#080a0e', bg:'#080a0e',
+    overlay:`url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='20'%3E%3Ccircle cx='2' cy='2' r='0.8' fill='rgba(255,255,255,0.05)'/%3E%3C/svg%3E")` },
+  { id:'diagonal',  label:'Carbon Weave',  preview:'#090909', bg:'#090909',
+    overlay:`url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='10'%3E%3Cpath d='M-1,1 l2,-2 M0,10 l10,-10 M8,12 l4,-4' stroke='rgba(255,255,255,0.025)' stroke-width='1.5'/%3E%3C/svg%3E")` },
+  { id:'blueprint', label:'Blueprint',     preview:'#030810', bg:'#030810',
+    overlay:`url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='40' height='40'%3E%3Crect width='40' height='40' fill='none' stroke='rgba(0,120,255,0.07)' stroke-width='0.5'/%3E%3Ccircle cx='20' cy='20' r='1' fill='rgba(0,140,255,0.08)'/%3E%3C/svg%3E"), radial-gradient(ellipse at 30% 70%, rgba(0,80,200,0.07) 0%, transparent 55%)` },
+  { id:'aurora',    label:'Aurora',        preview:'#060510', bg:'#060510',
+    overlay:`radial-gradient(ellipse at 5% 5%, rgba(140,0,255,0.11) 0%, transparent 50%), radial-gradient(ellipse at 95% 95%, rgba(0,255,160,0.09) 0%, transparent 50%)` },
+  { id:'ember',     label:'Ember',         preview:'#090507', bg:'#090507',
+    overlay:`radial-gradient(ellipse at 80% 20%, rgba(220,0,80,0.1) 0%, transparent 55%), url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='32' height='32'%3E%3Ccircle cx='16' cy='16' r='0.6' fill='rgba(255,60,80,0.04)'/%3E%3C/svg%3E")` },
+  { id:'axis',      label:'Axis',          preview:'#06080d', bg:'#06080d',
+    overlay:`url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='60' height='60'%3E%3Cline x1='0' y1='60' x2='60' y2='60' stroke='rgba(255,255,255,0.03)' stroke-width='1'/%3E%3Cline x1='0' y1='0' x2='0' y2='60' stroke='rgba(255,255,255,0.03)' stroke-width='1'/%3E%3C/svg%3E"), linear-gradient(180deg, rgba(0,0,0,0) 0%, rgba(0,150,255,0.03) 100%)` },
+  { id:'light',     label:'Light Mode',    preview:'linear-gradient(135deg,#f0f4f8,#e8ecf0)', bg:'#f0f4f8', overlay:'' },
 ];
 
 const PRESETS = [
@@ -145,11 +154,11 @@ function CalendarPicker({ dateFrom, dateTo, onSelect }) {
     <div style={{userSelect:'none'}}>
       <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',marginBottom:12}}>
         <button onClick={()=>{if(viewMonth===0){setViewMonth(11);setViewYear(y=>y-1);}else setViewMonth(m=>m-1);}} style={{background:'none',border:'none',color:'#666',fontSize:16,cursor:'pointer',padding:'2px 8px'}}>‹</button>
-        <span style={{fontSize:13,fontWeight:600,color:'#ccc',fontFamily:"'Poppins',sans-serif"}}>{MONTHS[viewMonth]} {viewYear}</span>
+        <span style={{fontSize:13,fontWeight:600,color:'#ccc',fontFamily:"'Roboto',sans-serif",letterSpacing:'0.03em'}}>{MONTHS[viewMonth]} {viewYear}</span>
         <button onClick={()=>{if(viewMonth===11){setViewMonth(0);setViewYear(y=>y+1);}else setViewMonth(m=>m+1);}} style={{background:'none',border:'none',color:'#666',fontSize:16,cursor:'pointer',padding:'2px 8px'}}>›</button>
       </div>
       <div style={{display:'grid',gridTemplateColumns:'repeat(7,1fr)',gap:2,marginBottom:4}}>
-        {DAYS.map(d=><div key={d} style={{textAlign:'center',fontSize:10,color:'#444',padding:'2px 0'}}>{d}</div>)}
+        {DAYS.map(d=><div key={d} style={{textAlign:'center',fontSize:10,color:'#444',padding:'2px 0',fontFamily:"'Roboto',sans-serif",fontWeight:500}}>{d}</div>)}
       </div>
       <div style={{display:'grid',gridTemplateColumns:'repeat(7,1fr)',gap:2}}>
         {cells.map((day,i)=>(
@@ -158,6 +167,7 @@ function CalendarPicker({ dateFrom, dateTo, onSelect }) {
             background: day&&(isFrom(day)||isTo(day)) ? '#38BDF8' : day&&inRange(day) ? 'rgba(56,189,248,0.15)' : 'transparent',
             color: day&&(isFrom(day)||isTo(day)) ? '#000' : day ? '#bbb' : 'transparent',
             fontWeight: day&&(isFrom(day)||isTo(day)) ? 700 : 400,
+            fontFamily:"'Roboto',sans-serif",
           }}>{day||''}</div>
         ))}
       </div>
@@ -220,7 +230,10 @@ export default function Dashboard() {
   const [nCustomPrice, setNCustomPrice] = useState('');
   const [bgThemes,  setBgThemes]  = useState({});
   const [editing,   setEditing]   = useState(null);
-  const [editBgTab, setEditBgTab] = useState(false);
+  const [editTabIdx,setEditTabIdx] = useState(0); // 0=Config 1=Metrics 2=BG
+  const [editBgTab, setEditBgTab] = useState(false); // legacy compat
+  const [editingSTC,setEditingSTC]= useState(false);
+  const [globalLight,setGlobalLight]=useState(false);
   const mediaRef = useRef(); const newLogoRef = useRef(); const editLogoRef = useRef();
 
   // ── LOGIN ────────────────────────────────────────────────────────
@@ -434,6 +447,7 @@ export default function Dashboard() {
   },[actions,activeId,filterDate]);
 
   const activeBg = useMemo(() => {
+    if (globalLight) return { background: '#f0f4f8' };
     if (!activeId) return { background: '#080a0d' };
     const theme = bgThemes[activeId];
     if (!theme) return { background: '#080a0d' };
@@ -441,19 +455,20 @@ export default function Dashboard() {
     if (theme.type === 'light') return { background: '#f0f4f8' };
     const preset = BG_PRESETS.find(p => p.id === (theme.preset || 'dark')) || BG_PRESETS[0];
     if (preset.overlay) {
-      return { background: preset.bg, backgroundImage: preset.overlay, backgroundBlendMode: 'normal' };
+      return { background: preset.bg, backgroundImage: preset.overlay, backgroundRepeat: 'repeat' };
     }
     return { background: preset.bg };
-  }, [activeId, bgThemes]);
+  }, [activeId, bgThemes, globalLight]);
 
   const isLight = useMemo(() => {
+    if (globalLight) return true;
     if (!activeId) return false;
     const theme = bgThemes[activeId];
     if (!theme) return false;
     if (theme.type === 'light') return true;
     if (theme.type === 'preset' && theme.preset === 'light') return true;
     return false;
-  }, [activeId, bgThemes]);
+  }, [activeId, bgThemes, globalLight]);
 
   const textPrimary = isLight ? '#0a0a0a' : '#ffffff';
   const textSecondary = isLight ? '#444444' : '#888888';
@@ -642,12 +657,12 @@ body{background:#080a0d;color:#fff;font-family:'Roboto',sans-serif;padding:36px 
         {/* Date range - single calendar picker */}
         <div style={{display:'flex',alignItems:'center',gap:8,flexWrap:'wrap',position:'relative'}}>
           <span style={{fontSize:12}}>📅</span>
-          <button className="hov" onClick={()=>setCalOpen(p=>!p)} style={{padding:'5px 12px',borderRadius:7,border:'1px solid rgba(255,255,255,0.08)',background:'rgba(255,255,255,0.04)',color:'#aaa',fontSize:12,fontFamily:'monospace',cursor:'pointer'}}>
+          <button className="hov" onClick={()=>setCalOpen(p=>!p)} style={{padding:'5px 12px',borderRadius:7,border:'1px solid rgba(255,255,255,0.08)',background:'rgba(255,255,255,0.04)',color:'#aaa',fontSize:12,fontFamily:"'Roboto',sans-serif",cursor:'pointer'}}>
             {dateFrom} to {dateTo}
           </button>
           <div style={{display:'flex',gap:4}}>
             {PRESETS.map(p=>(
-              <button key={p.days} onClick={()=>{applyPreset(p.days);setCalOpen(false);}} style={{padding:'4px 9px',borderRadius:6,border:`1px solid ${preset===p.days?'rgba(255,255,255,0.2)':'rgba(255,255,255,0.07)'}`,background:preset===p.days?'rgba(255,255,255,0.1)':'transparent',color:preset===p.days?'#fff':'#444',fontSize:11,cursor:'pointer',fontFamily:'monospace'}}>{p.label}</button>
+              <button key={p.days} onClick={()=>{applyPreset(p.days);setCalOpen(false);}} style={{padding:'4px 9px',borderRadius:6,border:`1px solid ${preset===p.days?'rgba(255,255,255,0.2)':'rgba(255,255,255,0.07)'}`,background:preset===p.days?'rgba(255,255,255,0.1)':'transparent',color:preset===p.days?'#fff':'#444',fontSize:11,cursor:'pointer',fontFamily:"'Roboto',sans-serif",fontWeight:500}}>{p.label}</button>
             ))}
           </div>
           {calOpen&&(
@@ -658,9 +673,13 @@ body{background:#080a0d;color:#fff;font-family:'Roboto',sans-serif;padding:36px 
         </div>
 
         <div style={{flex:1}}/>
+        {/* Light/Dark toggle */}
+        <button onClick={()=>setGlobalLight(p=>!p)} title={globalLight?'Modo Oscuro':'Modo Claro'} style={{padding:'6px 10px',borderRadius:8,border:`1px solid ${globalLight?'rgba(0,0,0,0.15)':'rgba(255,255,255,0.1)'}`,background:globalLight?'rgba(0,0,0,0.06)':'rgba(255,255,255,0.04)',color:globalLight?'#555':'#888',fontSize:16,cursor:'pointer',lineHeight:1,display:'flex',alignItems:'center',justifyContent:'center',transition:'all .2s',flexShrink:0}} className="hov">
+          {globalLight?'🌙':'☀️'}
+        </button>
         {office&&(
           <div style={{display:'flex',gap:8}}>
-            <button className="hov" onClick={()=>setShowManual(true)} style={{padding:'6px 14px',borderRadius:8,border:'1px solid rgba(255,255,255,0.1)',background:'rgba(255,255,255,0.04)',color:'#888',fontSize:12,cursor:'pointer',fontFamily:"'Roboto',sans-serif",whiteSpace:'nowrap'}}>+ Appts / Sales</button>
+            <button className="hov" onClick={()=>setShowManual(true)} style={{padding:'6px 14px',borderRadius:8,border:`1px solid ${isLight?'rgba(0,0,0,0.1)':'rgba(255,255,255,0.1)'}`,background:isLight?'rgba(0,0,0,0.04)':'rgba(255,255,255,0.04)',color:isLight?'#555':'#888',fontSize:12,cursor:'pointer',fontFamily:"'Roboto',sans-serif",whiteSpace:'nowrap'}}>+ Appts / Sales</button>
             <button className="hov" onClick={doExport} style={{padding:'6px 14px',borderRadius:8,border:`1px solid ${office.color}44`,background:office.color+'15',color:office.color,fontSize:12,cursor:'pointer',fontFamily:"'Roboto',sans-serif",whiteSpace:'nowrap'}}>⬇ Export PDF</button>
           </div>
         )}
@@ -678,10 +697,13 @@ body{background:#080a0d;color:#fff;font-family:'Roboto',sans-serif;padding:36px 
             {/* STC Header */}
             <div style={{display:'flex',alignItems:'center',gap:16,marginBottom:28}}>
               <img src={LOGOS_INIT.STC} alt="STC" style={{width:52,height:52,borderRadius:12,objectFit:'contain',background:'rgba(255,255,255,0.04)',padding:6,border:'1px solid rgba(255,255,255,0.08)'}}/>
-              <div>
+              <div style={{flex:1}}>
                 <div style={{fontSize:22,fontWeight:700,fontFamily:"'Poppins',sans-serif",color:'#fff'}}>SetToClose</div>
                 <div style={{fontSize:12,color:'#444',marginTop:2}}>{dateFrom} to {dateTo} · {offices.length} oficinas activas</div>
               </div>
+              <button onClick={()=>setEditingSTC(true)} style={{padding:'7px 14px',borderRadius:8,border:'1px solid rgba(255,255,255,0.08)',background:'rgba(255,255,255,0.04)',color:'#444',fontSize:12,cursor:'pointer',fontFamily:"'Roboto',sans-serif",display:'flex',alignItems:'center',gap:6}} className="hov">
+                ✏️ <span>Editar</span>
+              </button>
             </div>
             <div style={{fontSize:11,fontWeight:600,color:'#555',letterSpacing:'.1em',textTransform:'uppercase',marginBottom:14}}>Métricas Globales</div>
             <div style={{display:'grid',gridTemplateColumns:'repeat(4,1fr)',gap:12,marginBottom:32}}>
@@ -896,94 +918,107 @@ body{background:#080a0d;color:#fff;font-family:'Roboto',sans-serif;padding:36px 
                   </div>
                 )}
 
-                {/* Action Log — Futuristic redesign */}
-                <div style={{background:'rgba(255,255,255,0.025)',border:'1px solid rgba(255,255,255,0.08)',borderRadius:16,overflow:'hidden',boxShadow:'0 0 40px rgba(0,0,0,0.4)'}}>
-                  {/* Header */}
-                  <div style={{padding:'18px 24px',background:'rgba(255,255,255,0.02)',borderBottom:'1px solid rgba(255,255,255,0.07)',display:'flex',alignItems:'center',gap:12}}>
-                    <div style={{width:8,height:8,borderRadius:'50%',background:office.color,boxShadow:`0 0 8px ${office.color}`}}/>
-                    <span style={{fontSize:14,fontWeight:700,fontFamily:"'Poppins',sans-serif",letterSpacing:'0.04em',color:'#fff'}}>ACTION LOG</span>
-                    <span style={{fontSize:10,color:'#333',fontFamily:'monospace',marginLeft:4}}>// {(actions[activeId]||[]).length} entries</span>
+                {/* ── ACTION LOG — REDESIGN ─────────────────────── */}
+                <div style={{borderRadius:18,overflow:'hidden',position:'relative'}}>
+                  {/* Animated top border */}
+                  <div style={{position:'absolute',top:0,left:0,right:0,height:2,background:`linear-gradient(90deg,transparent,${office.color},${office.color}88,transparent)`,zIndex:2}}/>
+
+                  {/* Header bar */}
+                  <div style={{padding:'20px 26px 16px',background:`linear-gradient(135deg,${office.color}10,rgba(0,0,0,0.4))`,display:'flex',alignItems:'center',gap:12,borderBottom:'1px solid rgba(255,255,255,0.06)'}}>
+                    <div style={{display:'flex',gap:5,alignItems:'center'}}>
+                      <div style={{width:9,height:9,borderRadius:'50%',background:'#FF4D4D',opacity:.7}}/>
+                      <div style={{width:9,height:9,borderRadius:'50%',background:'#FFD700',opacity:.7}}/>
+                      <div style={{width:9,height:9,borderRadius:'50%',background:'#00FF88',opacity:.7}}/>
+                    </div>
+                    <div style={{width:1,height:18,background:'rgba(255,255,255,0.07)',margin:'0 4px'}}/>
+                    <span style={{fontSize:11,fontWeight:700,fontFamily:"'Roboto',sans-serif",letterSpacing:'0.18em',color:office.color,textTransform:'uppercase'}}>Action Log</span>
+                    <span style={{fontSize:10,color:'#2a2a2a',fontFamily:'monospace'}}>//</span>
+                    <span style={{fontSize:10,color:'#333',fontFamily:'monospace'}}>{(actions[activeId]||[]).length} records</span>
                     <div style={{flex:1}}/>
-                    <input type="date" value={filterDate} onChange={e=>setFilterDate(e.target.value)} style={{background:'rgba(255,255,255,0.04)',border:'1px solid rgba(255,255,255,0.08)',borderRadius:7,padding:'5px 11px',color:'#666',fontSize:11,fontFamily:'monospace',colorScheme:'dark',cursor:'pointer'}}/>
-                    {filterDate&&<button onClick={()=>setFilterDate('')} style={{background:'rgba(255,255,255,0.05)',border:'1px solid rgba(255,255,255,0.08)',borderRadius:6,color:'#555',fontSize:11,cursor:'pointer',padding:'5px 10px'}}>✕</button>}
+                    <input type="date" value={filterDate} onChange={e=>setFilterDate(e.target.value)} style={{background:'rgba(255,255,255,0.04)',border:'1px solid rgba(255,255,255,0.07)',borderRadius:7,padding:'5px 10px',color:'#555',fontSize:11,fontFamily:"'Roboto',sans-serif",colorScheme:'dark',cursor:'pointer'}}/>
+                    {filterDate&&<button onClick={()=>setFilterDate('')} style={{background:'rgba(255,255,255,0.04)',border:'1px solid rgba(255,255,255,0.07)',borderRadius:6,color:'#444',fontSize:11,cursor:'pointer',padding:'5px 9px'}}>✕</button>}
                   </div>
 
                   {/* New Entry Form */}
-                  <div style={{padding:'20px 24px',borderBottom:'1px solid rgba(255,255,255,0.05)',background:'rgba(0,0,0,0.2)'}}>
-                    <div style={{fontSize:10,color:'#444',fontFamily:'monospace',letterSpacing:'0.12em',textTransform:'uppercase',marginBottom:12}}>→ Nueva entrada</div>
-                    <div style={{display:'flex',gap:8,marginBottom:12}}>
-                      <input type="date" value={newDate} onChange={e=>setNewDate(e.target.value)} style={{...inp,width:150,colorScheme:'dark',background:'rgba(255,255,255,0.04)',border:'1px solid rgba(255,255,255,0.1)'}}/>
-                      <select value={newType} onChange={e=>setNewType(e.target.value)} style={{...inp,width:140,cursor:'pointer',background:'rgba(255,255,255,0.04)',border:'1px solid rgba(255,255,255,0.1)'}}>
+                  <div style={{padding:'20px 26px',background:'rgba(0,0,0,0.35)',borderBottom:'1px solid rgba(255,255,255,0.04)'}}>
+                    <div style={{display:'flex',gap:8,marginBottom:10,alignItems:'center'}}>
+                      <div style={{width:6,height:6,borderRadius:'50%',background:office.color,boxShadow:`0 0 8px ${office.color}`,flexShrink:0}}/>
+                      <span style={{fontSize:10,color:'#333',fontFamily:'monospace',letterSpacing:'0.1em',textTransform:'uppercase'}}>new entry</span>
+                    </div>
+                    <div style={{display:'flex',gap:8,marginBottom:10}}>
+                      <input type="date" value={newDate} onChange={e=>setNewDate(e.target.value)} style={{...inp,width:148,colorScheme:'dark',background:'rgba(255,255,255,0.03)',border:'1px solid rgba(255,255,255,0.08)',fontFamily:"'Roboto',sans-serif",fontSize:12}}/>
+                      <select value={newType} onChange={e=>setNewType(e.target.value)} style={{...inp,width:140,cursor:'pointer',background:'rgba(255,255,255,0.03)',border:'1px solid rgba(255,255,255,0.08)',fontFamily:"'Roboto',sans-serif",fontSize:12}}>
                         {Object.entries(ACTION_TYPES).map(([k,v])=><option key={k} value={k} style={{background:'#111'}}>{v.label}</option>)}
                       </select>
                     </div>
-                    <textarea value={newText} onChange={e=>setNewText(e.target.value)} onKeyDown={e=>{if(e.key==='Enter'&&e.metaKey)addAction();}} placeholder="Describe la acción o decisión... (Cmd+Enter para guardar)" rows={3} style={{...inp,resize:'vertical',lineHeight:1.7,marginBottom:12,background:'rgba(255,255,255,0.04)',border:'1px solid rgba(255,255,255,0.1)',fontSize:13}}/>
+                    <textarea value={newText} onChange={e=>setNewText(e.target.value)} onKeyDown={e=>{if(e.key==='Enter'&&e.metaKey)addAction();}} placeholder="Describe la acción o decisión... (Cmd+Enter para guardar)" rows={3} style={{...inp,resize:'vertical',lineHeight:1.7,marginBottom:10,background:'rgba(255,255,255,0.03)',border:'1px solid rgba(255,255,255,0.08)',fontSize:13,fontFamily:"'Roboto',sans-serif"}}/>
                     <div style={{display:'flex',alignItems:'center',gap:10}}>
-                      <button onClick={()=>mediaRef.current?.click()} style={{padding:'7px 14px',borderRadius:8,border:'1px solid rgba(255,255,255,0.08)',background:'rgba(255,255,255,0.03)',color:'#555',fontSize:12,cursor:'pointer',fontFamily:"'Roboto',sans-serif",display:'flex',alignItems:'center',gap:6}}>
+                      <button onClick={()=>mediaRef.current?.click()} style={{padding:'7px 13px',borderRadius:7,border:'1px solid rgba(255,255,255,0.07)',background:'transparent',color:'#444',fontSize:11,cursor:'pointer',fontFamily:"'Roboto',sans-serif",display:'flex',alignItems:'center',gap:5}}>
                         <span>📎</span><span>Adjuntar</span>
                       </button>
                       <input ref={mediaRef} type="file" accept="image/*,video/*" multiple onChange={e=>{Array.from(e.target.files).forEach(f=>{const r=new FileReader();r.onload=ev=>setPendMedia(p=>[...p,{name:f.name,type:f.type,url:ev.target.result}]);r.readAsDataURL(f);});}} style={{display:'none'}}/>
-                      {pendMedia.length>0&&<span style={{fontSize:11,color:'#555',background:'rgba(255,255,255,0.05)',padding:'4px 10px',borderRadius:6}}>{pendMedia.length} archivo(s)</span>}
+                      {pendMedia.length>0&&<span style={{fontSize:11,color:'#444',background:'rgba(255,255,255,0.04)',padding:'4px 10px',borderRadius:6,border:'1px solid rgba(255,255,255,0.06)'}}>{pendMedia.length} archivo(s)</span>}
                       <div style={{flex:1}}/>
-                      <button onClick={addAction} style={{...btnP(office.color),padding:'8px 22px',letterSpacing:'0.05em',fontSize:12}}>+ GUARDAR</button>
+                      <button onClick={addAction} style={{padding:'8px 22px',borderRadius:8,border:`1px solid ${office.color}55`,background:`${office.color}18`,color:office.color,fontSize:11,fontWeight:700,fontFamily:"'Roboto',sans-serif",cursor:'pointer',letterSpacing:'0.08em',display:'flex',alignItems:'center',gap:6}}>
+                        <span style={{fontSize:13}}>+</span> GUARDAR
+                      </button>
                     </div>
                   </div>
 
                   {/* Entries List */}
-                  <div style={{padding:'16px 24px',display:'flex',flexDirection:'column',gap:4}}>
+                  <div style={{padding:'12px 18px 20px',background:'rgba(0,0,0,0.25)',display:'flex',flexDirection:'column',gap:3}}>
                     {filtActions.length===0&&(
-                      <div style={{color:'#2a2a2a',fontSize:13,textAlign:'center',padding:'32px 0',fontFamily:'monospace'}}>
-                        <div style={{fontSize:24,marginBottom:8,opacity:.3}}>◈</div>
-                        {filterDate ? `Sin entradas para ${filterDate}` : 'No hay registros aún.'}
+                      <div style={{color:'#222',fontSize:12,textAlign:'center',padding:'36px 0',fontFamily:'monospace'}}>
+                        <div style={{fontSize:28,marginBottom:10,opacity:.2}}>⌀</div>
+                        <div style={{letterSpacing:'0.1em',fontSize:11}}>{filterDate ? `SIN ENTRADAS — ${filterDate}` : 'NO HAY REGISTROS AÚN'}</div>
                       </div>
                     )}
                     {filtActions.map((a,idx)=>{
                       const t=ACTION_TYPES[a.type]||ACTION_TYPES.test;
                       const isExp=expanded===a.id;
+                      const TYPE_ICONS={test:'🧪',pause:'⏸',scale:'📈',insight:'💡',decision:'⚡'};
                       return(
-                        <div key={a.id} style={{animation:'slideIn .2s ease',position:'relative'}}>
+                        <div key={a.id} style={{position:'relative',paddingLeft:32}}>
                           {/* Timeline line */}
-                          {idx < filtActions.length-1 && <div style={{position:'absolute',left:22,top:52,bottom:-4,width:1,background:'rgba(255,255,255,0.04)',zIndex:0}}/>}
+                          {idx < filtActions.length-1 && <div style={{position:'absolute',left:10,top:44,bottom:-3,width:1,background:`${t.border}20`,zIndex:0}}/>}
+                          {/* Timeline dot */}
+                          <div style={{position:'absolute',left:6,top:18,width:9,height:9,borderRadius:'50%',background:t.dot,boxShadow:`0 0 8px ${t.dot}88`,zIndex:1,border:`2px solid ${t.border}40`}}/>
                           <div className="arow" onClick={()=>setExpanded(isExp?null:a.id)} style={{
-                            background: isExp ? `${t.border}0f` : t.bg,
-                            border:`1px solid ${isExp ? t.border+'50' : t.border+'22'}`,
-                            borderRadius:10,padding:'14px 16px',
-                            transition:'all .18s',position:'relative',zIndex:1,
-                            boxShadow: isExp ? `0 0 20px ${t.border}18` : 'none'
+                            background: isExp ? `${t.border}0d` : 'rgba(255,255,255,0.015)',
+                            border:`1px solid ${isExp ? t.border+'40' : 'rgba(255,255,255,0.05)'}`,
+                            borderLeft:`3px solid ${t.border}${isExp?'cc':'44'}`,
+                            borderRadius:10,padding:'12px 14px',
+                            transition:'all .18s',
+                            boxShadow: isExp ? `0 0 24px ${t.border}12, inset 0 0 30px ${t.border}05` : 'none'
                           }}>
-                            <div style={{display:'flex',gap:12,alignItems:'flex-start'}}>
-                              {/* Type indicator */}
-                              <div style={{flexShrink:0,width:36,height:36,borderRadius:8,background:`${t.border}18`,border:`1px solid ${t.border}40`,display:'flex',alignItems:'center',justifyContent:'center',marginTop:2}}>
-                                <div style={{width:8,height:8,borderRadius:'50%',background:t.dot,boxShadow:`0 0 6px ${t.dot}`}}/>
-                              </div>
-                              <div style={{flex:1,minWidth:0}}>
-                                <div style={{display:'flex',alignItems:'center',gap:8,marginBottom:6,flexWrap:'wrap'}}>
-                                  <span style={{fontSize:10,color:t.border,fontFamily:'monospace',letterSpacing:'0.05em'}}>{a.date}</span>
-                                  <span style={{fontSize:9,color:t.border,background:`${t.border}18`,padding:'2px 8px',borderRadius:4,fontWeight:700,letterSpacing:'0.08em',textTransform:'uppercase',border:`1px solid ${t.border}30`}}>{t.label}</span>
-                                  {a.media?.length>0&&<span style={{fontSize:10,color:'#444',background:'rgba(255,255,255,0.05)',padding:'2px 8px',borderRadius:4,border:'1px solid rgba(255,255,255,0.07)'}}>📎 {a.media.length}</span>}
-                                  <div style={{marginLeft:'auto',display:'flex',gap:4,alignItems:'center'}}>
-                                    <button onClick={e=>{e.stopPropagation();setEditingAction(a.id);setEditText(a.text);setEditType(a.type);setEditDate(a.date);setEditMedia([]);}} style={{background:'rgba(255,255,255,0.05)',border:'1px solid rgba(255,255,255,0.08)',borderRadius:6,color:'#555',fontSize:10,cursor:'pointer',padding:'3px 8px',transition:'all .15s'}} title="Editar">✏️</button>
-                                    <button onClick={e=>{e.stopPropagation();if(window.confirm('¿Eliminar esta entrada?'))deleteAction(a.id);}} style={{background:'rgba(255,77,77,0.08)',border:'1px solid rgba(255,77,77,0.2)',borderRadius:6,color:'#FF4D4D',fontSize:10,cursor:'pointer',padding:'3px 8px',transition:'all .15s'}} title="Eliminar">🗑</button>
-                                    <span style={{fontSize:10,color:'#2a2a2a',fontFamily:'monospace'}}>{isExp?'▲':'▼'}</span>
-                                  </div>
-                                </div>
-                                <div style={{fontSize:13,color:isExp?'#ddd':'#777',lineHeight:1.7,whiteSpace:isExp?'pre-wrap':'nowrap',overflow:'hidden',textOverflow:'ellipsis',fontFamily:isExp?"'Roboto',sans-serif":'inherit'}}>{a.text}</div>
-                                {isExp&&a.media?.length>0&&(
-                                  <div style={{display:'flex',gap:8,marginTop:14,flexWrap:'wrap'}}>
-                                    {a.media.map((m,i)=>m.type?.startsWith('image')
-                                      ?<img key={i} src={m.url} style={{maxWidth:220,maxHeight:160,borderRadius:10,objectFit:'cover',border:`1px solid ${t.border}30`}}/>
-                                      :<video key={i} src={m.url} controls style={{maxWidth:300,maxHeight:180,borderRadius:10,border:`1px solid ${t.border}30`}}/>
-                                    )}
-                                  </div>
-                                )}
+                            {/* Top row */}
+                            <div style={{display:'flex',alignItems:'center',gap:8,marginBottom:isExp?8:6}}>
+                              <span style={{fontSize:13}}>{TYPE_ICONS[a.type]||'●'}</span>
+                              <span style={{fontSize:9,color:t.border,background:`${t.border}15`,padding:'2px 7px',borderRadius:3,fontWeight:700,letterSpacing:'0.1em',textTransform:'uppercase',border:`1px solid ${t.border}25`,fontFamily:"'Roboto',sans-serif"}}>{t.label}</span>
+                              <span style={{fontSize:10,color:'#333',fontFamily:'monospace',letterSpacing:'0.04em'}}>{a.date}</span>
+                              {a.media?.length>0&&<span style={{fontSize:9,color:'#2a2a2a',background:'rgba(255,255,255,0.04)',padding:'2px 7px',borderRadius:3,border:'1px solid rgba(255,255,255,0.05)',fontFamily:'monospace'}}>📎{a.media.length}</span>}
+                              <div style={{marginLeft:'auto',display:'flex',gap:4,alignItems:'center'}}>
+                                <button onClick={e=>{e.stopPropagation();setEditingAction(a.id);setEditText(a.text);setEditType(a.type);setEditDate(a.date);setEditMedia([]);}} style={{background:'transparent',border:'1px solid rgba(255,255,255,0.06)',borderRadius:5,color:'#333',fontSize:10,cursor:'pointer',padding:'3px 7px',transition:'all .15s'}} title="Editar">✏</button>
+                                <button onClick={e=>{e.stopPropagation();if(window.confirm('¿Eliminar esta entrada?'))deleteAction(a.id);}} style={{background:'rgba(255,77,77,0.06)',border:'1px solid rgba(255,77,77,0.15)',borderRadius:5,color:'#FF4D4D',fontSize:10,cursor:'pointer',padding:'3px 7px',transition:'all .15s'}} title="Eliminar">✕</button>
+                                <span style={{fontSize:9,color:'#222',fontFamily:'monospace',marginLeft:2}}>{isExp?'▲':'▼'}</span>
                               </div>
                             </div>
+                            {/* Text */}
+                            <div style={{fontSize:12,color:isExp?'#bbb':'#555',lineHeight:1.75,whiteSpace:isExp?'pre-wrap':'nowrap',overflow:'hidden',textOverflow:'ellipsis',fontFamily:"'Roboto',sans-serif",paddingLeft:2}}>{a.text}</div>
+                            {isExp&&a.media?.length>0&&(
+                              <div style={{display:'flex',gap:8,marginTop:12,flexWrap:'wrap'}}>
+                                {a.media.map((m,i)=>m.type?.startsWith('image')
+                                  ?<img key={i} src={m.url} style={{maxWidth:200,maxHeight:140,borderRadius:8,objectFit:'cover',border:`1px solid ${t.border}25`}}/>
+                                  :<video key={i} src={m.url} controls style={{maxWidth:280,maxHeight:160,borderRadius:8,border:`1px solid ${t.border}25`}}/>
+                                )}
+                              </div>
+                            )}
                           </div>
                         </div>
                       );
                     })}
                   </div>
-                </div>
+                </div>                </div>
               </>
             )}
           </>
@@ -1203,20 +1238,82 @@ body{background:#080a0d;color:#fff;font-family:'Roboto',sans-serif;padding:36px 
         </div>
       )}
 
+      {/* STC EDIT MODAL */}
+      {editingSTC&&(
+        <div style={{position:'fixed',inset:0,background:'rgba(0,0,0,0.85)',zIndex:500,display:'flex',alignItems:'center',justifyContent:'center',backdropFilter:'blur(4px)'}} onClick={()=>setEditingSTC(false)}>
+          <div style={{background:'#0b0d12',border:'1px solid rgba(255,255,255,0.1)',borderRadius:20,padding:0,width:420,maxWidth:'92vw',overflow:'hidden',boxShadow:'0 30px 80px rgba(0,0,0,0.7)'}} onClick={e=>e.stopPropagation()}>
+            <div style={{padding:'20px 24px',borderBottom:'1px solid rgba(255,255,255,0.07)',display:'flex',alignItems:'center',gap:12}}>
+              <img src={LOGOS_INIT.STC} alt="" style={{width:32,height:32,borderRadius:8,objectFit:'contain',background:'rgba(255,255,255,0.04)',padding:4}}/>
+              <span style={{fontSize:15,fontWeight:700,fontFamily:"'Poppins',sans-serif",color:'#fff'}}>SetToClose — Configuración</span>
+            </div>
+            <div style={{padding:'24px',display:'flex',flexDirection:'column',gap:20}}>
+              {/* Metrics */}
+              <div>
+                <div style={{fontSize:11,color:'#555',marginBottom:12,letterSpacing:'0.05em'}}>Métricas visibles en el panel global</div>
+                {Object.entries(METRIC_OPTIONS.reduce((acc,m)=>{if(!acc[m.group])acc[m.group]=[];acc[m.group].push(m);return acc;},{})).map(([group,metrics])=>(
+                  <div key={group} style={{marginBottom:10}}>
+                    <div style={{fontSize:9,color:'#2a2a2a',textTransform:'uppercase',letterSpacing:'0.1em',marginBottom:6,fontWeight:600}}>{group}</div>
+                    <div style={{display:'flex',flexWrap:'wrap',gap:5}}>
+                      {metrics.map(m=>{
+                        const stcM=bgThemes['STC']?.metrics||[];
+                        const sel=stcM.includes(m.id);
+                        return(
+                          <div key={m.id} onClick={()=>setBgThemes(p=>({...p,STC:{...(p.STC||{}),metrics:sel?(stcM).filter(x=>x!==m.id):[...stcM,m.id]}}))} style={{
+                            padding:'4px 11px',borderRadius:6,cursor:'pointer',fontSize:11,fontFamily:"'Roboto',sans-serif",transition:'all .15s',
+                            background:sel?'rgba(255,255,255,0.15)':'rgba(255,255,255,0.03)',
+                            border:`1px solid ${sel?'rgba(255,255,255,0.35)':'rgba(255,255,255,0.07)'}`,
+                            color:sel?'#fff':'#444'
+                          }}>{m.label}{sel&&' ✓'}</div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                ))}
+              </div>
+              {/* Background */}
+              <div>
+                <div style={{fontSize:11,color:'#555',marginBottom:10,letterSpacing:'0.05em'}}>Fondo del panel SetToClose</div>
+                <div style={{display:'grid',gridTemplateColumns:'repeat(3,1fr)',gap:8}}>
+                  {BG_PRESETS.map(preset=>{
+                    const cur=bgThemes['STC'];
+                    const sel=cur?.preset===preset.id||((!cur||cur.type==='preset')&&preset.id==='dark'&&!cur?.preset);
+                    return(
+                      <div key={preset.id} onClick={()=>setBgThemes(p=>({...p,STC:{...(p.STC||{}),type:'preset',preset:preset.id}}))} style={{
+                        borderRadius:8,cursor:'pointer',overflow:'hidden',
+                        border:`2px solid ${sel?'rgba(255,255,255,0.5)':'rgba(255,255,255,0.07)'}`,
+                        transition:'all .2s',
+                      }}>
+                        <div style={{height:36,background:preset.preview,backgroundImage:preset.overlay||'none',backgroundRepeat:'repeat'}}/>
+                        <div style={{padding:'5px 8px',background:'rgba(0,0,0,0.5)',fontSize:9,color:sel?'#fff':'#444',fontWeight:sel?700:400,fontFamily:"'Roboto',sans-serif"}}>{preset.label}</div>
+                      </div>
+                    );
+                  })}
+                </div>
+                <div style={{marginTop:10,display:'flex',alignItems:'center',gap:10}}>
+                  <input type="color" defaultValue={bgThemes['STC']?.color||'#080a0d'} onChange={e=>setBgThemes(p=>({...p,STC:{...(p.STC||{}),type:'solid',color:e.target.value}}))} style={{width:36,height:32,borderRadius:6,border:'1px solid rgba(255,255,255,0.1)',background:'none',cursor:'pointer'}}/>
+                  <span style={{fontSize:11,color:'#444'}}>Color sólido personalizado</span>
+                </div>
+              </div>
+              <button onClick={()=>setEditingSTC(false)} style={{padding:'11px',borderRadius:9,border:'1px solid rgba(255,255,255,0.15)',background:'rgba(255,255,255,0.07)',color:'#fff',cursor:'pointer',fontWeight:600,fontFamily:"'Roboto',sans-serif",fontSize:13}}>✓ Guardar</button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* EDIT CLIENT MODAL */}
       {editing&&(
-        <div style={{position:'fixed',inset:0,background:'rgba(0,0,0,0.85)',zIndex:500,display:'flex',alignItems:'center',justifyContent:'center',backdropFilter:'blur(4px)'}} onClick={()=>{setEditing(null);setEditBgTab(false);}}>
+        <div style={{position:'fixed',inset:0,background:'rgba(0,0,0,0.85)',zIndex:500,display:'flex',alignItems:'center',justifyContent:'center',backdropFilter:'blur(4px)'}} onClick={()=>{setEditing(null);setEditTabIdx(0);}}>
           <div style={{background:'#0b0d12',border:'1px solid rgba(255,255,255,0.1)',borderRadius:20,padding:0,width:440,maxWidth:'92vw',overflow:'hidden',boxShadow:'0 30px 80px rgba(0,0,0,0.7)'}} onClick={e=>e.stopPropagation()}>
             {/* Tabs */}
             <div style={{display:'flex',borderBottom:'1px solid rgba(255,255,255,0.07)',background:'rgba(255,255,255,0.02)'}}>
-              {['Configuración','Background'].map((tab,i)=>(
-                <button key={tab} onClick={()=>setEditBgTab(i===1)} style={{flex:1,padding:'14px',border:'none',cursor:'pointer',background:'transparent',color:editBgTab===(i===1)?editing.color:'#444',fontWeight:editBgTab===(i===1)?700:400,fontFamily:"'Poppins',sans-serif",fontSize:12,borderBottom:editBgTab===(i===1)?`2px solid ${editing.color}`:'2px solid transparent',transition:'all .2s'}}>{tab}</button>
+              {['Configuración','Métricas','Background'].map((tab,i)=>(
+                <button key={tab} onClick={()=>setEditTabIdx(i)} style={{flex:1,padding:'14px',border:'none',cursor:'pointer',background:'transparent',color:editTabIdx===i?editing.color:'#444',fontWeight:editTabIdx===i?700:400,fontFamily:"'Poppins',sans-serif",fontSize:11,borderBottom:editTabIdx===i?`2px solid ${editing.color}`:'2px solid transparent',transition:'all .2s'}}>{tab}</button>
               ))}
             </div>
 
             <div style={{padding:'24px 28px',maxHeight:'70vh',overflowY:'auto'}}>
 
-            {!editBgTab&&(
+            {editTabIdx===0&&(
               <div style={{display:'flex',flexDirection:'column',gap:14}}>
                 <div style={{fontSize:16,fontWeight:700,fontFamily:"'Poppins',sans-serif",color:'#fff',marginBottom:4}}>{editing.id} — Editar</div>
                 <div style={{display:'flex',alignItems:'center',gap:16}}>
@@ -1240,12 +1337,57 @@ body{background:#080a0d;color:#fff;font-family:'Roboto',sans-serif;padding:36px 
                 </div>
                 <div style={{display:'flex',gap:8,marginTop:4}}>
                   <button onClick={()=>{setOffices(p=>p.filter(o=>o.id!==editing.id));if(activeId===editing.id)setActiveId(null);setEditing(null);}} style={{flex:1,padding:'10px',borderRadius:8,border:'1px solid rgba(255,77,77,0.3)',background:'rgba(255,77,77,0.08)',color:'#FF4D4D',cursor:'pointer',fontSize:13,fontFamily:"'Roboto',sans-serif"}}>🗑 Eliminar cliente</button>
-                  <button onClick={()=>{setEditing(null);setEditBgTab(false);}} style={{...btnP(editing.color),flex:1,textAlign:'center'}}>✓ Listo</button>
+                  <button onClick={()=>{setEditing(null);setEditTabIdx(0);}} style={{...btnP(editing.color),flex:1,textAlign:'center'}}>✓ Listo</button>
                 </div>
               </div>
             )}
 
-            {editBgTab&&(
+            {/* ── TAB 1: METRICS ── */}
+            {editTabIdx===1&&(
+              <div style={{display:'flex',flexDirection:'column',gap:18}}>
+                <div>
+                  <div style={{fontSize:11,color:'#555',marginBottom:12,letterSpacing:'0.05em'}}>¿En qué industria opera este cliente?</div>
+                  <div style={{display:'grid',gridTemplateColumns:'repeat(2,1fr)',gap:8}}>
+                    {INDUSTRIES.map(ind=>(
+                      <div key={ind.id} onClick={()=>{setOffices(p=>p.map(o=>o.id===editing.id?{...o,industry:ind.id,metrics:ind.defaultMetrics}:o));}} style={{
+                        padding:'10px 14px',borderRadius:10,cursor:'pointer',transition:'all .2s',
+                        border:`1px solid ${editing.industry===ind.id?editing.color+'80':'rgba(255,255,255,0.07)'}`,
+                        background:editing.industry===ind.id?editing.color+'12':'rgba(255,255,255,0.02)',
+                        display:'flex',alignItems:'center',gap:8
+                      }}>
+                        <span style={{fontSize:18}}>{ind.icon}</span>
+                        <span style={{fontSize:11,fontWeight:600,color:editing.industry===ind.id?editing.color:'#888',fontFamily:"'Poppins',sans-serif"}}>{ind.label}</span>
+                        {editing.industry===ind.id&&<div style={{marginLeft:'auto',width:6,height:6,borderRadius:'50%',background:editing.color,boxShadow:`0 0 6px ${editing.color}`}}/>}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+                <div>
+                  <div style={{fontSize:11,color:'#555',marginBottom:10,letterSpacing:'0.05em'}}>Métricas visibles en el dashboard</div>
+                  {Object.entries(METRIC_OPTIONS.reduce((acc,m)=>{if(!acc[m.group])acc[m.group]=[];acc[m.group].push(m);return acc;},{})).map(([group,metrics])=>(
+                    <div key={group} style={{marginBottom:10}}>
+                      <div style={{fontSize:9,color:'#333',textTransform:'uppercase',letterSpacing:'0.1em',marginBottom:6,fontWeight:600}}>{group}</div>
+                      <div style={{display:'flex',flexWrap:'wrap',gap:5}}>
+                        {metrics.map(m=>{
+                          const sel=(editing.metrics||[]).includes(m.id);
+                          return(
+                            <div key={m.id} onClick={()=>setOffices(p=>p.map(o=>o.id===editing.id?{...o,metrics:sel?(o.metrics||[]).filter(x=>x!==m.id):[...(o.metrics||[]),m.id]}:o))} style={{
+                              padding:'4px 11px',borderRadius:6,cursor:'pointer',fontSize:11,fontFamily:"'Roboto',sans-serif",transition:'all .15s',
+                              background:sel?editing.color+'20':'rgba(255,255,255,0.03)',
+                              border:`1px solid ${sel?editing.color+'50':'rgba(255,255,255,0.07)'}`,
+                              color:sel?editing.color:'#555'
+                            }} title={m.desc}>{m.label}{sel&&' ✓'}</div>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+                <button onClick={()=>setEditTabIdx(0)} style={{...btnP(editing.color),textAlign:'center',marginTop:4}}>✓ Guardar métricas</button>
+              </div>
+            )}
+
+            {editTabIdx===2&&(
               <div style={{display:'flex',flexDirection:'column',gap:16}}>
                 <div style={{fontSize:13,fontWeight:600,color:'#fff',fontFamily:"'Poppins',sans-serif",marginBottom:4}}>Fondo del Dashboard</div>
                 <div style={{fontSize:11,color:'#555',marginBottom:4}}>Presets ultra-minimalistas</div>
@@ -1276,7 +1418,7 @@ body{background:#080a0d;color:#fff;font-family:'Roboto',sans-serif;padding:36px 
                     {bgThemes[editing.id]?.type==='solid'&&<span style={{fontSize:10,color:'#00FF88',background:'rgba(0,255,136,0.1)',padding:'2px 8px',borderRadius:4,border:'1px solid rgba(0,255,136,0.2)'}}>ACTIVO</span>}
                   </div>
                 </div>
-                <button onClick={()=>{setEditing(null);setEditBgTab(false);}} style={{...btnP(editing.color),textAlign:'center',marginTop:4}}>✓ Guardar tema</button>
+                <button onClick={()=>{setEditing(null);setEditTabIdx(0);}} style={{...btnP(editing.color),textAlign:'center',marginTop:4}}>✓ Guardar tema</button>
               </div>
             )}
 
