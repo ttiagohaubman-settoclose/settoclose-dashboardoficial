@@ -57,21 +57,33 @@ const METRIC_OPTIONS = [
 ];
 
 const BG_PRESETS = [
-  { id:'dark',      label:'Void',          preview:'#080a0d', bg:'#080a0d', overlay:'' },
-  { id:'grid',      label:'Neon Grid',     preview:'#07090c', bg:'#07090c',
-    overlay:'url("data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 width=%2748%27 height=%2748%27%3E%3Cpath d=%27M 48 0 L 0 0 0 48%27 fill=%27none%27 stroke=%27rgba(0,200,255,0.06)%27 stroke-width=%270.5%27/%3E%3C/svg%3E"), radial-gradient(ellipse at 80% 20%, rgba(0,180,255,0.05) 0%, transparent 60%)' },
-  { id:'dots',      label:'Dot Field',     preview:'#080a0e', bg:'#080a0e',
-    overlay:'url("data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 width=%2720%27 height=%2720%27%3E%3Ccircle cx=%272%27 cy=%272%27 r=%270.8%27 fill=%27rgba(255,255,255,0.05)%27/%3E%3C/svg%3E")' },
-  { id:'diagonal',  label:'Carbon Weave',  preview:'#090909', bg:'#090909',
-    overlay:'url("data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 width=%2710%27 height=%2710%27%3E%3Cpath d=%27M-1,1 l2,-2 M0,10 l10,-10 M8,12 l4,-4%27 stroke=%27rgba(255,255,255,0.025)%27 stroke-width=%271.5%27/%3E%3C/svg%3E")' },
+  { id:'void',      label:'Void',          preview:'#050507', bg:'#050507', overlay:'' },
+  { id:'grid',      label:'Neon Grid',     preview:'#04080f', bg:'#04080f',
+    overlay:'url("data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 width=%2740%27 height=%2740%27%3E%3Cpath d=%27M 40 0 L 0 0 0 40%27 fill=%27none%27 stroke=%27rgba(0,200,255,0.09)%27 stroke-width=%270.5%27/%3E%3C/svg%3E"), radial-gradient(ellipse at 80% 20%, rgba(0,180,255,0.06) 0%, transparent 60%)' },
+  { id:'holo',      label:'Holographic',   preview:'linear-gradient(135deg,#0d0015,#001530)', bg:'#080010',
+    overlay:'radial-gradient(ellipse at 0% 100%, rgba(255,0,255,0.14) 0%, transparent 50%), radial-gradient(ellipse at 100% 0%, rgba(0,200,255,0.14) 0%, transparent 50%), radial-gradient(ellipse at 50% 50%, rgba(120,0,255,0.09) 0%, transparent 60%)' },
+  { id:'galaxy',    label:'Galaxy',        preview:'linear-gradient(135deg,#020210,#050520)', bg:'#020210',
+    overlay:'url("data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 width=%27200%27 height=%27200%27%3E%3Ccircle cx=%2710%27 cy=%2715%27 r=%271%27 fill=%27rgba(255,255,255,0.7)%27/%3E%3Ccircle cx=%2785%27 cy=%2742%27 r=%271.4%27 fill=%27rgba(255,255,255,0.6)%27/%3E%3Ccircle cx=%27155%27 cy=%2790%27 r=%270.7%27 fill=%27rgba(255,255,255,0.9)%27/%3E%3Ccircle cx=%2730%27 cy=%27130%27 r=%271.2%27 fill=%27rgba(255,255,255,0.5)%27/%3E%3Ccircle cx=%27170%27 cy=%2720%27 r=%270.8%27 fill=%27rgba(200,180,255,0.9)%27/%3E%3Ccircle cx=%27120%27 cy=%27170%27 r=%271.3%27 fill=%27rgba(180,200,255,0.7)%27/%3E%3Ccircle cx=%2760%27 cy=%27180%27 r=%270.6%27 fill=%27rgba(255,255,255,0.8)%27/%3E%3Ccircle cx=%27140%27 cy=%27110%27 r=%271%27 fill=%27rgba(200,220,255,0.8)%27/%3E%3Ccircle cx=%2745%27 cy=%2755%27 r=%270.7%27 fill=%27rgba(255,255,255,0.6)%27/%3E%3Ccircle cx=%27190%27 cy=%27150%27 r=%271.1%27 fill=%27rgba(200,200,255,0.7)%27/%3E%3Ccircle cx=%27100%27 cy=%2730%27 r=%270.5%27 fill=%27rgba(255,240,200,0.8)%27/%3E%3Ccircle cx=%2720%27 cy=%2780%27 r=%271.2%27 fill=%27rgba(200,240,255,0.6)%27/%3E%3C/svg%3E"), radial-gradient(ellipse at 30% 40%, rgba(80,0,200,0.16) 0%, transparent 50%)' },
+  { id:'vapor',     label:'Vaporwave',     preview:'linear-gradient(180deg,#1a0030,#2d0060)', bg:'#120025',
+    overlay:'linear-gradient(180deg, rgba(255,0,200,0.1) 0%, rgba(80,0,255,0.13) 50%, rgba(0,200,255,0.07) 100%), url("data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 width=%2780%27 height=%2780%27%3E%3Cline x1=%270%27 y1=%2780%27 x2=%2780%27 y2=%2780%27 stroke=%27rgba(255,0,200,0.05)%27 stroke-width=%271%27/%3E%3Cline x1=%270%27 y1=%2740%27 x2=%2780%27 y2=%2740%27 stroke=%27rgba(200,0,255,0.04)%27 stroke-width=%271%27/%3E%3C/svg%3E")' },
+  { id:'circuit',   label:'Circuit',       preview:'#020a06', bg:'#020a06',
+    overlay:'url("data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 width=%2760%27 height=%2760%27%3E%3Crect x=%2710%27 y=%2710%27 width=%2740%27 height=%2740%27 fill=%27none%27 stroke=%27rgba(0,255,120,0.08)%27 stroke-width=%270.5%27/%3E%3Ccircle cx=%2710%27 cy=%2710%27 r=%271.8%27 fill=%27rgba(0,255,120,0.12)%27/%3E%3Ccircle cx=%2750%27 cy=%2710%27 r=%271.8%27 fill=%27rgba(0,255,120,0.12)%27/%3E%3Ccircle cx=%2710%27 cy=%2750%27 r=%271.8%27 fill=%27rgba(0,255,120,0.12)%27/%3E%3Ccircle cx=%2750%27 cy=%2750%27 r=%271.8%27 fill=%27rgba(0,255,120,0.12)%27/%3E%3Cline x1=%2710%27 y1=%2730%27 x2=%2722%27 y2=%2730%27 stroke=%27rgba(0,255,120,0.07)%27 stroke-width=%270.5%27/%3E%3Cline x1=%2738%27 y1=%2730%27 x2=%2750%27 y2=%2730%27 stroke=%27rgba(0,255,120,0.07)%27 stroke-width=%270.5%27/%3E%3Cline x1=%2730%27 y1=%2710%27 x2=%2730%27 y2=%2722%27 stroke=%27rgba(0,255,120,0.07)%27 stroke-width=%270.5%27/%3E%3C/svg%3E")' },
+  { id:'topo',      label:'Topographic',   preview:'#040912', bg:'#040912',
+    overlay:'url("data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 width=%27200%27 height=%27200%27%3E%3Cellipse cx=%27100%27 cy=%27100%27 rx=%2790%27 ry=%2770%27 fill=%27none%27 stroke=%27rgba(56,189,248,0.05)%27 stroke-width=%271%27/%3E%3Cellipse cx=%27100%27 cy=%27100%27 rx=%2770%27 ry=%2752%27 fill=%27none%27 stroke=%27rgba(56,189,248,0.05)%27 stroke-width=%271%27/%3E%3Cellipse cx=%27100%27 cy=%27100%27 rx=%2750%27 ry=%2737%27 fill=%27none%27 stroke=%27rgba(56,189,248,0.06)%27 stroke-width=%271%27/%3E%3Cellipse cx=%27100%27 cy=%27100%27 rx=%2732%27 ry=%2724%27 fill=%27none%27 stroke=%27rgba(56,189,248,0.07)%27 stroke-width=%271%27/%3E%3Cellipse cx=%27100%27 cy=%27100%27 rx=%2716%27 ry=%2712%27 fill=%27none%27 stroke=%27rgba(56,189,248,0.1)%27 stroke-width=%271%27/%3E%3C/svg%3E")' },
+  { id:'hex',       label:'Hex Grid',      preview:'#060a0f', bg:'#060a0f',
+    overlay:'url("data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 width=%2756%27 height=%2797%27%3E%3Cpolygon points=%2728,2 52,16 52,44 28,58 4,44 4,16%27 fill=%27none%27 stroke=%27rgba(251,191,36,0.08)%27 stroke-width=%271%27/%3E%3Cpolygon points=%2728,58 52,72 52,100 28,114 4,100 4,72%27 fill=%27none%27 stroke=%27rgba(251,191,36,0.06)%27 stroke-width=%271%27/%3E%3C/svg%3E")' },
+  { id:'ember',     label:'Ember',         preview:'linear-gradient(135deg,#100308,#0d0206)', bg:'#0a0205',
+    overlay:'radial-gradient(ellipse at 20% 30%, rgba(255,60,0,0.14) 0%, transparent 45%), radial-gradient(ellipse at 80% 70%, rgba(200,0,50,0.1) 0%, transparent 40%), url("data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 width=%2724%27 height=%2724%27%3E%3Ccircle cx=%2712%27 cy=%2712%27 r=%270.5%27 fill=%27rgba(255,100,0,0.07)%27/%3E%3C/svg%3E")' },
+  { id:'aurora',    label:'Aurora',        preview:'linear-gradient(135deg,#060510,#04070d)', bg:'#050410',
+    overlay:'radial-gradient(ellipse at 10% 20%, rgba(0,255,160,0.15) 0%, transparent 40%), radial-gradient(ellipse at 80% 80%, rgba(140,0,255,0.14) 0%, transparent 45%), radial-gradient(ellipse at 50% 10%, rgba(0,120,255,0.09) 0%, transparent 35%)' },
   { id:'blueprint', label:'Blueprint',     preview:'#030810', bg:'#030810',
-    overlay:'url("data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 width=%2740%27 height=%2740%27%3E%3Crect width=%2740%27 height=%2740%27 fill=%27none%27 stroke=%27rgba(0,120,255,0.07)%27 stroke-width=%270.5%27/%3E%3Ccircle cx=%2720%27 cy=%2720%27 r=%271%27 fill=%27rgba(0,140,255,0.08)%27/%3E%3C/svg%3E"), radial-gradient(ellipse at 30% 70%, rgba(0,80,200,0.07) 0%, transparent 55%)' },
-  { id:'aurora',    label:'Aurora',        preview:'#060510', bg:'#060510',
-    overlay:'radial-gradient(ellipse at 5% 5%, rgba(140,0,255,0.11) 0%, transparent 50%), radial-gradient(ellipse at 95% 95%, rgba(0,255,160,0.09) 0%, transparent 50%)' },
-  { id:'ember',     label:'Ember',         preview:'#090507', bg:'#090507',
-    overlay:'radial-gradient(ellipse at 80% 20%, rgba(220,0,80,0.1) 0%, transparent 55%), url("data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 width=%2732%27 height=%2732%27%3E%3Ccircle cx=%2716%27 cy=%2716%27 r=%270.6%27 fill=%27rgba(255,60,80,0.04)%27/%3E%3C/svg%3E")' },
-  { id:'axis',      label:'Axis',          preview:'#06080d', bg:'#06080d',
-    overlay:'url("data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 width=%2760%27 height=%2760%27%3E%3Cline x1=%270%27 y1=%2760%27 x2=%2760%27 y2=%2760%27 stroke=%27rgba(255,255,255,0.03)%27 stroke-width=%271%27/%3E%3Cline x1=%270%27 y1=%270%27 x2=%270%27 y2=%2760%27 stroke=%27rgba(255,255,255,0.03)%27 stroke-width=%271%27/%3E%3C/svg%3E"), linear-gradient(180deg, rgba(0,0,0,0) 0%, rgba(0,150,255,0.03) 100%)' },
+    overlay:'url("data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 width=%2740%27 height=%2740%27%3E%3Crect width=%2740%27 height=%2740%27 fill=%27none%27 stroke=%27rgba(0,120,255,0.08)%27 stroke-width=%270.5%27/%3E%3Ccircle cx=%2720%27 cy=%2720%27 r=%271%27 fill=%27rgba(0,140,255,0.1)%27/%3E%3C/svg%3E"), radial-gradient(ellipse at 30% 70%, rgba(0,80,200,0.08) 0%, transparent 55%)' },
+  { id:'carbon',    label:'Carbon',        preview:'#090909', bg:'#080808',
+    overlay:'url("data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 width=%278%27 height=%278%27%3E%3Crect width=%274%27 height=%274%27 fill=%27rgba(255,255,255,0.022)%27/%3E%3Crect x=%274%27 y=%274%27 width=%274%27 height=%274%27 fill=%27rgba(255,255,255,0.022)%27/%3E%3C/svg%3E")' },
+  { id:'rose',      label:'Midnight Rose', preview:'linear-gradient(135deg,#0f0508,#12030a)', bg:'#0c0407',
+    overlay:'radial-gradient(ellipse at 25% 25%, rgba(255,50,100,0.14) 0%, transparent 50%), radial-gradient(ellipse at 75% 75%, rgba(180,0,100,0.1) 0%, transparent 45%), url("data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 width=%2724%27 height=%2724%27%3E%3Ccircle cx=%2712%27 cy=%2712%27 r=%270.4%27 fill=%27rgba(255,50,100,0.05)%27/%3E%3C/svg%3E")' },
+  { id:'dots',      label:'Dot Matrix',    preview:'#080a0e', bg:'#080a0e',
+    overlay:'url("data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 width=%2720%27 height=%2720%27%3E%3Ccircle cx=%2710%27 cy=%2710%27 r=%270.9%27 fill=%27rgba(255,255,255,0.06)%27/%3E%3C/svg%3E")' },
   { id:'light',     label:'Light Mode',    preview:'linear-gradient(135deg,#f0f4f8,#e8ecf0)', bg:'#f0f4f8', overlay:'' },
 ];
 
@@ -90,7 +102,7 @@ const KPI = ({label,value,sub,color}) => (
   <div style={{background:`${color}0d`,border:`1px solid ${color}30`,borderRadius:12,padding:'16px 18px',position:'relative',overflow:'hidden',transition:'border-color .2s'}}>
     <div style={{position:'absolute',top:0,left:0,right:0,height:2,background:`linear-gradient(90deg,${color},${color}55)`}}/>
     <div style={{fontSize:10,color:'#666',letterSpacing:'0.1em',textTransform:'uppercase',marginBottom:7,fontFamily:"'Roboto',sans-serif"}}>{label}</div>
-    <div style={{fontSize:22,fontWeight:700,color:'#fff',fontFamily:"'Poppins',sans-serif",letterSpacing:'-0.02em'}}>{value}</div>
+    <div style={{fontSize:22,fontWeight:700,color:'inherit',fontFamily:"'Poppins',sans-serif",letterSpacing:'-0.02em'}}>{value}</div>
     {sub&&<div style={{fontSize:11,color:'#555',marginTop:3,fontFamily:"'Roboto',sans-serif"}}>{sub}</div>}
   </div>
 );
@@ -698,7 +710,7 @@ body{background:#080a0d;color:#fff;font-family:'Roboto',sans-serif;padding:36px 
             <div style={{display:'flex',alignItems:'center',gap:16,marginBottom:28}}>
               <img src={LOGOS_INIT.STC} alt="STC" style={{width:52,height:52,borderRadius:12,objectFit:'contain',background:'rgba(255,255,255,0.04)',padding:6,border:'1px solid rgba(255,255,255,0.08)'}}/>
               <div style={{flex:1}}>
-                <div style={{fontSize:22,fontWeight:700,fontFamily:"'Poppins',sans-serif",color:'#fff'}}>SetToClose</div>
+                <div style={{fontSize:22,fontWeight:700,fontFamily:"'Poppins',sans-serif",color:textPrimary}}>SetToClose</div>
                 <div style={{fontSize:12,color:'#444',marginTop:2}}>{dateFrom} to {dateTo} · {offices.length} oficinas activas</div>
               </div>
               <button onClick={()=>setEditingSTC(true)} style={{padding:'7px 14px',borderRadius:8,border:'1px solid rgba(255,255,255,0.08)',background:'rgba(255,255,255,0.04)',color:'#444',fontSize:12,cursor:'pointer',fontFamily:"'Roboto',sans-serif",display:'flex',alignItems:'center',gap:6}} className="hov">
@@ -719,7 +731,7 @@ body{background:#080a0d;color:#fff;font-family:'Roboto',sans-serif;padding:36px 
               ].map(kpi=>(
                 <div key={kpi.id} onClick={()=>setExpandedKpi(expandedKpi===kpi.id?null:kpi.id)} style={{background:'rgba(255,255,255,0.03)',border:`1px solid ${expandedKpi===kpi.id?'rgba(255,255,255,0.2)':'rgba(255,255,255,0.07)'}`,borderRadius:14,padding:'16px 18px',cursor:'pointer',transition:'all .2s',position:'relative'}}>
                   <div style={{fontSize:10,color:'#555',textTransform:'uppercase',letterSpacing:'.1em',marginBottom:8,fontWeight:600}}>{kpi.label}</div>
-                  <div style={{fontSize:24,fontWeight:700,fontFamily:"'Poppins',sans-serif",color:'#fff',marginBottom:4}}>{kpi.value}</div>
+                  <div style={{fontSize:24,fontWeight:700,fontFamily:"'Poppins',sans-serif",color:textPrimary,marginBottom:4}}>{kpi.value}</div>
                   <div style={{fontSize:11,color:'#444'}}>{kpi.sub}</div>
                   <div style={{position:'absolute',top:12,right:12,fontSize:10,color:'#333'}}>{expandedKpi===kpi.id?'▲':'▼'}</div>
                   {expandedKpi===kpi.id&&(
@@ -782,7 +794,7 @@ body{background:#080a0d;color:#fff;font-family:'Roboto',sans-serif;padding:36px 
             <div style={{display:'flex',alignItems:'center',gap:14,marginBottom:24}}>
               <img src={logos[office.id]||''} alt="" style={{width:48,height:48,borderRadius:'50%',objectFit:'cover',border:`2px solid ${office.color}55`}}/>
               <div>
-                <h1 style={{fontSize:20,fontWeight:700,fontFamily:"'Poppins',sans-serif",color:'#fff'}}>
+                <h1 style={{fontSize:20,fontWeight:700,fontFamily:"'Poppins',sans-serif",color:textPrimary}}>
                   {office.name}
                   {loading&&<span style={{marginLeft:10,fontSize:10,color:'#F97316',background:'rgba(249,115,22,0.15)',padding:'2px 10px',borderRadius:20,border:'1px solid rgba(249,115,22,0.3)',verticalAlign:'middle'}}>LOADING...</span>}
                   {!loading&&!apiErr&&apiData[activeId]?.length>0&&<span style={{marginLeft:10,fontSize:10,color:office.color,background:office.color+'15',padding:'2px 10px',borderRadius:20,border:`1px solid ${office.color}33`,verticalAlign:'middle'}}>LIVE</span>}
@@ -918,105 +930,124 @@ body{background:#080a0d;color:#fff;font-family:'Roboto',sans-serif;padding:36px 
                   </div>
                 )}
 
-                {/* ── ACTION LOG — REDESIGN ─────────────────────── */}
-                <div style={{borderRadius:18,overflow:'hidden',position:'relative'}}>
-                  {/* Animated top border */}
-                  <div style={{position:'absolute',top:0,left:0,right:0,height:2,background:`linear-gradient(90deg,transparent,${office.color},${office.color}88,transparent)`,zIndex:2}}/>
+                {/* ── ACTION LOG ─────────────────────────────────────────── */}
+                <div style={{position:'relative',marginTop:8}}>
+                  <div style={{
+                    position:'relative',borderRadius:20,overflow:'hidden',
+                    background:'linear-gradient(180deg,#050810 0%,#040608 100%)',
+                    border:`1px solid ${office.color}22`,
+                    boxShadow:`0 0 60px ${office.color}0a, inset 0 1px 0 rgba(255,255,255,0.04)`
+                  }}>
+                    {/* Top glow line */}
+                    <div style={{position:'absolute',top:0,left:0,right:0,height:1,background:`linear-gradient(90deg,transparent 10%,${office.color}80 50%,transparent 90%)`,zIndex:2}}/>
 
-                  {/* Header bar */}
-                  <div style={{padding:'20px 26px 16px',background:`linear-gradient(135deg,${office.color}10,rgba(0,0,0,0.4))`,display:'flex',alignItems:'center',gap:12,borderBottom:'1px solid rgba(255,255,255,0.06)'}}>
-                    <div style={{display:'flex',gap:5,alignItems:'center'}}>
-                      <div style={{width:9,height:9,borderRadius:'50%',background:'#FF4D4D',opacity:.7}}/>
-                      <div style={{width:9,height:9,borderRadius:'50%',background:'#FFD700',opacity:.7}}/>
-                      <div style={{width:9,height:9,borderRadius:'50%',background:'#00FF88',opacity:.7}}/>
-                    </div>
-                    <div style={{width:1,height:18,background:'rgba(255,255,255,0.07)',margin:'0 4px'}}/>
-                    <span style={{fontSize:11,fontWeight:700,fontFamily:"'Roboto',sans-serif",letterSpacing:'0.18em',color:office.color,textTransform:'uppercase'}}>Action Log</span>
-                    <span style={{fontSize:10,color:'#2a2a2a',fontFamily:'monospace'}}>//</span>
-                    <span style={{fontSize:10,color:'#333',fontFamily:'monospace'}}>{(actions[activeId]||[]).length} records</span>
-                    <div style={{flex:1}}/>
-                    <input type="date" value={filterDate} onChange={e=>setFilterDate(e.target.value)} style={{background:'rgba(255,255,255,0.04)',border:'1px solid rgba(255,255,255,0.07)',borderRadius:7,padding:'5px 10px',color:'#555',fontSize:11,fontFamily:"'Roboto',sans-serif",colorScheme:'dark',cursor:'pointer'}}/>
-                    {filterDate&&<button onClick={()=>setFilterDate('')} style={{background:'rgba(255,255,255,0.04)',border:'1px solid rgba(255,255,255,0.07)',borderRadius:6,color:'#444',fontSize:11,cursor:'pointer',padding:'5px 9px'}}>✕</button>}
-                  </div>
-
-                  {/* New Entry Form */}
-                  <div style={{padding:'20px 26px',background:'rgba(0,0,0,0.35)',borderBottom:'1px solid rgba(255,255,255,0.04)'}}>
-                    <div style={{display:'flex',gap:8,marginBottom:10,alignItems:'center'}}>
-                      <div style={{width:6,height:6,borderRadius:'50%',background:office.color,boxShadow:`0 0 8px ${office.color}`,flexShrink:0}}/>
-                      <span style={{fontSize:10,color:'#333',fontFamily:'monospace',letterSpacing:'0.1em',textTransform:'uppercase'}}>new entry</span>
-                    </div>
-                    <div style={{display:'flex',gap:8,marginBottom:10}}>
-                      <input type="date" value={newDate} onChange={e=>setNewDate(e.target.value)} style={{...inp,width:148,colorScheme:'dark',background:'rgba(255,255,255,0.03)',border:'1px solid rgba(255,255,255,0.08)',fontFamily:"'Roboto',sans-serif",fontSize:12}}/>
-                      <select value={newType} onChange={e=>setNewType(e.target.value)} style={{...inp,width:140,cursor:'pointer',background:'rgba(255,255,255,0.03)',border:'1px solid rgba(255,255,255,0.08)',fontFamily:"'Roboto',sans-serif",fontSize:12}}>
-                        {Object.entries(ACTION_TYPES).map(([k,v])=><option key={k} value={k} style={{background:'#111'}}>{v.label}</option>)}
-                      </select>
-                    </div>
-                    <textarea value={newText} onChange={e=>setNewText(e.target.value)} onKeyDown={e=>{if(e.key==='Enter'&&e.metaKey)addAction();}} placeholder="Describe la acción o decisión... (Cmd+Enter para guardar)" rows={3} style={{...inp,resize:'vertical',lineHeight:1.7,marginBottom:10,background:'rgba(255,255,255,0.03)',border:'1px solid rgba(255,255,255,0.08)',fontSize:13,fontFamily:"'Roboto',sans-serif"}}/>
-                    <div style={{display:'flex',alignItems:'center',gap:10}}>
-                      <button onClick={()=>mediaRef.current?.click()} style={{padding:'7px 13px',borderRadius:7,border:'1px solid rgba(255,255,255,0.07)',background:'transparent',color:'#444',fontSize:11,cursor:'pointer',fontFamily:"'Roboto',sans-serif",display:'flex',alignItems:'center',gap:5}}>
-                        <span>📎</span><span>Adjuntar</span>
-                      </button>
-                      <input ref={mediaRef} type="file" accept="image/*,video/*" multiple onChange={e=>{Array.from(e.target.files).forEach(f=>{const r=new FileReader();r.onload=ev=>setPendMedia(p=>[...p,{name:f.name,type:f.type,url:ev.target.result}]);r.readAsDataURL(f);});}} style={{display:'none'}}/>
-                      {pendMedia.length>0&&<span style={{fontSize:11,color:'#444',background:'rgba(255,255,255,0.04)',padding:'4px 10px',borderRadius:6,border:'1px solid rgba(255,255,255,0.06)'}}>{pendMedia.length} archivo(s)</span>}
-                      <div style={{flex:1}}/>
-                      <button onClick={addAction} style={{padding:'8px 22px',borderRadius:8,border:`1px solid ${office.color}55`,background:`${office.color}18`,color:office.color,fontSize:11,fontWeight:700,fontFamily:"'Roboto',sans-serif",cursor:'pointer',letterSpacing:'0.08em',display:'flex',alignItems:'center',gap:6}}>
-                        <span style={{fontSize:13}}>+</span> GUARDAR
-                      </button>
-                    </div>
-                  </div>
-
-                  {/* Entries List */}
-                  <div style={{padding:'12px 18px 20px',background:'rgba(0,0,0,0.25)',display:'flex',flexDirection:'column',gap:3}}>
-                    {filtActions.length===0&&(
-                      <div style={{color:'#222',fontSize:12,textAlign:'center',padding:'36px 0',fontFamily:'monospace'}}>
-                        <div style={{fontSize:28,marginBottom:10,opacity:.2}}>⌀</div>
-                        <div style={{letterSpacing:'0.1em',fontSize:11}}>{filterDate ? `SIN ENTRADAS — ${filterDate}` : 'NO HAY REGISTROS AÚN'}</div>
+                    {/* ── Header ── */}
+                    <div style={{padding:'16px 22px',background:`linear-gradient(90deg,${office.color}12,rgba(0,0,0,0.3))`,display:'flex',alignItems:'center',gap:10,flexWrap:'wrap',borderBottom:`1px solid ${office.color}15`}}>
+                      <div style={{display:'flex',gap:5,alignItems:'center'}}>
+                        {['#FF5F56','#FFBD2E','#27C93F'].map((c,i)=>(
+                          <div key={i} style={{width:10,height:10,borderRadius:'50%',background:c,boxShadow:`0 0 5px ${c}99`}}/>
+                        ))}
                       </div>
-                    )}
-                    {filtActions.map((a,idx)=>{
-                      const t=ACTION_TYPES[a.type]||ACTION_TYPES.test;
-                      const isExp=expanded===a.id;
-                      const TYPE_ICONS={test:'🧪',pause:'⏸',scale:'📈',insight:'💡',decision:'⚡'};
-                      return(
-                        <div key={a.id} style={{position:'relative',paddingLeft:32}}>
-                          {/* Timeline line */}
-                          {idx < filtActions.length-1 && <div style={{position:'absolute',left:10,top:44,bottom:-3,width:1,background:`${t.border}20`,zIndex:0}}/>}
-                          {/* Timeline dot */}
-                          <div style={{position:'absolute',left:6,top:18,width:9,height:9,borderRadius:'50%',background:t.dot,boxShadow:`0 0 8px ${t.dot}88`,zIndex:1,border:`2px solid ${t.border}40`}}/>
-                          <div className="arow" onClick={()=>setExpanded(isExp?null:a.id)} style={{
-                            background: isExp ? `${t.border}0d` : 'rgba(255,255,255,0.015)',
-                            border:`1px solid ${isExp ? t.border+'40' : 'rgba(255,255,255,0.05)'}`,
-                            borderLeft:`3px solid ${t.border}${isExp?'cc':'44'}`,
-                            borderRadius:10,padding:'12px 14px',
-                            transition:'all .18s',
-                            boxShadow: isExp ? `0 0 24px ${t.border}12, inset 0 0 30px ${t.border}05` : 'none'
-                          }}>
-                            {/* Top row */}
-                            <div style={{display:'flex',alignItems:'center',gap:8,marginBottom:isExp?8:6}}>
-                              <span style={{fontSize:13}}>{TYPE_ICONS[a.type]||'●'}</span>
-                              <span style={{fontSize:9,color:t.border,background:`${t.border}15`,padding:'2px 7px',borderRadius:3,fontWeight:700,letterSpacing:'0.1em',textTransform:'uppercase',border:`1px solid ${t.border}25`,fontFamily:"'Roboto',sans-serif"}}>{t.label}</span>
-                              <span style={{fontSize:10,color:'#333',fontFamily:'monospace',letterSpacing:'0.04em'}}>{a.date}</span>
-                              {a.media?.length>0&&<span style={{fontSize:9,color:'#2a2a2a',background:'rgba(255,255,255,0.04)',padding:'2px 7px',borderRadius:3,border:'1px solid rgba(255,255,255,0.05)',fontFamily:'monospace'}}>📎{a.media.length}</span>}
-                              <div style={{marginLeft:'auto',display:'flex',gap:4,alignItems:'center'}}>
-                                <button onClick={e=>{e.stopPropagation();setEditingAction(a.id);setEditText(a.text);setEditType(a.type);setEditDate(a.date);setEditMedia([]);}} style={{background:'transparent',border:'1px solid rgba(255,255,255,0.06)',borderRadius:5,color:'#333',fontSize:10,cursor:'pointer',padding:'3px 7px',transition:'all .15s'}} title="Editar">✏</button>
-                                <button onClick={e=>{e.stopPropagation();if(window.confirm('¿Eliminar esta entrada?'))deleteAction(a.id);}} style={{background:'rgba(255,77,77,0.06)',border:'1px solid rgba(255,77,77,0.15)',borderRadius:5,color:'#FF4D4D',fontSize:10,cursor:'pointer',padding:'3px 7px',transition:'all .15s'}} title="Eliminar">✕</button>
-                                <span style={{fontSize:9,color:'#222',fontFamily:'monospace',marginLeft:2}}>{isExp?'▲':'▼'}</span>
-                              </div>
-                            </div>
-                            {/* Text */}
-                            <div style={{fontSize:12,color:isExp?'#bbb':'#555',lineHeight:1.75,whiteSpace:isExp?'pre-wrap':'nowrap',overflow:'hidden',textOverflow:'ellipsis',fontFamily:"'Roboto',sans-serif",paddingLeft:2}}>{a.text}</div>
-                            {isExp&&a.media?.length>0&&(
-                              <div style={{display:'flex',gap:8,marginTop:12,flexWrap:'wrap'}}>
-                                {a.media.map((m,i)=>m.type?.startsWith('image')
-                                  ?<img key={i} src={m.url} style={{maxWidth:200,maxHeight:140,borderRadius:8,objectFit:'cover',border:`1px solid ${t.border}25`}}/>
-                                  :<video key={i} src={m.url} controls style={{maxWidth:280,maxHeight:160,borderRadius:8,border:`1px solid ${t.border}25`}}/>
-                                )}
-                              </div>
-                            )}
+                      <div style={{width:1,height:18,background:'rgba(255,255,255,0.06)',margin:'0 4px'}}/>
+                      <span style={{fontSize:10,color:'#2a2a2a',fontFamily:'monospace'}}>~/</span>
+                      <span style={{fontSize:11,fontWeight:700,fontFamily:'monospace',letterSpacing:'0.16em',color:office.color,textTransform:'uppercase'}}>{office.id.toLowerCase()}</span>
+                      <span style={{fontSize:10,color:'#1e1e1e',fontFamily:'monospace'}}>/log</span>
+                      <div style={{flex:1}}/>
+                      <div style={{display:'flex',alignItems:'center',gap:6,background:'rgba(0,0,0,0.3)',borderRadius:8,padding:'4px 10px',border:`1px solid ${office.color}18`}}>
+                        <div style={{width:5,height:5,borderRadius:'50%',background:office.color,boxShadow:`0 0 8px ${office.color}`}}/>
+                        <span style={{fontSize:10,color:office.color,fontFamily:'monospace'}}>{(actions[activeId]||[]).length} entries</span>
+                      </div>
+                      <input type="date" value={filterDate} onChange={e=>setFilterDate(e.target.value)} style={{background:'rgba(0,0,0,0.35)',border:`1px solid ${office.color}20`,borderRadius:7,padding:'4px 10px',color:filterDate?office.color:'#2a2a2a',fontSize:11,fontFamily:'monospace',colorScheme:'dark',cursor:'pointer'}}/>
+                      {filterDate&&<button onClick={()=>setFilterDate('')} style={{background:'rgba(255,77,77,0.08)',border:'1px solid rgba(255,77,77,0.2)',borderRadius:6,color:'#FF4D4D',fontSize:11,cursor:'pointer',padding:'4px 8px'}}>✕</button>}
+                    </div>
+
+                    {/* ── New Entry Form ── */}
+                    <div style={{padding:'18px 22px 20px',background:'rgba(0,0,0,0.3)',borderBottom:'1px solid rgba(255,255,255,0.03)'}}>
+                      <div style={{display:'flex',alignItems:'center',gap:8,marginBottom:12}}>
+                        <span style={{color:office.color,fontFamily:'monospace',fontSize:14,fontWeight:700}}>$</span>
+                        <span style={{color:'#252525',fontFamily:'monospace',fontSize:11,letterSpacing:'0.1em'}}>new_action --push</span>
+                        <span style={{display:'inline-block',width:7,height:12,background:office.color,opacity:.45,borderRadius:1}}/>
+                      </div>
+                      <div style={{display:'flex',gap:8,marginBottom:10}}>
+                        <input type="date" value={newDate} onChange={e=>setNewDate(e.target.value)} style={{...inp,width:148,colorScheme:'dark',background:'rgba(0,0,0,0.5)',border:`1px solid ${office.color}18`,fontFamily:'monospace',fontSize:12,color:'#777'}}/>
+                        <select value={newType} onChange={e=>setNewType(e.target.value)} style={{...inp,width:145,cursor:'pointer',background:'rgba(0,0,0,0.5)',border:`1px solid ${office.color}18`,fontFamily:"'Roboto',sans-serif",fontSize:12}}>
+                          {Object.entries(ACTION_TYPES).map(([k,v])=><option key={k} value={k} style={{background:'#080a10'}}>{v.label}</option>)}
+                        </select>
+                      </div>
+                      <textarea value={newText} onChange={e=>setNewText(e.target.value)} onKeyDown={e=>{if(e.key==='Enter'&&e.metaKey)addAction();}} placeholder="> describe la acción o decisión aquí..." rows={3} style={{...inp,resize:'vertical',lineHeight:1.75,marginBottom:10,background:'rgba(0,0,0,0.55)',border:`1px solid ${office.color}15`,fontSize:13,fontFamily:'monospace',color:'#999',boxShadow:'inset 0 0 30px rgba(0,0,0,0.4)'}}/>
+                      <div style={{display:'flex',alignItems:'center',gap:8}}>
+                        <button onClick={()=>mediaRef.current?.click()} style={{padding:'7px 13px',borderRadius:7,border:`1px solid ${office.color}18`,background:'rgba(0,0,0,0.3)',color:'#444',fontSize:11,cursor:'pointer',fontFamily:"'Roboto',sans-serif",display:'flex',alignItems:'center',gap:5}}>
+                          <span>📎</span><span>Adjuntar</span>
+                        </button>
+                        <input ref={mediaRef} type="file" accept="image/*,video/*" multiple onChange={e=>{Array.from(e.target.files).forEach(f=>{const r=new FileReader();r.onload=ev=>setPendMedia(p=>[...p,{name:f.name,type:f.type,url:ev.target.result}]);r.readAsDataURL(f);});}} style={{display:'none'}}/>
+                        {pendMedia.length>0&&<span style={{fontSize:11,color:office.color,background:office.color+'10',padding:'4px 10px',borderRadius:6,border:`1px solid ${office.color}25`,fontFamily:'monospace'}}>{pendMedia.length} archivo(s)</span>}
+                        <div style={{flex:1}}/>
+                        <button onClick={addAction} style={{padding:'9px 26px',borderRadius:9,border:`1px solid ${office.color}55`,background:`linear-gradient(135deg,${office.color}22,${office.color}0d)`,color:office.color,fontSize:12,fontWeight:700,fontFamily:"'Roboto',sans-serif",cursor:'pointer',letterSpacing:'0.1em',boxShadow:`0 0 20px ${office.color}18`,display:'flex',alignItems:'center',gap:7}}>
+                          <span style={{fontSize:15,lineHeight:1}}>+</span> GUARDAR
+                        </button>
+                      </div>
+                    </div>
+
+                    {/* ── Entries ── */}
+                    <div style={{padding:'12px 14px 20px',display:'flex',flexDirection:'column',gap:5}}>
+                      {filtActions.length===0&&(
+                        <div style={{textAlign:'center',padding:'52px 0',fontFamily:'monospace'}}>
+                          <div style={{fontSize:36,opacity:.09,marginBottom:14}}>◈</div>
+                          <div style={{fontSize:11,color:'#1c1c1c',letterSpacing:'0.2em',textTransform:'uppercase'}}>Sin registros</div>
+                          <div style={{fontSize:10,color:'#141414',marginTop:8,letterSpacing:'0.08em'}}>
+                            {filterDate?`ninguna entrada para ${filterDate}`:'comienza añadiendo una acción arriba'}
                           </div>
                         </div>
-                      );
-                    })}
+                      )}
+                      {filtActions.map((a,idx)=>{
+                        const t=ACTION_TYPES[a.type]||ACTION_TYPES.test;
+                        const isExp=expanded===a.id;
+                        const ICONS={test:'🧪',pause:'⏸',scale:'📈',insight:'💡',decision:'⚡'};
+                        const icon=ICONS[a.type]||'●';
+                        return(
+                          <div key={a.id} style={{position:'relative'}}>
+                            {idx<filtActions.length-1&&(
+                              <div style={{position:'absolute',left:20,top:54,bottom:-5,width:1,background:`linear-gradient(180deg,${t.border}25,transparent)`,zIndex:0}}/>
+                            )}
+                            <div className="arow" onClick={()=>setExpanded(isExp?null:a.id)} style={{
+                              position:'relative',zIndex:1,borderRadius:12,overflow:'hidden',
+                              border:`1px solid ${isExp?t.border+'50':'rgba(255,255,255,0.04)'}`,
+                              boxShadow:isExp?`0 4px 32px ${t.border}18, inset 0 0 40px ${t.border}06`:'none',
+                              transition:'all .2s ease'
+                            }}>
+                              <div style={{position:'absolute',left:0,top:0,bottom:0,width:3,background:isExp?`linear-gradient(180deg,${t.border},${t.dot}88)`:`${t.border}50`,transition:'all .2s'}}/>
+                              <div style={{padding:'12px 14px 12px 16px',background:isExp?`linear-gradient(135deg,${t.border}0a,rgba(4,6,10,0.97))`:'rgba(255,255,255,0.012)',transition:'background .2s'}}>
+                                <div style={{display:'flex',alignItems:'center',gap:10}}>
+                                  <div style={{width:34,height:34,borderRadius:9,background:`${t.border}18`,border:`1px solid ${t.border}30`,display:'flex',alignItems:'center',justifyContent:'center',fontSize:16,flexShrink:0,boxShadow:isExp?`0 0 16px ${t.border}30`:'none',transition:'box-shadow .2s'}}>{icon}</div>
+                                  <div style={{flex:1,minWidth:0}}>
+                                    <div style={{display:'flex',alignItems:'center',gap:6,marginBottom:4,flexWrap:'wrap'}}>
+                                      <span style={{fontSize:9,fontWeight:700,letterSpacing:'0.14em',textTransform:'uppercase',color:t.border,background:`${t.border}18`,padding:'2px 8px',borderRadius:4,border:`1px solid ${t.border}30`,fontFamily:"'Roboto',sans-serif"}}>{t.label}</span>
+                                      <span style={{fontSize:10,color:'#2a2a2a',fontFamily:'monospace',letterSpacing:'0.06em'}}>{a.date}</span>
+                                      {a.media?.length>0&&<span style={{fontSize:9,color:'#252525',fontFamily:'monospace',background:'rgba(255,255,255,0.03)',padding:'2px 6px',borderRadius:3,border:'1px solid rgba(255,255,255,0.05)'}}>{'📎'}{a.media.length}</span>}
+                                    </div>
+                                    <div style={{fontSize:12,lineHeight:1.65,color:isExp?'#bbb':'#555',whiteSpace:isExp?'pre-wrap':'nowrap',overflow:'hidden',textOverflow:'ellipsis',fontFamily:isExp?'monospace':"'Roboto',sans-serif",transition:'color .2s'}}>{a.text}</div>
+                                  </div>
+                                  <div style={{display:'flex',gap:4,alignItems:'center',flexShrink:0}}>
+                                    <button onClick={e=>{e.stopPropagation();setEditingAction(a.id);setEditText(a.text);setEditType(a.type);setEditDate(a.date);setEditMedia([]);}} style={{background:'transparent',border:'1px solid rgba(255,255,255,0.05)',borderRadius:5,color:'#333',fontSize:10,cursor:'pointer',padding:'3px 7px',transition:'all .15s'}} title="Editar">✏</button>
+                                    <button onClick={e=>{e.stopPropagation();if(window.confirm('¿Eliminar esta entrada?'))deleteAction(a.id);}} style={{background:'rgba(255,77,77,0.06)',border:'1px solid rgba(255,77,77,0.15)',borderRadius:5,color:'#FF4D4D',fontSize:10,cursor:'pointer',padding:'3px 7px',transition:'all .15s'}} title="Eliminar">✕</button>
+                                    <span style={{fontSize:9,color:isExp?t.border:'#252525',fontFamily:'monospace',marginLeft:2,transition:'color .2s'}}>{isExp?'▲':'▼'}</span>
+                                  </div>
+                                </div>
+                                {isExp&&a.media?.length>0&&(
+                                  <div style={{display:'flex',gap:8,marginTop:12,paddingLeft:44,flexWrap:'wrap'}}>
+                                    {a.media.map((m,i)=>(
+                                      m.type?.startsWith('image')
+                                        ?<img key={i} src={m.url} style={{maxWidth:190,maxHeight:130,borderRadius:8,objectFit:'cover',border:`1px solid ${t.border}22`}}/>
+                                        :<video key={i} src={m.url} controls style={{maxWidth:270,maxHeight:150,borderRadius:8,border:`1px solid ${t.border}22`}}/>
+                                    ))}
+                                  </div>
+                                )}
+                              </div>
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
                   </div>
                 </div>
               </>
@@ -1349,7 +1380,7 @@ body{background:#080a0d;color:#fff;font-family:'Roboto',sans-serif;padding:36px 
                   <div style={{fontSize:11,color:'#555',marginBottom:12,letterSpacing:'0.05em'}}>¿En qué industria opera este cliente?</div>
                   <div style={{display:'grid',gridTemplateColumns:'repeat(2,1fr)',gap:8}}>
                     {INDUSTRIES.map(ind=>(
-                      <div key={ind.id} onClick={()=>{setOffices(p=>p.map(o=>o.id===editing.id?{...o,industry:ind.id,metrics:ind.defaultMetrics}:o));}} style={{
+                      <div key={ind.id} onClick={()=>{const nd={industry:ind.id,metrics:ind.defaultMetrics};setOffices(p=>p.map(o=>o.id===editing.id?{...o,...nd}:o));setEditing(e=>({...e,...nd}));}} style={{
                         padding:'10px 14px',borderRadius:10,cursor:'pointer',transition:'all .2s',
                         border:`1px solid ${editing.industry===ind.id?editing.color+'80':'rgba(255,255,255,0.07)'}`,
                         background:editing.industry===ind.id?editing.color+'12':'rgba(255,255,255,0.02)',
@@ -1371,7 +1402,7 @@ body{background:#080a0d;color:#fff;font-family:'Roboto',sans-serif;padding:36px 
                         {metrics.map(m=>{
                           const sel=(editing.metrics||[]).includes(m.id);
                           return(
-                            <div key={m.id} onClick={()=>setOffices(p=>p.map(o=>o.id===editing.id?{...o,metrics:sel?(o.metrics||[]).filter(x=>x!==m.id):[...(o.metrics||[]),m.id]}:o))} style={{
+                            <div key={m.id} onClick={()=>{const nm=sel?(editing.metrics||[]).filter(x=>x!==m.id):[...(editing.metrics||[]),m.id];setOffices(p=>p.map(o=>o.id===editing.id?{...o,metrics:nm}:o));setEditing(e=>({...e,metrics:nm}));}} style={{
                               padding:'4px 11px',borderRadius:6,cursor:'pointer',fontSize:11,fontFamily:"'Roboto',sans-serif",transition:'all .15s',
                               background:sel?editing.color+'20':'rgba(255,255,255,0.03)',
                               border:`1px solid ${sel?editing.color+'50':'rgba(255,255,255,0.07)'}`,
