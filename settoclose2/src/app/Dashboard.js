@@ -18,11 +18,53 @@ const LOGOS_INIT = {
 };
 
 const ACTION_TYPES = {
-  test:    { label:'Test',    border:'#38BDF8', dot:'#38BDF8', bg:'rgba(56,189,248,0.06)'  },
-  pause:   { label:'Pausa',  border:'#F87171', dot:'#F87171', bg:'rgba(248,113,113,0.06)' },
-  scale:   { label:'Scale',  border:'#4ADE80', dot:'#4ADE80', bg:'rgba(74,222,128,0.06)'  },
-  insight: { label:'Insight',border:'#FACC15', dot:'#FACC15', bg:'rgba(250,204,21,0.06)'  },
+  test:    { label:'Test',    border:'#00C8FF', dot:'#00C8FF', bg:'rgba(0,200,255,0.13)'   },
+  pause:   { label:'Pausa',  border:'#FF4D4D', dot:'#FF4D4D', bg:'rgba(255,77,77,0.13)'   },
+  scale:   { label:'Scale',  border:'#00FF88', dot:'#00FF88', bg:'rgba(0,255,136,0.12)'   },
+  insight: { label:'Insight',border:'#FFD700', dot:'#FFD700', bg:'rgba(255,215,0,0.12)'   },
+  decision:{ label:'Decisión',border:'#C084FC', dot:'#C084FC', bg:'rgba(192,132,252,0.12)'  },
 };
+
+const INDUSTRIES = [
+  { id:'agency',      label:'Agency / Lead Gen',  icon:'🎯', defaultMetrics:['leads','cpl','appsBooked','appsShowed','sales','roas'] },
+  { id:'ecommerce',   label:'E-commerce',          icon:'🛒', defaultMetrics:['leads','spend','roas','ctr','cpc','revenue'] },
+  { id:'infoproducts',label:'Infoproductos',        icon:'📚', defaultMetrics:['leads','cpl','sales','revenue','roas'] },
+  { id:'saas',        label:'SaaS',                icon:'💻', defaultMetrics:['leads','cpl','sales','mrr','cac'] },
+  { id:'consulting',  label:'Consultoría',          icon:'📊', defaultMetrics:['leads','calls','proposals','sales','cashflow'] },
+  { id:'personal',    label:'Proyectos Personales', icon:'⚡', defaultMetrics:['leads','spend','sales','revenue'] },
+  { id:'custom',      label:'Personalizado',        icon:'✨', defaultMetrics:[] },
+];
+
+const METRIC_OPTIONS = [
+  { id:'leads',      label:'Leads',            group:'Meta Ads',      desc:'Leads generados por ads' },
+  { id:'cpl',        label:'CPL',              group:'Meta Ads',      desc:'Costo por lead' },
+  { id:'spend',      label:'Ad Spend',         group:'Meta Ads',      desc:'Inversión total en ads' },
+  { id:'roas',       label:'ROAS',             group:'Meta Ads',      desc:'Retorno sobre inversión' },
+  { id:'ctr',        label:'CTR',              group:'Meta Ads',      desc:'Click-through rate' },
+  { id:'cpc',        label:'CPC',              group:'Meta Ads',      desc:'Costo por click' },
+  { id:'impressions',label:'Impresiones',      group:'Meta Ads',      desc:'Alcance total de los ads' },
+  { id:'appsBooked', label:'Apps Booked',      group:'Embudo',        desc:'Citas agendadas' },
+  { id:'appsShowed', label:'Apps Showed',      group:'Embudo',        desc:'Citas que se presentaron' },
+  { id:'showRate',   label:'Show Rate',        group:'Embudo',        desc:'% de asistencia a citas' },
+  { id:'sales',      label:'Deals Closed',     group:'Embudo',        desc:'Ventas cerradas' },
+  { id:'closeRate',  label:'Close Rate',       group:'Embudo',        desc:'% cierre sobre shows' },
+  { id:'revenue',    label:'Ingresos',         group:'Finanzas',      desc:'Revenue total generado' },
+  { id:'cashflow',   label:'Cash Flow',        group:'Finanzas',      desc:'Efectivo neto' },
+  { id:'mrr',        label:'MRR',              group:'Finanzas',      desc:'Monthly Recurring Revenue' },
+  { id:'cac',        label:'CAC',              group:'Finanzas',      desc:'Costo de adquisición de cliente' },
+  { id:'calls',      label:'Llamadas',         group:'Embudo',        desc:'Llamadas realizadas' },
+  { id:'proposals',  label:'Propuestas',       group:'Embudo',        desc:'Propuestas enviadas' },
+];
+
+const BG_PRESETS = [
+  { id:'dark',    label:'Pure Dark',    preview:'#080a0d', bg:'#080a0d', overlay:'' },
+  { id:'nebula',  label:'Teal Nebula',  preview:'linear-gradient(135deg,#071418,#080a0d)', bg:'#070c10', overlay:'radial-gradient(ellipse at 10% 40%, rgba(0,200,220,0.07) 0%, transparent 55%), radial-gradient(ellipse at 90% 10%, rgba(0,80,255,0.05) 0%, transparent 50%)' },
+  { id:'aurora',  label:'Aurora',       preview:'linear-gradient(135deg,#08060f,#070a0d)', bg:'#07070e', overlay:'radial-gradient(ellipse at 0% 0%, rgba(130,0,255,0.08) 0%, transparent 55%), radial-gradient(ellipse at 100% 100%, rgba(0,255,160,0.06) 0%, transparent 50%)' },
+  { id:'solar',   label:'Solar Flare',  preview:'linear-gradient(135deg,#0d0800,#080a0d)', bg:'#090806', overlay:'radial-gradient(ellipse at 75% 25%, rgba(255,120,0,0.07) 0%, transparent 45%)' },
+  { id:'matrix',  label:'Matrix Grid',  preview:'linear-gradient(135deg,#040a04,#080a0d)', bg:'#050a05', overlay:'radial-gradient(ellipse at 50% 50%, rgba(0,255,70,0.05) 0%, transparent 60%)' },
+  { id:'crimson', label:'Crimson Deep', preview:'linear-gradient(135deg,#0a0508,#080a0d)', bg:'#090507', overlay:'radial-gradient(ellipse at 80% 20%, rgba(200,0,80,0.07) 0%, transparent 50%)' },
+  { id:'light',   label:'Light Mode',   preview:'linear-gradient(135deg,#f0f4f8,#e8ecf0)', bg:'#f0f4f8', overlay:'' },
+];
 
 const PRESETS = [
   {label:'7d',days:7},{label:'14d',days:14},{label:'30d',days:30},{label:'60d',days:60},{label:'90d',days:90}
@@ -36,11 +78,11 @@ const dAgo  = n => { const d=new Date(); d.setDate(d.getDate()-n+1); return d.to
 let uid = 100;
 
 const KPI = ({label,value,sub,color}) => (
-  <div style={{background:'rgba(255,255,255,0.03)',border:'1px solid rgba(255,255,255,0.07)',borderRadius:12,padding:'16px 18px',position:'relative',overflow:'hidden'}}>
-    <div style={{position:'absolute',top:0,left:0,right:0,height:2,background:color}}/>
-    <div style={{fontSize:10,color:'#555',letterSpacing:'0.1em',textTransform:'uppercase',marginBottom:7,fontFamily:"'Roboto',sans-serif"}}>{label}</div>
+  <div style={{background:`${color}0d`,border:`1px solid ${color}30`,borderRadius:12,padding:'16px 18px',position:'relative',overflow:'hidden',transition:'border-color .2s'}}>
+    <div style={{position:'absolute',top:0,left:0,right:0,height:2,background:`linear-gradient(90deg,${color},${color}55)`}}/>
+    <div style={{fontSize:10,color:'#666',letterSpacing:'0.1em',textTransform:'uppercase',marginBottom:7,fontFamily:"'Roboto',sans-serif"}}>{label}</div>
     <div style={{fontSize:22,fontWeight:700,color:'#fff',fontFamily:"'Poppins',sans-serif",letterSpacing:'-0.02em'}}>{value}</div>
-    {sub&&<div style={{fontSize:11,color:'#444',marginTop:3,fontFamily:"'Roboto',sans-serif"}}>{sub}</div>}
+    {sub&&<div style={{fontSize:11,color:'#555',marginTop:3,fontFamily:"'Roboto',sans-serif"}}>{sub}</div>}
   </div>
 );
 
@@ -169,7 +211,16 @@ export default function Dashboard() {
   const [nPipeId,   setNPipeId]   = useState('');
   const [nGhlToken, setNGhlToken] = useState('');
   const [nLogo,     setNLogo]     = useState(null);
+  const [nIndustry, setNIndustry] = useState('agency');
+  const [nMetrics,  setNMetrics]  = useState([]);
+  const [nCustomMetrics, setNCustomMetrics] = useState([]);
+  const [nAddStep,  setNAddStep]  = useState(1);
+  const [nCustomName, setNCustomName] = useState('');
+  const [nCustomFormula, setNCustomFormula] = useState('');
+  const [nCustomPrice, setNCustomPrice] = useState('');
+  const [bgThemes,  setBgThemes]  = useState({});
   const [editing,   setEditing]   = useState(null);
+  const [editBgTab, setEditBgTab] = useState(false);
   const mediaRef = useRef(); const newLogoRef = useRef(); const editLogoRef = useRef();
 
   // ── LOGIN ────────────────────────────────────────────────────────
@@ -369,11 +420,46 @@ export default function Dashboard() {
     setEditMedia([]);
   };
 
+  const deleteAction = (id) => {
+    if (!activeId) return;
+    const updated = (actions[activeId]||[]).filter(a => a.id !== id);
+    setActions(prev => ({ ...prev, [activeId]: updated }));
+    saveLogs(activeId, updated);
+  };
+
   const filtActions=useMemo(()=>{
     if(!activeId) return [];
     const all=actions[activeId]||[];
     return filterDate?all.filter(a=>a.date===filterDate):all;
   },[actions,activeId,filterDate]);
+
+  const activeBg = useMemo(() => {
+    if (!activeId) return { background: '#080a0d' };
+    const theme = bgThemes[activeId];
+    if (!theme) return { background: '#080a0d' };
+    if (theme.type === 'solid') return { background: theme.color || '#080a0d' };
+    if (theme.type === 'light') return { background: '#f0f4f8' };
+    const preset = BG_PRESETS.find(p => p.id === (theme.preset || 'dark')) || BG_PRESETS[0];
+    if (preset.overlay) {
+      return { background: preset.bg, backgroundImage: preset.overlay, backgroundBlendMode: 'normal' };
+    }
+    return { background: preset.bg };
+  }, [activeId, bgThemes]);
+
+  const isLight = useMemo(() => {
+    if (!activeId) return false;
+    const theme = bgThemes[activeId];
+    if (!theme) return false;
+    if (theme.type === 'light') return true;
+    if (theme.type === 'preset' && theme.preset === 'light') return true;
+    return false;
+  }, [activeId, bgThemes]);
+
+  const textPrimary = isLight ? '#0a0a0a' : '#ffffff';
+  const textSecondary = isLight ? '#444444' : '#888888';
+  const textMuted = isLight ? '#888888' : '#444444';
+  const cardBg = isLight ? 'rgba(0,0,0,0.04)' : 'rgba(255,255,255,0.04)';
+  const cardBorder = isLight ? 'rgba(0,0,0,0.1)' : 'rgba(255,255,255,0.09)';
 
   const CHARTS={
     cpl:      {label:'CPL',       dataKey:'cpl',       type:'line',color:office?.color||'#38BDF8'},
@@ -511,8 +597,8 @@ body{background:#080a0d;color:#fff;font-family:'Roboto',sans-serif;padding:36px 
   );
 
   return (
-    <div style={{minHeight:'100vh',background:'#080a0d',color:'#fff',fontFamily:"'Roboto',sans-serif"}}>
-      <style>{'@import url(\'https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&family=Roboto:wght@300;400;500&display=swap\');*{box-sizing:border-box;margin:0;padding:0}::-webkit-scrollbar{width:3px}::-webkit-scrollbar-thumb{background:#222}input:focus,select:focus,textarea:focus{outline:none}.hov:hover{background:rgba(255,255,255,0.06)!important}.arow:hover{background:rgba(255,255,255,0.04)!important;cursor:pointer}'}</style>
+    <div style={{minHeight:'100vh',...activeBg,color:textPrimary,fontFamily:"'Roboto',sans-serif",transition:'background .4s ease'}}>
+      <style>{`@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&family=Roboto:wght@300;400;500&display=swap');*{box-sizing:border-box;margin:0;padding:0}::-webkit-scrollbar{width:3px}::-webkit-scrollbar-thumb{background:#222}input:focus,select:focus,textarea:focus{outline:none}.hov:hover{background:rgba(255,255,255,0.06)!important}.arow:hover{background:rgba(255,255,255,0.05)!important;cursor:pointer}@keyframes pulse{0%,100%{opacity:.6}50%{opacity:1}}@keyframes slideIn{from{opacity:0;transform:translateY(-8px)}to{opacity:1;transform:translateY(0)}}`}</style>
 
       {/* NAV */}
       <div style={{position:'sticky',top:0,zIndex:300,background:'rgba(8,10,13,0.97)',backdropFilter:'blur(16px)',borderBottom:'1px solid rgba(255,255,255,0.07)',display:'flex',alignItems:'center',padding:'0 24px',height:58,gap:16,flexWrap:'wrap'}}>
@@ -810,56 +896,87 @@ body{background:#080a0d;color:#fff;font-family:'Roboto',sans-serif;padding:36px 
                   </div>
                 )}
 
-                {/* Action Log */}
-                <div style={{background:'rgba(255,255,255,0.02)',border:'1px solid rgba(255,255,255,0.06)',borderRadius:14,padding:20}}>
-                  <div style={{fontSize:13,fontWeight:600,marginBottom:16,fontFamily:"'Poppins',sans-serif"}}>Action Log</div>
-                  <div style={{background:'rgba(255,255,255,0.02)',border:'1px solid rgba(255,255,255,0.07)',borderRadius:10,padding:16,marginBottom:16}}>
-                    <div style={{display:'flex',gap:8,marginBottom:10}}>
-                      <input type="date" value={newDate} onChange={e=>setNewDate(e.target.value)} style={{...inp,width:150,colorScheme:'dark'}}/>
-                      <select value={newType} onChange={e=>setNewType(e.target.value)} style={{...inp,width:120,cursor:'pointer'}}>
+                {/* Action Log — Futuristic redesign */}
+                <div style={{background:'rgba(255,255,255,0.025)',border:'1px solid rgba(255,255,255,0.08)',borderRadius:16,overflow:'hidden',boxShadow:'0 0 40px rgba(0,0,0,0.4)'}}>
+                  {/* Header */}
+                  <div style={{padding:'18px 24px',background:'rgba(255,255,255,0.02)',borderBottom:'1px solid rgba(255,255,255,0.07)',display:'flex',alignItems:'center',gap:12}}>
+                    <div style={{width:8,height:8,borderRadius:'50%',background:office.color,boxShadow:`0 0 8px ${office.color}`}}/>
+                    <span style={{fontSize:14,fontWeight:700,fontFamily:"'Poppins',sans-serif",letterSpacing:'0.04em',color:'#fff'}}>ACTION LOG</span>
+                    <span style={{fontSize:10,color:'#333',fontFamily:'monospace',marginLeft:4}}>// {(actions[activeId]||[]).length} entries</span>
+                    <div style={{flex:1}}/>
+                    <input type="date" value={filterDate} onChange={e=>setFilterDate(e.target.value)} style={{background:'rgba(255,255,255,0.04)',border:'1px solid rgba(255,255,255,0.08)',borderRadius:7,padding:'5px 11px',color:'#666',fontSize:11,fontFamily:'monospace',colorScheme:'dark',cursor:'pointer'}}/>
+                    {filterDate&&<button onClick={()=>setFilterDate('')} style={{background:'rgba(255,255,255,0.05)',border:'1px solid rgba(255,255,255,0.08)',borderRadius:6,color:'#555',fontSize:11,cursor:'pointer',padding:'5px 10px'}}>✕</button>}
+                  </div>
+
+                  {/* New Entry Form */}
+                  <div style={{padding:'20px 24px',borderBottom:'1px solid rgba(255,255,255,0.05)',background:'rgba(0,0,0,0.2)'}}>
+                    <div style={{fontSize:10,color:'#444',fontFamily:'monospace',letterSpacing:'0.12em',textTransform:'uppercase',marginBottom:12}}>→ Nueva entrada</div>
+                    <div style={{display:'flex',gap:8,marginBottom:12}}>
+                      <input type="date" value={newDate} onChange={e=>setNewDate(e.target.value)} style={{...inp,width:150,colorScheme:'dark',background:'rgba(255,255,255,0.04)',border:'1px solid rgba(255,255,255,0.1)'}}/>
+                      <select value={newType} onChange={e=>setNewType(e.target.value)} style={{...inp,width:140,cursor:'pointer',background:'rgba(255,255,255,0.04)',border:'1px solid rgba(255,255,255,0.1)'}}>
                         {Object.entries(ACTION_TYPES).map(([k,v])=><option key={k} value={k} style={{background:'#111'}}>{v.label}</option>)}
                       </select>
                     </div>
-                    <textarea value={newText} onChange={e=>setNewText(e.target.value)} onKeyDown={e=>{if(e.key==='Enter'&&e.metaKey)addAction();}} placeholder="Describe la acción o decisión... (Cmd+Enter para guardar)" rows={4} style={{...inp,resize:'vertical',lineHeight:1.6,marginBottom:10}}/>
+                    <textarea value={newText} onChange={e=>setNewText(e.target.value)} onKeyDown={e=>{if(e.key==='Enter'&&e.metaKey)addAction();}} placeholder="Describe la acción o decisión... (Cmd+Enter para guardar)" rows={3} style={{...inp,resize:'vertical',lineHeight:1.7,marginBottom:12,background:'rgba(255,255,255,0.04)',border:'1px solid rgba(255,255,255,0.1)',fontSize:13}}/>
                     <div style={{display:'flex',alignItems:'center',gap:10}}>
-                      <button onClick={()=>mediaRef.current?.click()} style={{padding:'7px 14px',borderRadius:7,border:'1px solid rgba(255,255,255,0.08)',background:'rgba(255,255,255,0.03)',color:'#666',fontSize:12,cursor:'pointer',fontFamily:"'Roboto',sans-serif"}}>📎 Adjuntar media</button>
+                      <button onClick={()=>mediaRef.current?.click()} style={{padding:'7px 14px',borderRadius:8,border:'1px solid rgba(255,255,255,0.08)',background:'rgba(255,255,255,0.03)',color:'#555',fontSize:12,cursor:'pointer',fontFamily:"'Roboto',sans-serif",display:'flex',alignItems:'center',gap:6}}>
+                        <span>📎</span><span>Adjuntar</span>
+                      </button>
                       <input ref={mediaRef} type="file" accept="image/*,video/*" multiple onChange={e=>{Array.from(e.target.files).forEach(f=>{const r=new FileReader();r.onload=ev=>setPendMedia(p=>[...p,{name:f.name,type:f.type,url:ev.target.result}]);r.readAsDataURL(f);});}} style={{display:'none'}}/>
-                      {pendMedia.length>0&&<span style={{fontSize:11,color:'#555'}}>{pendMedia.length} archivo(s)</span>}
+                      {pendMedia.length>0&&<span style={{fontSize:11,color:'#555',background:'rgba(255,255,255,0.05)',padding:'4px 10px',borderRadius:6}}>{pendMedia.length} archivo(s)</span>}
                       <div style={{flex:1}}/>
-                      <button onClick={addAction} style={btnP(office.color)}>+ Guardar</button>
+                      <button onClick={addAction} style={{...btnP(office.color),padding:'8px 22px',letterSpacing:'0.05em',fontSize:12}}>+ GUARDAR</button>
                     </div>
                   </div>
-                  <div style={{display:'flex',alignItems:'center',gap:10,marginBottom:14}}>
-                    <span style={{fontSize:11,color:'#444',textTransform:'uppercase',letterSpacing:'0.1em'}}>Filtrar:</span>
-                    <input type="date" value={filterDate} onChange={e=>setFilterDate(e.target.value)} style={{background:'rgba(255,255,255,0.04)',border:'1px solid rgba(255,255,255,0.07)',borderRadius:6,padding:'5px 10px',color:'#666',fontSize:12,fontFamily:'monospace',colorScheme:'dark',cursor:'pointer'}}/>
-                    {filterDate&&<button onClick={()=>setFilterDate('')} style={{background:'none',border:'none',color:'#444',fontSize:12,cursor:'pointer'}}>✕ Clear</button>}
-                    <span style={{fontSize:11,color:'#333',marginLeft:'auto'}}>{filtActions.length} entries</span>
-                  </div>
-                  <div style={{display:'flex',flexDirection:'column',gap:6}}>
-                    {filtActions.length===0&&<div style={{color:'#222',fontSize:13,textAlign:'center',padding:'24px 0'}}>No hay acciones registradas{filterDate?' para esta fecha':''}.</div>}
-                    {filtActions.map(a=>{
+
+                  {/* Entries List */}
+                  <div style={{padding:'16px 24px',display:'flex',flexDirection:'column',gap:4}}>
+                    {filtActions.length===0&&(
+                      <div style={{color:'#2a2a2a',fontSize:13,textAlign:'center',padding:'32px 0',fontFamily:'monospace'}}>
+                        <div style={{fontSize:24,marginBottom:8,opacity:.3}}>◈</div>
+                        {filterDate ? `Sin entradas para ${filterDate}` : 'No hay registros aún.'}
+                      </div>
+                    )}
+                    {filtActions.map((a,idx)=>{
                       const t=ACTION_TYPES[a.type]||ACTION_TYPES.test;
                       const isExp=expanded===a.id;
                       return(
-                        <div key={a.id} className="arow" onClick={()=>setExpanded(isExp?null:a.id)} style={{background:isExp?'rgba(255,255,255,0.04)':t.bg,borderLeft:`3px solid ${t.border}`,borderRadius:8,padding:'12px 16px',transition:'background .15s'}}>
-                          <div style={{display:'flex',gap:10}}>
-                            <div style={{width:6,height:6,borderRadius:'50%',background:t.dot,marginTop:6,flexShrink:0}}/>
-                            <div style={{flex:1,minWidth:0}}>
-                              <div style={{display:'flex',alignItems:'center',gap:8,marginBottom:4}}>
-                                <span style={{fontSize:11,color:t.border,fontFamily:'monospace'}}>{a.date}</span>
-                                <span style={{fontSize:10,color:'#333',background:'rgba(255,255,255,0.04)',padding:'1px 7px',borderRadius:4}}>{t.label}</span>
-                                {a.media?.length>0&&<span style={{fontSize:10,color:'#444'}}>📎 {a.media.length}</span>}
-                                <div style={{marginLeft:'auto',display:'flex',gap:6,alignItems:'center'}}>
-                  <button onClick={e=>{e.stopPropagation();setEditingAction(a.id);setEditText(a.text);setEditType(a.type);setEditDate(a.date);setEditMedia([]);}} style={{background:'none',border:'none',color:'#333',fontSize:11,cursor:'pointer',padding:'2px 6px'}}>✏️</button>
-                  <span style={{fontSize:10,color:'#333'}}>{isExp?'▲ cerrar':'▼ ver más'}</span>
-                </div>
+                        <div key={a.id} style={{animation:'slideIn .2s ease',position:'relative'}}>
+                          {/* Timeline line */}
+                          {idx < filtActions.length-1 && <div style={{position:'absolute',left:22,top:52,bottom:-4,width:1,background:'rgba(255,255,255,0.04)',zIndex:0}}/>}
+                          <div className="arow" onClick={()=>setExpanded(isExp?null:a.id)} style={{
+                            background: isExp ? `${t.border}0f` : t.bg,
+                            border:`1px solid ${isExp ? t.border+'50' : t.border+'22'}`,
+                            borderRadius:10,padding:'14px 16px',
+                            transition:'all .18s',position:'relative',zIndex:1,
+                            boxShadow: isExp ? `0 0 20px ${t.border}18` : 'none'
+                          }}>
+                            <div style={{display:'flex',gap:12,alignItems:'flex-start'}}>
+                              {/* Type indicator */}
+                              <div style={{flexShrink:0,width:36,height:36,borderRadius:8,background:`${t.border}18`,border:`1px solid ${t.border}40`,display:'flex',alignItems:'center',justifyContent:'center',marginTop:2}}>
+                                <div style={{width:8,height:8,borderRadius:'50%',background:t.dot,boxShadow:`0 0 6px ${t.dot}`}}/>
                               </div>
-                              <div style={{fontSize:13,color:isExp?'#ddd':'#888',lineHeight:1.6,whiteSpace:isExp?'pre-wrap':'nowrap',overflow:'hidden',textOverflow:'ellipsis'}}>{a.text}</div>
-                              {isExp&&a.media?.length>0&&(
-                                <div style={{display:'flex',gap:8,marginTop:12,flexWrap:'wrap'}}>
-                                  {a.media.map((m,i)=>m.type?.startsWith('image')?<img key={i} src={m.url} style={{maxWidth:200,maxHeight:150,borderRadius:8,objectFit:'cover',border:'1px solid rgba(255,255,255,0.1)'}}/>:<video key={i} src={m.url} controls style={{maxWidth:280,maxHeight:160,borderRadius:8}}/>)}
+                              <div style={{flex:1,minWidth:0}}>
+                                <div style={{display:'flex',alignItems:'center',gap:8,marginBottom:6,flexWrap:'wrap'}}>
+                                  <span style={{fontSize:10,color:t.border,fontFamily:'monospace',letterSpacing:'0.05em'}}>{a.date}</span>
+                                  <span style={{fontSize:9,color:t.border,background:`${t.border}18`,padding:'2px 8px',borderRadius:4,fontWeight:700,letterSpacing:'0.08em',textTransform:'uppercase',border:`1px solid ${t.border}30`}}>{t.label}</span>
+                                  {a.media?.length>0&&<span style={{fontSize:10,color:'#444',background:'rgba(255,255,255,0.05)',padding:'2px 8px',borderRadius:4,border:'1px solid rgba(255,255,255,0.07)'}}>📎 {a.media.length}</span>}
+                                  <div style={{marginLeft:'auto',display:'flex',gap:4,alignItems:'center'}}>
+                                    <button onClick={e=>{e.stopPropagation();setEditingAction(a.id);setEditText(a.text);setEditType(a.type);setEditDate(a.date);setEditMedia([]);}} style={{background:'rgba(255,255,255,0.05)',border:'1px solid rgba(255,255,255,0.08)',borderRadius:6,color:'#555',fontSize:10,cursor:'pointer',padding:'3px 8px',transition:'all .15s'}} title="Editar">✏️</button>
+                                    <button onClick={e=>{e.stopPropagation();if(window.confirm('¿Eliminar esta entrada?'))deleteAction(a.id);}} style={{background:'rgba(255,77,77,0.08)',border:'1px solid rgba(255,77,77,0.2)',borderRadius:6,color:'#FF4D4D',fontSize:10,cursor:'pointer',padding:'3px 8px',transition:'all .15s'}} title="Eliminar">🗑</button>
+                                    <span style={{fontSize:10,color:'#2a2a2a',fontFamily:'monospace'}}>{isExp?'▲':'▼'}</span>
+                                  </div>
                                 </div>
-                              )}
+                                <div style={{fontSize:13,color:isExp?'#ddd':'#777',lineHeight:1.7,whiteSpace:isExp?'pre-wrap':'nowrap',overflow:'hidden',textOverflow:'ellipsis',fontFamily:isExp?"'Roboto',sans-serif":'inherit'}}>{a.text}</div>
+                                {isExp&&a.media?.length>0&&(
+                                  <div style={{display:'flex',gap:8,marginTop:14,flexWrap:'wrap'}}>
+                                    {a.media.map((m,i)=>m.type?.startsWith('image')
+                                      ?<img key={i} src={m.url} style={{maxWidth:220,maxHeight:160,borderRadius:10,objectFit:'cover',border:`1px solid ${t.border}30`}}/>
+                                      :<video key={i} src={m.url} controls style={{maxWidth:300,maxHeight:180,borderRadius:10,border:`1px solid ${t.border}30`}}/>
+                                    )}
+                                  </div>
+                                )}
+                              </div>
                             </div>
                           </div>
                         </div>
@@ -893,29 +1010,194 @@ body{background:#080a0d;color:#fff;font-family:'Roboto',sans-serif;padding:36px 
         </div>
       )}
 
-      {/* ADD CLIENT MODAL */}
+      {/* ADD CLIENT MODAL — Multi-step */}
       {showAdd&&(
-        <div style={{position:'fixed',inset:0,background:'rgba(0,0,0,0.8)',zIndex:500,display:'flex',alignItems:'center',justifyContent:'center'}} onClick={()=>setShowAdd(false)}>
-          <div style={{background:'#0f1115',border:'1px solid rgba(255,255,255,0.1)',borderRadius:16,padding:28,width:400,maxWidth:'90vw'}} onClick={e=>e.stopPropagation()}>
-            <div style={{fontSize:16,fontWeight:700,fontFamily:"'Poppins',sans-serif",marginBottom:20}}>Add Client</div>
-            <div style={{display:'flex',flexDirection:'column',gap:12}}>
-              <div><div style={{fontSize:11,color:'#555',marginBottom:5}}>CLIENT ID (e.g. TX)</div><input value={nId} onChange={e=>setNId(e.target.value)} placeholder="TX" style={inp} maxLength={4}/></div>
-              <div><div style={{fontSize:11,color:'#555',marginBottom:5}}>NAME</div><input value={nName} onChange={e=>setNName(e.target.value)} placeholder="Texas Office" style={inp}/></div>
-              <div><div style={{fontSize:11,color:'#555',marginBottom:5}}>META AD ACCOUNT ID</div><input value={nAccount} onChange={e=>setNAccount(e.target.value)} placeholder="act_751411627703795" style={inp}/></div>
-              <div style={{borderTop:'1px solid rgba(255,255,255,0.05)',paddingTop:12,marginTop:4}}><div style={{fontSize:10,color:'#38BDF8',marginBottom:8,letterSpacing:'.05em'}}>GHL INTEGRATION (opcional)</div>
-                <div style={{display:'flex',flexDirection:'column',gap:8}}>
-                  <div><div style={{fontSize:11,color:'#555',marginBottom:4}}>LOCATION ID</div><input value={nLocId} onChange={e=>setNLocId(e.target.value)} placeholder="cCytukkNAHUpNbtKDk2e" style={inp}/></div>
-                  <div><div style={{fontSize:11,color:'#555',marginBottom:4}}>PIPELINE ID</div><input value={nPipeId} onChange={e=>setNPipeId(e.target.value)} placeholder="66Nwo6mQHylEGha2G3Eq" style={inp}/></div>
-                  <div><div style={{fontSize:11,color:'#555',marginBottom:4}}>GHL TOKEN</div><input value={nGhlToken} onChange={e=>setNGhlToken(e.target.value)} placeholder="eyJhbGciOi..." style={{...inp,fontFamily:'monospace',fontSize:11}}/></div>
+        <div style={{position:'fixed',inset:0,background:'rgba(0,0,0,0.85)',zIndex:500,display:'flex',alignItems:'center',justifyContent:'center',backdropFilter:'blur(4px)'}} onClick={()=>{setShowAdd(false);setNAddStep(1);}}>
+          <div style={{background:'#0b0d12',border:'1px solid rgba(255,255,255,0.1)',borderRadius:20,padding:'0',width:520,maxWidth:'94vw',maxHeight:'90vh',overflow:'hidden',boxShadow:'0 30px 80px rgba(0,0,0,0.7)'}} onClick={e=>e.stopPropagation()}>
+            {/* Modal Header */}
+            <div style={{padding:'22px 28px 16px',borderBottom:'1px solid rgba(255,255,255,0.07)',background:'rgba(255,255,255,0.02)'}}>
+              <div style={{display:'flex',alignItems:'center',justifyContent:'space-between'}}>
+                <div>
+                  <div style={{fontSize:16,fontWeight:700,fontFamily:"'Poppins',sans-serif",color:'#fff',marginBottom:2}}>Nuevo Cliente</div>
+                  <div style={{fontSize:11,color:'#444',fontFamily:'monospace'}}>Paso {nAddStep} de 3</div>
+                </div>
+                <div style={{display:'flex',gap:6}}>
+                  {[1,2,3].map(s=>(
+                    <div key={s} style={{width:28,height:4,borderRadius:2,background:nAddStep>=s?'#00C8FF':'rgba(255,255,255,0.1)',transition:'background .3s'}}/>
+                  ))}
                 </div>
               </div>
-              <div><div style={{fontSize:11,color:'#555',marginBottom:5}}>PAYOUT PER DEAL ($)</div><input value={nPayout} onChange={e=>setNPayout(e.target.value)} type="number" style={inp}/></div>
-              <div><div style={{fontSize:11,color:'#555',marginBottom:5}}>ACCENT COLOR</div><div style={{display:'flex',gap:8,alignItems:'center'}}><input type="color" value={nColor} onChange={e=>setNColor(e.target.value)} style={{width:40,height:36,borderRadius:6,border:'1px solid rgba(255,255,255,0.1)',background:'none',cursor:'pointer'}}/><span style={{fontSize:12,color:'#555',fontFamily:'monospace'}}>{nColor}</span></div></div>
-              <div><div style={{fontSize:11,color:'#555',marginBottom:5}}>PROFILE PHOTO (optional)</div><button onClick={()=>newLogoRef.current?.click()} style={{...inp,cursor:'pointer',color:'#555',textAlign:'left'}}>{nLogo?'✓ Photo uploaded':'Click to upload'}</button><input ref={newLogoRef} type="file" accept="image/*" onChange={e=>{const f=e.target.files[0];if(!f)return;const r=new FileReader();r.onload=ev=>setNLogo(ev.target.result);r.readAsDataURL(f);}} style={{display:'none'}}/></div>
-              <div style={{display:'flex',gap:8,marginTop:4}}>
-                <button onClick={()=>setShowAdd(false)} style={{flex:1,padding:'10px',borderRadius:8,border:'1px solid rgba(255,255,255,0.08)',background:'transparent',color:'#555',cursor:'pointer',fontFamily:"'Roboto',sans-serif"}}>Cancel</button>
-                <button onClick={()=>{if(!nId.trim()||!nName.trim())return;const id=nId.toUpperCase().replace(/\s/g,'');setOffices(p=>[...p,{id,name:nName,color:nColor,payout:parseInt(nPayout)||750,adAccountId:nAccount,locationId:nLocId,pipelineId:nPipeId,ghlToken:nGhlToken}]);setLogos(p=>({...p,[id]:nLogo||`https://ui-avatars.com/api/?name=${id}&background=222&color=fff&size=64`}));setActions(p=>({...p,[id]:[]}));setShowAdd(false);setNName('');setNId('');setNLogo(null);setNAccount('');setNLocId('');setNPipeId('');setNGhlToken('');}} style={{...btnP('#4ADE80'),flex:1,textAlign:'center'}}>Add Client</button>
+            </div>
+
+            <div style={{padding:'24px 28px',overflowY:'auto',maxHeight:'calc(90vh - 130px)'}}>
+
+            {/* ── STEP 1: Basic Info ── */}
+            {nAddStep===1&&(
+              <div style={{display:'flex',flexDirection:'column',gap:14}}>
+                <div style={{fontSize:11,color:'#555',marginBottom:4,letterSpacing:'0.05em'}}>INFORMACIÓN BÁSICA</div>
+                <div style={{display:'grid',gridTemplateColumns:'1fr 2fr',gap:12}}>
+                  <div>
+                    <div style={{fontSize:10,color:'#555',marginBottom:5,textTransform:'uppercase',letterSpacing:'.08em'}}>ID (ej: TX)</div>
+                    <input value={nId} onChange={e=>setNId(e.target.value)} placeholder="TX" style={{...inp,fontFamily:'monospace',fontWeight:700,fontSize:16,textAlign:'center',letterSpacing:'0.1em'}} maxLength={4}/>
+                  </div>
+                  <div>
+                    <div style={{fontSize:10,color:'#555',marginBottom:5,textTransform:'uppercase',letterSpacing:'.08em'}}>Nombre del Cliente</div>
+                    <input value={nName} onChange={e=>setNName(e.target.value)} placeholder="Nombre del negocio" style={inp}/>
+                  </div>
+                </div>
+
+                <div>
+                  <div style={{fontSize:10,color:'#555',marginBottom:5,textTransform:'uppercase',letterSpacing:'.08em'}}>Color Accent</div>
+                  <div style={{display:'flex',gap:8,alignItems:'center',flexWrap:'wrap'}}>
+                    {['#00C8FF','#00FF88','#C084FC','#FFD700','#FF6B6B','#FB923C','#F472B6','#34D399'].map(c=>(
+                      <div key={c} onClick={()=>setNColor(c)} style={{width:28,height:28,borderRadius:'50%',background:c,cursor:'pointer',border:nColor===c?`3px solid #fff`:'3px solid transparent',boxShadow:nColor===c?`0 0 12px ${c}`:'none',transition:'all .2s',flexShrink:0}}/>
+                    ))}
+                    <input type="color" value={nColor} onChange={e=>setNColor(e.target.value)} style={{width:28,height:28,borderRadius:'50%',border:'none',background:'none',cursor:'pointer',padding:0}}/>
+                  </div>
+                </div>
+
+                <div>
+                  <div style={{fontSize:10,color:'#555',marginBottom:5,textTransform:'uppercase',letterSpacing:'.08em'}}>Meta Ad Account ID</div>
+                  <input value={nAccount} onChange={e=>setNAccount(e.target.value)} placeholder="751411627703795" style={{...inp,fontFamily:'monospace',fontSize:12}}/>
+                </div>
+
+                <div style={{borderTop:'1px solid rgba(255,255,255,0.05)',paddingTop:14}}>
+                  <div style={{fontSize:10,color:'#00C8FF',marginBottom:10,letterSpacing:'.08em',textTransform:'uppercase'}}>GHL Integration (opcional)</div>
+                  <div style={{display:'flex',flexDirection:'column',gap:8}}>
+                    <div><div style={{fontSize:10,color:'#444',marginBottom:4}}>LOCATION ID</div><input value={nLocId} onChange={e=>setNLocId(e.target.value)} placeholder="cCytukkNAHUpNbtKDk2e" style={{...inp,fontFamily:'monospace',fontSize:11}}/></div>
+                    <div><div style={{fontSize:10,color:'#444',marginBottom:4}}>PIPELINE ID</div><input value={nPipeId} onChange={e=>setNPipeId(e.target.value)} placeholder="66Nwo6mQHylEGha2G3Eq" style={{...inp,fontFamily:'monospace',fontSize:11}}/></div>
+                    <div><div style={{fontSize:10,color:'#444',marginBottom:4}}>GHL TOKEN</div><input value={nGhlToken} onChange={e=>setNGhlToken(e.target.value)} placeholder="eyJhbGciOi..." style={{...inp,fontFamily:'monospace',fontSize:11}}/></div>
+                  </div>
+                </div>
+
+                <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:12}}>
+                  <div><div style={{fontSize:10,color:'#555',marginBottom:5,textTransform:'uppercase',letterSpacing:'.08em'}}>Payout por Deal ($)</div><input value={nPayout} onChange={e=>setNPayout(e.target.value)} type="number" style={inp}/></div>
+                  <div>
+                    <div style={{fontSize:10,color:'#555',marginBottom:5,textTransform:'uppercase',letterSpacing:'.08em'}}>Foto de Perfil</div>
+                    <button onClick={()=>newLogoRef.current?.click()} style={{...inp,cursor:'pointer',color:nLogo?'#00FF88':'#555',textAlign:'left',fontSize:12}}>{nLogo?'✓ Foto cargada':'↑ Subir imagen'}</button>
+                    <input ref={newLogoRef} type="file" accept="image/*" onChange={e=>{const f=e.target.files[0];if(!f)return;const r=new FileReader();r.onload=ev=>setNLogo(ev.target.result);r.readAsDataURL(f);}} style={{display:'none'}}/>
+                  </div>
+                </div>
               </div>
+            )}
+
+            {/* ── STEP 2: Industry + Metrics ── */}
+            {nAddStep===2&&(
+              <div style={{display:'flex',flexDirection:'column',gap:18}}>
+                <div>
+                  <div style={{fontSize:11,color:'#555',marginBottom:12,letterSpacing:'0.05em'}}>¿En qué industria/modelo opera este cliente?</div>
+                  <div style={{display:'grid',gridTemplateColumns:'repeat(2,1fr)',gap:8}}>
+                    {INDUSTRIES.map(ind=>(
+                      <div key={ind.id} onClick={()=>{setNIndustry(ind.id);setNMetrics(ind.defaultMetrics);}} style={{
+                        padding:'12px 16px',borderRadius:10,cursor:'pointer',transition:'all .2s',
+                        border:`1px solid ${nIndustry===ind.id?nColor+'80':'rgba(255,255,255,0.07)'}`,
+                        background:nIndustry===ind.id?nColor+'12':'rgba(255,255,255,0.02)',
+                        display:'flex',alignItems:'center',gap:10
+                      }}>
+                        <span style={{fontSize:20}}>{ind.icon}</span>
+                        <div>
+                          <div style={{fontSize:12,fontWeight:600,color:nIndustry===ind.id?nColor:'#bbb',fontFamily:"'Poppins',sans-serif"}}>{ind.label}</div>
+                        </div>
+                        {nIndustry===ind.id&&<div style={{marginLeft:'auto',width:8,height:8,borderRadius:'50%',background:nColor,boxShadow:`0 0 8px ${nColor}`}}/>}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                <div>
+                  <div style={{fontSize:11,color:'#555',marginBottom:12,letterSpacing:'0.05em'}}>Métricas a mostrar en el dashboard</div>
+                  <div style={{display:'flex',flexDirection:'column',gap:4}}>
+                    {Object.entries(METRIC_OPTIONS.reduce((acc,m)=>{if(!acc[m.group])acc[m.group]=[];acc[m.group].push(m);return acc;},{})).map(([group,metrics])=>(
+                      <div key={group} style={{marginBottom:8}}>
+                        <div style={{fontSize:9,color:'#333',textTransform:'uppercase',letterSpacing:'0.1em',marginBottom:6,fontWeight:600}}>{group}</div>
+                        <div style={{display:'flex',flexWrap:'wrap',gap:6}}>
+                          {metrics.map(m=>{
+                            const sel=nMetrics.includes(m.id);
+                            return(
+                              <div key={m.id} onClick={()=>setNMetrics(p=>sel?p.filter(x=>x!==m.id):[...p,m.id])} style={{
+                                padding:'5px 12px',borderRadius:6,cursor:'pointer',fontSize:11,fontFamily:"'Roboto',sans-serif",transition:'all .15s',
+                                background:sel?nColor+'20':'rgba(255,255,255,0.03)',
+                                border:`1px solid ${sel?nColor+'50':'rgba(255,255,255,0.07)'}`,
+                                color:sel?nColor:'#555'
+                              }} title={m.desc}>{m.label}{sel&&' ✓'}</div>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Custom metric creation */}
+                <div style={{borderTop:'1px solid rgba(255,255,255,0.06)',paddingTop:14}}>
+                  <div style={{fontSize:11,color:'#555',marginBottom:10,letterSpacing:'0.05em'}}>+ Crear métrica personalizada</div>
+                  <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:8,marginBottom:8}}>
+                    <div><div style={{fontSize:10,color:'#444',marginBottom:4}}>NOMBRE</div><input value={nCustomName} onChange={e=>setNCustomName(e.target.value)} placeholder="ej: Valor de Venta" style={{...inp,fontSize:12}}/></div>
+                    <div><div style={{fontSize:10,color:'#444',marginBottom:4}}>PRECIO UNITARIO ($)</div><input value={nCustomPrice} onChange={e=>setNCustomPrice(e.target.value)} type="number" placeholder="ej: 997" style={{...inp,fontSize:12}}/></div>
+                  </div>
+                  <div style={{marginBottom:8}}><div style={{fontSize:10,color:'#444',marginBottom:4}}>FÓRMULA (opcional, ej: "Ventas × Precio")</div><input value={nCustomFormula} onChange={e=>setNCustomFormula(e.target.value)} placeholder="Ventas × Precio del producto" style={{...inp,fontSize:12,fontFamily:'monospace'}}/></div>
+                  <button onClick={()=>{if(!nCustomName.trim())return;setNCustomMetrics(p=>[...p,{id:'c_'+Date.now(),name:nCustomName,price:parseFloat(nCustomPrice)||0,formula:nCustomFormula}]);setNCustomName('');setNCustomPrice('');setNCustomFormula('');}} style={{...btnP(nColor),fontSize:11,padding:'7px 16px'}}>+ Agregar métrica</button>
+                  {nCustomMetrics.length>0&&(
+                    <div style={{marginTop:10,display:'flex',flexWrap:'wrap',gap:6}}>
+                      {nCustomMetrics.map(m=>(
+                        <div key={m.id} style={{display:'flex',alignItems:'center',gap:6,background:`${nColor}15`,border:`1px solid ${nColor}30`,borderRadius:6,padding:'4px 10px'}}>
+                          <span style={{fontSize:11,color:nColor}}>{m.name}{m.price>0?` ($${m.price})`:''}  </span>
+                          <button onClick={()=>setNCustomMetrics(p=>p.filter(x=>x.id!==m.id))} style={{background:'none',border:'none',color:'#666',cursor:'pointer',fontSize:11,padding:0}}>✕</button>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+
+            {/* ── STEP 3: Background Theme ── */}
+            {nAddStep===3&&(
+              <div style={{display:'flex',flexDirection:'column',gap:16}}>
+                <div style={{fontSize:11,color:'#555',marginBottom:4,letterSpacing:'0.05em'}}>Elige el tema visual del dashboard</div>
+                <div style={{display:'grid',gridTemplateColumns:'repeat(2,1fr)',gap:10}}>
+                  {BG_PRESETS.map(preset=>{
+                    const tid=bgThemes[nId?.toUpperCase()?.replace(/\s/g,'')]?.preset||'dark';
+                    const sel=tid===preset.id;
+                    return(
+                      <div key={preset.id} onClick={()=>{const id=nId.toUpperCase().replace(/\s/g,'');setBgThemes(p=>({...p,[id]:{type:'preset',preset:preset.id}}));}} style={{
+                        borderRadius:10,cursor:'pointer',overflow:'hidden',
+                        border:`2px solid ${sel?nColor:'rgba(255,255,255,0.08)'}`,
+                        transition:'all .2s',boxShadow:sel?`0 0 16px ${nColor}40`:''
+                      }}>
+                        <div style={{height:60,background:preset.preview,backgroundImage:preset.overlay||'none'}}/>
+                        <div style={{padding:'8px 12px',background:'rgba(0,0,0,0.4)',fontSize:11,color:sel?nColor:'#666',fontWeight:sel?700:400}}>{preset.label}{sel?' ✓':''}</div>
+                      </div>
+                    );
+                  })}
+                </div>
+                <div style={{borderTop:'1px solid rgba(255,255,255,0.06)',paddingTop:12}}>
+                  <div style={{fontSize:11,color:'#555',marginBottom:8}}>O elige un color sólido</div>
+                  <div style={{display:'flex',alignItems:'center',gap:10}}>
+                    <input type="color" defaultValue="#080a0d" onChange={e=>{const id=nId.toUpperCase().replace(/\s/g,'');setBgThemes(p=>({...p,[id]:{type:'solid',color:e.target.value}}));}} style={{width:40,height:36,borderRadius:6,border:'1px solid rgba(255,255,255,0.1)',background:'none',cursor:'pointer'}}/>
+                    <span style={{fontSize:11,color:'#444'}}>Color sólido personalizado</span>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            </div>
+
+            {/* Footer buttons */}
+            <div style={{padding:'16px 28px',borderTop:'1px solid rgba(255,255,255,0.07)',display:'flex',gap:8,background:'rgba(0,0,0,0.2)'}}>
+              {nAddStep>1&&<button onClick={()=>setNAddStep(p=>p-1)} style={{flex:1,padding:'10px',borderRadius:8,border:'1px solid rgba(255,255,255,0.08)',background:'transparent',color:'#555',cursor:'pointer'}}>← Atrás</button>}
+              <button onClick={()=>setShowAdd(false)} style={{padding:'10px 18px',borderRadius:8,border:'1px solid rgba(255,255,255,0.07)',background:'transparent',color:'#444',cursor:'pointer',fontSize:12}}>Cancelar</button>
+              {nAddStep<3
+                ?<button onClick={()=>{if(nAddStep===1&&(!nId.trim()||!nName.trim()))return;setNAddStep(p=>p+1);}} style={{...btnP(nColor),flex:2,textAlign:'center'}}>Siguiente →</button>
+                :<button onClick={()=>{
+                  if(!nId.trim()||!nName.trim())return;
+                  const id=nId.toUpperCase().replace(/\s/g,'');
+                  setOffices(p=>[...p,{id,name:nName,color:nColor,payout:parseInt(nPayout)||750,adAccountId:nAccount,locationId:nLocId,pipelineId:nPipeId,ghlToken:nGhlToken,industry:nIndustry,metrics:nMetrics,customMetrics:nCustomMetrics}]);
+                  setLogos(p=>({...p,[id]:nLogo||`https://ui-avatars.com/api/?name=${id}&background=222&color=fff&size=64`}));
+                  setActions(p=>({...p,[id]:[]}));
+                  setShowAdd(false);setNAddStep(1);setNName('');setNId('');setNLogo(null);setNAccount('');setNLocId('');setNPipeId('');setNGhlToken('');setNMetrics([]);setNCustomMetrics([]);
+                }} style={{...btnP('#00FF88'),flex:2,textAlign:'center'}}>✓ Crear Cliente</button>
+              }
             </div>
           </div>
         </div>
@@ -923,24 +1205,81 @@ body{background:#080a0d;color:#fff;font-family:'Roboto',sans-serif;padding:36px 
 
       {/* EDIT CLIENT MODAL */}
       {editing&&(
-        <div style={{position:'fixed',inset:0,background:'rgba(0,0,0,0.8)',zIndex:500,display:'flex',alignItems:'center',justifyContent:'center'}} onClick={()=>setEditing(null)}>
-          <div style={{background:'#0f1115',border:'1px solid rgba(255,255,255,0.1)',borderRadius:16,padding:28,width:360,maxWidth:'90vw'}} onClick={e=>e.stopPropagation()}>
-            <div style={{fontSize:16,fontWeight:700,fontFamily:"'Poppins',sans-serif",marginBottom:20}}>Edit — {editing.id}</div>
-            <div style={{display:'flex',flexDirection:'column',gap:14}}>
-              <div style={{display:'flex',alignItems:'center',gap:16}}>
-                <img src={logos[editing.id]||`https://ui-avatars.com/api/?name=${editing.id}&background=222&color=fff&size=64`} alt="" style={{width:64,height:64,borderRadius:'50%',objectFit:'cover',border:`2px solid ${editing.color}44`}}/>
-                <div style={{display:'flex',flexDirection:'column',gap:6}}>
-                  <button onClick={()=>editLogoRef.current?.click()} style={btnP(editing.color)}>📷 Change photo</button>
-                  <button onClick={()=>setLogos(p=>({...p,[editing.id]:`https://ui-avatars.com/api/?name=${editing.id}&background=222&color=fff&size=64`}))} style={{padding:'7px 14px',borderRadius:7,border:'1px solid rgba(255,255,255,0.08)',background:'transparent',color:'#555',fontSize:12,cursor:'pointer',fontFamily:"'Roboto',sans-serif"}}>🗑 Remove photo</button>
+        <div style={{position:'fixed',inset:0,background:'rgba(0,0,0,0.85)',zIndex:500,display:'flex',alignItems:'center',justifyContent:'center',backdropFilter:'blur(4px)'}} onClick={()=>{setEditing(null);setEditBgTab(false);}}>
+          <div style={{background:'#0b0d12',border:'1px solid rgba(255,255,255,0.1)',borderRadius:20,padding:0,width:440,maxWidth:'92vw',overflow:'hidden',boxShadow:'0 30px 80px rgba(0,0,0,0.7)'}} onClick={e=>e.stopPropagation()}>
+            {/* Tabs */}
+            <div style={{display:'flex',borderBottom:'1px solid rgba(255,255,255,0.07)',background:'rgba(255,255,255,0.02)'}}>
+              {['Configuración','Background'].map((tab,i)=>(
+                <button key={tab} onClick={()=>setEditBgTab(i===1)} style={{flex:1,padding:'14px',border:'none',cursor:'pointer',background:'transparent',color:editBgTab===(i===1)?editing.color:'#444',fontWeight:editBgTab===(i===1)?700:400,fontFamily:"'Poppins',sans-serif",fontSize:12,borderBottom:editBgTab===(i===1)?`2px solid ${editing.color}`:'2px solid transparent',transition:'all .2s'}}>{tab}</button>
+              ))}
+            </div>
+
+            <div style={{padding:'24px 28px',maxHeight:'70vh',overflowY:'auto'}}>
+
+            {!editBgTab&&(
+              <div style={{display:'flex',flexDirection:'column',gap:14}}>
+                <div style={{fontSize:16,fontWeight:700,fontFamily:"'Poppins',sans-serif",color:'#fff',marginBottom:4}}>{editing.id} — Editar</div>
+                <div style={{display:'flex',alignItems:'center',gap:16}}>
+                  <img src={logos[editing.id]||`https://ui-avatars.com/api/?name=${editing.id}&background=222&color=fff&size=64`} alt="" style={{width:64,height:64,borderRadius:'50%',objectFit:'cover',border:`2px solid ${editing.color}55`}}/>
+                  <div style={{display:'flex',flexDirection:'column',gap:6}}>
+                    <button onClick={()=>editLogoRef.current?.click()} style={btnP(editing.color)}>📷 Cambiar foto</button>
+                    <button onClick={()=>setLogos(p=>({...p,[editing.id]:`https://ui-avatars.com/api/?name=${editing.id}&background=222&color=fff&size=64`}))} style={{padding:'7px 14px',borderRadius:7,border:'1px solid rgba(255,255,255,0.08)',background:'transparent',color:'#555',fontSize:12,cursor:'pointer',fontFamily:"'Roboto',sans-serif"}}>🗑 Quitar foto</button>
+                  </div>
+                </div>
+                <input ref={editLogoRef} type="file" accept="image/*" onChange={e=>{const f=e.target.files[0];if(!f)return;const r=new FileReader();r.onload=ev=>setLogos(p=>({...p,[editing.id]:ev.target.result}));r.readAsDataURL(f);}} style={{display:'none'}}/>
+                <div><div style={{fontSize:10,color:'#555',marginBottom:5,textTransform:'uppercase',letterSpacing:'.08em'}}>Nombre</div><input defaultValue={editing.name} onBlur={e=>setOffices(p=>p.map(o=>o.id===editing.id?{...o,name:e.target.value}:o))} style={inp}/></div>
+                <div><div style={{fontSize:10,color:'#555',marginBottom:5,textTransform:'uppercase',letterSpacing:'.08em'}}>Payout ($)</div><input type="number" defaultValue={editing.payout} onBlur={e=>setOffices(p=>p.map(o=>o.id===editing.id?{...o,payout:parseInt(e.target.value)||750}:o))} style={inp}/></div>
+                <div>
+                  <div style={{fontSize:10,color:'#555',marginBottom:8,textTransform:'uppercase',letterSpacing:'.08em'}}>Color Accent</div>
+                  <div style={{display:'flex',gap:8,flexWrap:'wrap',alignItems:'center'}}>
+                    {['#00C8FF','#00FF88','#C084FC','#FFD700','#FF6B6B','#FB923C','#F472B6','#34D399'].map(c=>(
+                      <div key={c} onClick={()=>setOffices(p=>p.map(o=>o.id===editing.id?{...o,color:c}:o))} style={{width:26,height:26,borderRadius:'50%',background:c,cursor:'pointer',border:editing.color===c?'3px solid #fff':'3px solid transparent',boxShadow:editing.color===c?`0 0 10px ${c}`:'none',transition:'all .2s'}}/>
+                    ))}
+                    <input type="color" value={editing.color} onChange={e=>setOffices(p=>p.map(o=>o.id===editing.id?{...o,color:e.target.value}:o))} style={{width:26,height:26,borderRadius:'50%',border:'none',background:'none',cursor:'pointer',padding:0}}/>
+                  </div>
+                </div>
+                <div style={{display:'flex',gap:8,marginTop:4}}>
+                  <button onClick={()=>{setOffices(p=>p.filter(o=>o.id!==editing.id));if(activeId===editing.id)setActiveId(null);setEditing(null);}} style={{flex:1,padding:'10px',borderRadius:8,border:'1px solid rgba(255,77,77,0.3)',background:'rgba(255,77,77,0.08)',color:'#FF4D4D',cursor:'pointer',fontSize:13,fontFamily:"'Roboto',sans-serif"}}>🗑 Eliminar cliente</button>
+                  <button onClick={()=>{setEditing(null);setEditBgTab(false);}} style={{...btnP(editing.color),flex:1,textAlign:'center'}}>✓ Listo</button>
                 </div>
               </div>
-              <input ref={editLogoRef} type="file" accept="image/*" onChange={e=>{const f=e.target.files[0];if(!f)return;const r=new FileReader();r.onload=ev=>setLogos(p=>({...p,[editing.id]:ev.target.result}));r.readAsDataURL(f);}} style={{display:'none'}}/>
-              <div><div style={{fontSize:11,color:'#555',marginBottom:5}}>NAME</div><input defaultValue={editing.name} onBlur={e=>setOffices(p=>p.map(o=>o.id===editing.id?{...o,name:e.target.value}:o))} style={inp}/></div>
-              <div><div style={{fontSize:11,color:'#555',marginBottom:5}}>PAYOUT ($)</div><input type="number" defaultValue={editing.payout} onBlur={e=>setOffices(p=>p.map(o=>o.id===editing.id?{...o,payout:parseInt(e.target.value)||750}:o))} style={inp}/></div>
-              <div style={{display:'flex',gap:8}}>
-                <button onClick={()=>{setOffices(p=>p.filter(o=>o.id!==editing.id));if(activeId===editing.id)setActiveId(null);setEditing(null);}} style={{flex:1,padding:'10px',borderRadius:8,border:'1px solid rgba(248,113,113,0.3)',background:'rgba(248,113,113,0.08)',color:'#F87171',cursor:'pointer',fontSize:13,fontFamily:"'Roboto',sans-serif"}}>🗑 Delete</button>
-                <button onClick={()=>setEditing(null)} style={{...btnP(editing.color),flex:1,textAlign:'center'}}>Done</button>
+            )}
+
+            {editBgTab&&(
+              <div style={{display:'flex',flexDirection:'column',gap:16}}>
+                <div style={{fontSize:13,fontWeight:600,color:'#fff',fontFamily:"'Poppins',sans-serif",marginBottom:4}}>Fondo del Dashboard</div>
+                <div style={{fontSize:11,color:'#555',marginBottom:4}}>Presets ultra-minimalistas</div>
+                <div style={{display:'grid',gridTemplateColumns:'repeat(2,1fr)',gap:10}}>
+                  {BG_PRESETS.map(preset=>{
+                    const cur=bgThemes[editing.id];
+                    const sel=cur?.preset===preset.id||((!cur||cur.type==='preset')&&preset.id==='dark'&&!cur?.preset);
+                    return(
+                      <div key={preset.id} onClick={()=>setBgThemes(p=>({...p,[editing.id]:{type:'preset',preset:preset.id}}))} style={{
+                        borderRadius:10,cursor:'pointer',overflow:'hidden',
+                        border:`2px solid ${sel?editing.color:'rgba(255,255,255,0.08)'}`,
+                        transition:'all .2s',boxShadow:sel?`0 0 14px ${editing.color}40`:''
+                      }}>
+                        <div style={{height:52,background:preset.preview,backgroundImage:preset.overlay||'none'}}/>
+                        <div style={{padding:'7px 12px',background:'rgba(0,0,0,0.4)',display:'flex',justifyContent:'space-between',alignItems:'center'}}>
+                          <span style={{fontSize:11,color:sel?editing.color:'#666',fontWeight:sel?700:400}}>{preset.label}</span>
+                          {sel&&<span style={{fontSize:9,color:editing.color}}>✓ ACTIVO</span>}
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+                <div style={{borderTop:'1px solid rgba(255,255,255,0.06)',paddingTop:12}}>
+                  <div style={{fontSize:11,color:'#555',marginBottom:8}}>Color sólido personalizado</div>
+                  <div style={{display:'flex',alignItems:'center',gap:10}}>
+                    <input type="color" defaultValue={bgThemes[editing.id]?.color||'#080a0d'} onChange={e=>setBgThemes(p=>({...p,[editing.id]:{type:'solid',color:e.target.value}}))} style={{width:40,height:36,borderRadius:6,border:'1px solid rgba(255,255,255,0.1)',background:'none',cursor:'pointer'}}/>
+                    <span style={{fontSize:12,color:'#555'}}>Elige cualquier color de fondo</span>
+                    {bgThemes[editing.id]?.type==='solid'&&<span style={{fontSize:10,color:'#00FF88',background:'rgba(0,255,136,0.1)',padding:'2px 8px',borderRadius:4,border:'1px solid rgba(0,255,136,0.2)'}}>ACTIVO</span>}
+                  </div>
+                </div>
+                <button onClick={()=>{setEditing(null);setEditBgTab(false);}} style={{...btnP(editing.color),textAlign:'center',marginTop:4}}>✓ Guardar tema</button>
               </div>
+            )}
+
             </div>
           </div>
         </div>
