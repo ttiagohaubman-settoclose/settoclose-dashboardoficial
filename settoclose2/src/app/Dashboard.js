@@ -273,7 +273,42 @@ export default function Dashboard() {
   const [globalLight,setGlobalLight]=useState(false);
   const mediaRef = useRef(); const newLogoRef = useRef(); const editLogoRef = useRef();
   const newTextRef = useRef(); const editTextRef = useRef();
-  useEffect(()=>{try{localStorage.setItem('stc_bg_themes',JSON.stringify(bgThemes));}catch{}}, [bgThemes]);
+  // ── SETTINGS PERSISTENCE (Redis + localStorage fallback) ──────────
+  const settingsSaveTimer = useRef(null);
+
+  const saveSettings = useCallback(async (bgT, offs) => {
+    try { localStorage.setItem('stc_bg_themes', JSON.stringify(bgT)); } catch {}
+    try {
+      await fetch('/api/settings', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ settings: { bgThemes: bgT, offices: offs } })
+      });
+    } catch(e) { console.warn('Save settings error:', e); }
+  }, []);
+
+  // Debounce saves so rapid changes (e.g. color picker drag) don't spam the API
+  useEffect(() => {
+    clearTimeout(settingsSaveTimer.current);
+    settingsSaveTimer.current = setTimeout(() => saveSettings(bgThemes, offices), 800);
+  }, [bgThemes, offices, saveSettings]);
+
+  // On mount: load from Redis (source of truth), fall back to localStorage already in state
+  useEffect(() => {
+    const loadSettings = async () => {
+      try {
+        const r = await fetch('/api/settings');
+        const j = await r.json();
+        if (j.settings?.bgThemes && Object.keys(j.settings.bgThemes).length > 0) {
+          setBgThemes(j.settings.bgThemes);
+        }
+        if (j.settings?.offices && j.settings.offices.length > 0) {
+          setOffices(j.settings.offices);
+        }
+      } catch(e) { console.warn('Load settings error:', e); }
+    };
+    loadSettings();
+  }, []);
   useEffect(()=>{if(editingAction!==null&&editTextRef.current){editTextRef.current.innerHTML=editText;}}, [editingAction]);
 
   // ── LOGIN ────────────────────────────────────────────────────────
