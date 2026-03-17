@@ -989,8 +989,6 @@ body{background:#080a0d;color:#fff;font-family:'Roboto',sans-serif;padding:36px 
                         <div style={{width:5,height:5,borderRadius:'50%',background:office.color,boxShadow:`0 0 8px ${office.color}`}}/>
                         <span style={{fontSize:10,color:office.color,fontFamily:'monospace'}}>{(actions[activeId]||[]).length} entries</span>
                       </div>
-                      <input type="date" value={filterDate} onChange={e=>setFilterDate(e.target.value)} style={{background:'rgba(0,0,0,0.35)',border:`1px solid ${office.color}20`,borderRadius:7,padding:'4px 10px',color:filterDate?office.color:'#2a2a2a',fontSize:11,fontFamily:'monospace',colorScheme:'dark',cursor:'pointer'}}/>
-                      {filterDate&&<button onClick={()=>setFilterDate('')} style={{background:'rgba(255,77,77,0.08)',border:'1px solid rgba(255,77,77,0.2)',borderRadius:6,color:'#FF4D4D',fontSize:11,cursor:'pointer',padding:'4px 8px'}}>✕</button>}
                     </div>
 
                     {/* ── New Entry Form ── */}
@@ -1027,9 +1025,7 @@ body{background:#080a0d;color:#fff;font-family:'Roboto',sans-serif;padding:36px 
                         <div style={{textAlign:'center',padding:'52px 0',fontFamily:'monospace'}}>
                           <div style={{fontSize:36,opacity:.09,marginBottom:14}}>◈</div>
                           <div style={{fontSize:11,color:'#1c1c1c',letterSpacing:'0.2em',textTransform:'uppercase'}}>Sin registros</div>
-                          <div style={{fontSize:10,color:'#141414',marginTop:8,letterSpacing:'0.08em'}}>
-                            {filterDate?`ninguna entrada para ${filterDate}`:'comienza añadiendo una acción arriba'}
-                          </div>
+                          <div style={{fontSize:10,color:'#141414',marginTop:8,letterSpacing:'0.08em'}}>comienza añadiendo una acción arriba</div>
                         </div>
                       )}
                       {filtActions.map((a,idx)=>{
@@ -1055,10 +1051,10 @@ body{background:#080a0d;color:#fff;font-family:'Roboto',sans-serif;padding:36px 
                                   <div style={{flex:1,minWidth:0}}>
                                     <div style={{display:'flex',alignItems:'center',gap:6,marginBottom:4,flexWrap:'wrap'}}>
                                       <span style={{fontSize:9,fontWeight:700,letterSpacing:'0.14em',textTransform:'uppercase',color:t.border,background:`${t.border}18`,padding:'2px 8px',borderRadius:4,border:`1px solid ${t.border}30`,fontFamily:"'Roboto',sans-serif"}}>{t.label}</span>
-                                      <span style={{fontSize:10,color:'#2a2a2a',fontFamily:'monospace',letterSpacing:'0.06em'}}>{a.date}</span>
+                                      <span style={{fontSize:10,color:'#666',fontFamily:'monospace',letterSpacing:'0.06em',pointerEvents:'none'}}>{a.date}</span>
                                       {a.media?.length>0&&<span style={{fontSize:9,color:'#252525',fontFamily:'monospace',background:'rgba(255,255,255,0.03)',padding:'2px 6px',borderRadius:3,border:'1px solid rgba(255,255,255,0.05)'}}>{'📎'}{a.media.length}</span>}
                                     </div>
-                                    <div style={{fontSize:12,lineHeight:1.65,color:isExp?'#bbb':'#555',whiteSpace:isExp?'pre-wrap':'nowrap',overflow:'hidden',textOverflow:'ellipsis',fontFamily:"'Roboto',sans-serif",transition:'color .2s'}} dangerouslySetInnerHTML={{__html:a.text}}/>
+                                    <div style={{fontSize:12,lineHeight:1.65,color:isExp?'#ccc':'#888',whiteSpace:isExp?'pre-wrap':'nowrap',overflow:'hidden',textOverflow:'ellipsis',fontFamily:"'Roboto',sans-serif",transition:'color .2s',pointerEvents:'none'}} dangerouslySetInnerHTML={{__html:a.text}}/>
                                   </div>
                                   <div style={{display:'flex',gap:4,alignItems:'center',flexShrink:0}}>
                                     <button onClick={e=>{e.stopPropagation();setEditingAction(a.id);setEditText(a.text);setEditType(a.type);setEditDate(a.date);setEditMedia([]);}} style={{background:'transparent',border:'1px solid rgba(255,255,255,0.05)',borderRadius:5,color:'#333',fontSize:10,cursor:'pointer',padding:'3px 7px',transition:'all .15s'}} title="Editar">✏</button>
