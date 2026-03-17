@@ -190,6 +190,31 @@ function CalendarPicker({ dateFrom, dateTo, onSelect }) {
 }
 // ────────────────────────────────────────────────────────────────────
 
+const HIGHLIGHT_COLORS = ['#FFD700','#FF6B6B','#4FC3F7','#A5D6A7','#CE93D8','#FFCC80'];
+
+function RichToolbar({targetRef, accentColor}) {
+  const exec = (cmd, val) => {
+    targetRef.current?.focus();
+    document.execCommand(cmd, false, val||null);
+  };
+  const btnStyle = {background:'rgba(255,255,255,0.04)',border:'1px solid rgba(255,255,255,0.08)',borderRadius:5,color:'#aaa',fontSize:12,cursor:'pointer',padding:'3px 10px',fontFamily:"'Roboto',sans-serif",transition:'all .15s'};
+  return (
+    <div style={{display:'flex',alignItems:'center',gap:4,marginBottom:6,padding:'5px 8px',background:'rgba(255,255,255,0.03)',borderRadius:7,border:'1px solid rgba(255,255,255,0.07)',flexWrap:'wrap'}}>
+      <button onMouseDown={e=>{e.preventDefault();exec('bold');}} style={{...btnStyle,fontWeight:700}}>B</button>
+      <button onMouseDown={e=>{e.preventDefault();exec('italic');}} style={{...btnStyle,fontStyle:'italic'}}>I</button>
+      <button onMouseDown={e=>{e.preventDefault();exec('underline');}} style={{...btnStyle,textDecoration:'underline'}}>U</button>
+      <div style={{width:1,height:16,background:'rgba(255,255,255,0.07)',margin:'0 4px'}}/>
+      {HIGHLIGHT_COLORS.map(c=>(
+        <button key={c} onMouseDown={e=>{e.preventDefault();exec('hiliteColor',c);}} title="Highlight" style={{width:18,height:18,borderRadius:4,background:c,border:'1px solid rgba(255,255,255,0.2)',cursor:'pointer',padding:0,flexShrink:0}}/>
+      ))}
+      <div style={{width:1,height:16,background:'rgba(255,255,255,0.07)',margin:'0 4px'}}/>
+      <button onMouseDown={e=>{e.preventDefault();exec('removeFormat');}} style={{...btnStyle,fontSize:10,color:'#555'}}>✕ fmt</button>
+    </div>
+  );
+}
+
+// ────────────────────────────────────────────────────────────────────
+
 export default function Dashboard() {
   const [offices,   setOffices]   = useState(INIT_OFFICES);
   const [logos,     setLogos]     = useState(LOGOS_INIT);
@@ -247,7 +272,9 @@ export default function Dashboard() {
   const [editingSTC,setEditingSTC]= useState(false);
   const [globalLight,setGlobalLight]=useState(false);
   const mediaRef = useRef(); const newLogoRef = useRef(); const editLogoRef = useRef();
+  const newTextRef = useRef(); const editTextRef = useRef();
   useEffect(()=>{try{localStorage.setItem('stc_bg_themes',JSON.stringify(bgThemes));}catch{}}, [bgThemes]);
+  useEffect(()=>{if(editingAction!==null&&editTextRef.current){editTextRef.current.innerHTML=editText;}}, [editingAction]);
 
   // ── LOGIN ────────────────────────────────────────────────────────
   const [authed, setAuthed] = useState(false);
@@ -427,18 +454,21 @@ export default function Dashboard() {
   };
 
   const addAction=()=>{
-    if(!newText.trim()||!activeId) return;
-    const newEntry = {id:++uid,date:newDate,text:newText,type:newType,media:pendMedia};
+    const html=newTextRef.current?.innerHTML||'';
+    if(!html.replace(/<[^>]*>/g,'').trim()||!activeId) return;
+    const newEntry = {id:++uid,date:newDate,text:html,type:newType,media:pendMedia};
     const updated = [newEntry, ...(actions[activeId]||[])];
     setActions(prev=>({...prev,[activeId]:updated}));
     saveLogs(activeId, updated);
-    setNewText(''); setPendMedia([]);
+    if(newTextRef.current) newTextRef.current.innerHTML='';
+    setPendMedia([]);
   };
 
   const saveEdit = () => {
     if (!editingAction || !activeId) return;
+    const html=editTextRef.current?.innerHTML||editText;
     const updated = (actions[activeId]||[]).map(a => a.id === editingAction
-      ? {...a, text: editText, type: editType, date: editDate, media: [...(a.media||[]), ...editMedia]}
+      ? {...a, text: html, type: editType, date: editDate, media: [...(a.media||[]), ...editMedia]}
       : a);
     setActions(prev => ({ ...prev, [activeId]: updated }));
     saveLogs(activeId, updated);
@@ -456,7 +486,8 @@ export default function Dashboard() {
   const filtActions=useMemo(()=>{
     if(!activeId) return [];
     const all=actions[activeId]||[];
-    return filterDate?all.filter(a=>a.date===filterDate):all;
+    const filtered=filterDate?all.filter(a=>(a.date||'').trim()===filterDate.trim()):all;
+    return [...filtered].sort((a,b)=>(b.date||'').localeCompare(a.date||''));
   },[actions,activeId,filterDate]);
 
   const activeBg = useMemo(() => {
@@ -626,7 +657,7 @@ body{background:#080a0d;color:#fff;font-family:'Roboto',sans-serif;padding:36px 
 
   return (
     <div style={{minHeight:'100vh',...activeBg,color:textPrimary,fontFamily:"'Roboto',sans-serif",transition:'background .4s ease'}}>
-      <style>{`@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&family=Roboto:wght@300;400;500&display=swap');*{box-sizing:border-box;margin:0;padding:0}::-webkit-scrollbar{width:3px}::-webkit-scrollbar-thumb{background:#222}input:focus,select:focus,textarea:focus{outline:none}.hov:hover{background:rgba(255,255,255,0.06)!important}.arow:hover{background:rgba(255,255,255,0.05)!important;cursor:pointer}@keyframes pulse{0%,100%{opacity:.6}50%{opacity:1}}@keyframes slideIn{from{opacity:0;transform:translateY(-8px)}to{opacity:1;transform:translateY(0)}}`}</style>
+      <style>{`@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&family=Roboto:wght@300;400;500&display=swap');*{box-sizing:border-box;margin:0;padding:0}::-webkit-scrollbar{width:3px}::-webkit-scrollbar-thumb{background:#222}input:focus,select:focus,textarea:focus{outline:none}.hov:hover{background:rgba(255,255,255,0.06)!important}.arow:hover{background:rgba(255,255,255,0.05)!important;cursor:pointer}@keyframes pulse{0%,100%{opacity:.6}50%{opacity:1}}@keyframes slideIn{from{opacity:0;transform:translateY(-8px)}to{opacity:1;transform:translateY(0)}}[contenteditable][data-placeholder]:empty:before{content:attr(data-placeholder);color:#444;pointer-events:none;font-style:italic}`}</style>
 
       {/* NAV */}
       <div style={{position:'sticky',top:0,zIndex:300,background:'rgba(8,10,13,0.97)',backdropFilter:'blur(16px)',borderBottom:'1px solid rgba(255,255,255,0.07)',display:'flex',alignItems:'center',padding:'0 24px',height:58,gap:16,flexWrap:'wrap'}}>
@@ -975,7 +1006,8 @@ body{background:#080a0d;color:#fff;font-family:'Roboto',sans-serif;padding:36px 
                           {Object.entries(ACTION_TYPES).map(([k,v])=><option key={k} value={k} style={{background:'#080a10'}}>{v.label}</option>)}
                         </select>
                       </div>
-                      <textarea value={newText} onChange={e=>setNewText(e.target.value)} onKeyDown={e=>{if(e.key==='Enter'&&e.metaKey)addAction();}} placeholder="> describe la acción o decisión aquí..." rows={3} style={{...inp,resize:'vertical',lineHeight:1.75,marginBottom:10,background:'rgba(0,0,0,0.55)',border:`1px solid ${office.color}15`,fontSize:13,fontFamily:'monospace',color:'#999',boxShadow:'inset 0 0 30px rgba(0,0,0,0.4)'}}/>
+                      <RichToolbar targetRef={newTextRef} accentColor={office.color}/>
+                      <div ref={newTextRef} contentEditable suppressContentEditableWarning onKeyDown={e=>{if(e.key==='Enter'&&e.metaKey)addAction();}} data-placeholder="> describe la acción o decisión aquí..." style={{...inp,resize:'vertical',lineHeight:1.75,marginBottom:10,background:'rgba(0,0,0,0.55)',border:`1px solid ${office.color}15`,fontSize:13,fontFamily:"'Roboto',sans-serif",color:'#ccc',boxShadow:'inset 0 0 30px rgba(0,0,0,0.4)',minHeight:72,outline:'none',whiteSpace:'pre-wrap',wordBreak:'break-word'}}/>
                       <div style={{display:'flex',alignItems:'center',gap:8}}>
                         <button onClick={()=>mediaRef.current?.click()} style={{padding:'7px 13px',borderRadius:7,border:`1px solid ${office.color}18`,background:'rgba(0,0,0,0.3)',color:'#444',fontSize:11,cursor:'pointer',fontFamily:"'Roboto',sans-serif",display:'flex',alignItems:'center',gap:5}}>
                           <span>📎</span><span>Adjuntar</span>
@@ -1026,7 +1058,7 @@ body{background:#080a0d;color:#fff;font-family:'Roboto',sans-serif;padding:36px 
                                       <span style={{fontSize:10,color:'#2a2a2a',fontFamily:'monospace',letterSpacing:'0.06em'}}>{a.date}</span>
                                       {a.media?.length>0&&<span style={{fontSize:9,color:'#252525',fontFamily:'monospace',background:'rgba(255,255,255,0.03)',padding:'2px 6px',borderRadius:3,border:'1px solid rgba(255,255,255,0.05)'}}>{'📎'}{a.media.length}</span>}
                                     </div>
-                                    <div style={{fontSize:12,lineHeight:1.65,color:isExp?'#bbb':'#555',whiteSpace:isExp?'pre-wrap':'nowrap',overflow:'hidden',textOverflow:'ellipsis',fontFamily:isExp?'monospace':"'Roboto',sans-serif",transition:'color .2s'}}>{a.text}</div>
+                                    <div style={{fontSize:12,lineHeight:1.65,color:isExp?'#bbb':'#555',whiteSpace:isExp?'pre-wrap':'nowrap',overflow:'hidden',textOverflow:'ellipsis',fontFamily:"'Roboto',sans-serif",transition:'color .2s'}} dangerouslySetInnerHTML={{__html:a.text}}/>
                                   </div>
                                   <div style={{display:'flex',gap:4,alignItems:'center',flexShrink:0}}>
                                     <button onClick={e=>{e.stopPropagation();setEditingAction(a.id);setEditText(a.text);setEditType(a.type);setEditDate(a.date);setEditMedia([]);}} style={{background:'transparent',border:'1px solid rgba(255,255,255,0.05)',borderRadius:5,color:'#333',fontSize:10,cursor:'pointer',padding:'3px 7px',transition:'all .15s'}} title="Editar">✏</button>
@@ -1470,7 +1502,8 @@ body{background:#080a0d;color:#fff;font-family:'Roboto',sans-serif;padding:36px 
                 {Object.entries(ACTION_TYPES).map(([k,v])=><option key={k} value={k} style={{background:'#111'}}>{v.label}</option>)}
               </select>
             </div>
-            <textarea value={editText} onChange={e=>setEditText(e.target.value)} rows={5} style={{width:'100%',background:'rgba(255,255,255,0.05)',border:'1px solid rgba(255,255,255,0.1)',borderRadius:8,padding:'10px 14px',color:'#fff',fontSize:13,fontFamily:"'Roboto',sans-serif",resize:'vertical',lineHeight:1.6,marginBottom:10}}/>
+            <RichToolbar targetRef={editTextRef} accentColor='#38BDF8'/>
+            <div ref={editTextRef} contentEditable suppressContentEditableWarning style={{width:'100%',background:'rgba(255,255,255,0.05)',border:'1px solid rgba(255,255,255,0.1)',borderRadius:8,padding:'10px 14px',color:'#fff',fontSize:13,fontFamily:"'Roboto',sans-serif",lineHeight:1.6,marginBottom:10,minHeight:110,outline:'none',whiteSpace:'pre-wrap',wordBreak:'break-word',boxSizing:'border-box'}}/>
             <div style={{display:'flex',alignItems:'center',gap:10,marginBottom:12}}>
               <button onClick={()=>editMediaRef.current?.click()} style={{padding:'7px 14px',borderRadius:7,border:'1px solid rgba(255,255,255,0.08)',background:'rgba(255,255,255,0.03)',color:'#666',fontSize:12,cursor:'pointer',fontFamily:"'Roboto',sans-serif"}}>📎 Adjuntar media</button>
               <input ref={editMediaRef} type="file" accept="image/*,video/*" multiple onChange={e=>{Array.from(e.target.files).forEach(f=>{const r=new FileReader();r.onload=ev=>setEditMedia(p=>[...p,{name:f.name,type:f.type,url:ev.target.result}]);r.readAsDataURL(f);});}} style={{display:'none'}}/>
