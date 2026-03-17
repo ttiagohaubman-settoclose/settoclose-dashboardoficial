@@ -730,18 +730,18 @@ body{background:#080a0d;color:#fff;font-family:'Roboto',sans-serif;padding:36px 
       {/* CARD */}
       <div style={{position:'relative',zIndex:10,background:'rgba(3,0,9,0.82)',border:'1px solid rgba(124,58,237,.5)',borderRadius:24,padding:'44px 40px',width:410,maxWidth:'90vw',backdropFilter:'blur(28px)',WebkitBackdropFilter:'blur(28px)',animation:'cardEntrance .9s cubic-bezier(.34,1.56,.64,1) both, borderGlow 4.5s 1s ease-in-out infinite'}}>
         <img src={LOGOS_INIT.STC} alt="SetToClose" style={{height:36,objectFit:'contain',marginBottom:32,display:'block',animation:'logoFloat 3.5s ease-in-out infinite'}}/>
-        <div style={{fontSize:24,fontWeight:800,fontFamily:"'Poppins',sans-serif",marginBottom:6,background:'linear-gradient(90deg,#a78bfa,#34d399,#a78bfa)',backgroundSize:'200% 100%',WebkitBackgroundClip:'text',WebkitTextFillColor:'transparent',backgroundClip:'text',animation:'titleShimmer 4s ease-in-out infinite'}}>Bienvenido</div>
-        <div style={{fontSize:13,color:'#6b6b8a',marginBottom:30}}>Ingresa tus credenciales para continuar</div>
+        <div style={{fontSize:24,fontWeight:800,fontFamily:"'Poppins',sans-serif",marginBottom:6,background:'linear-gradient(90deg,#a78bfa,#34d399,#a78bfa)',backgroundSize:'200% 100%',WebkitBackgroundClip:'text',WebkitTextFillColor:'transparent',backgroundClip:'text',animation:'titleShimmer 4s ease-in-out infinite'}}>Welcome</div>
+        <div style={{fontSize:13,color:'#6b6b8a',marginBottom:30}}>Enter your credentials to continue</div>
         <div style={{marginBottom:16}}>
-          <div style={{fontSize:11,color:'#a78bfa',marginBottom:7,textTransform:'uppercase',letterSpacing:'0.12em',fontWeight:600}}>Usuario</div>
-          <input className="glx-input" value={loginUser} onChange={e=>setLoginUser(e.target.value)} onKeyDown={e=>e.key==='Enter'&&doLogin()} placeholder="Usuario" style={{width:'100%',background:'rgba(255,255,255,0.04)',border:`1px solid ${loginErr?'rgba(248,113,113,.55)':'rgba(124,58,237,.28)'}`,borderRadius:10,padding:'12px 16px',color:'#fff',fontSize:13,fontFamily:"'Roboto',sans-serif"}}/>
+          <div style={{fontSize:11,color:'#a78bfa',marginBottom:7,textTransform:'uppercase',letterSpacing:'0.12em',fontWeight:600}}>Username</div>
+          <input className="glx-input" value={loginUser} onChange={e=>setLoginUser(e.target.value)} onKeyDown={e=>e.key==='Enter'&&doLogin()} placeholder="Username" style={{width:'100%',background:'rgba(255,255,255,0.04)',border:`1px solid ${loginErr?'rgba(248,113,113,.55)':'rgba(124,58,237,.28)'}`,borderRadius:10,padding:'12px 16px',color:'#fff',fontSize:13,fontFamily:"'Roboto',sans-serif"}}/>
         </div>
         <div style={{marginBottom:26}}>
-          <div style={{fontSize:11,color:'#a78bfa',marginBottom:7,textTransform:'uppercase',letterSpacing:'0.12em',fontWeight:600}}>Contrase\u00f1a</div>
-          <input className="glx-input" type="password" value={loginPass} onChange={e=>setLoginPass(e.target.value)} onKeyDown={e=>e.key==='Enter'&&doLogin()} placeholder="Contrase\u00f1a" style={{width:'100%',background:'rgba(255,255,255,0.04)',border:`1px solid ${loginErr?'rgba(248,113,113,.55)':'rgba(124,58,237,.28)'}`,borderRadius:10,padding:'12px 16px',color:'#fff',fontSize:13,fontFamily:"'Roboto',sans-serif"}}/>
+          <div style={{fontSize:11,color:'#a78bfa',marginBottom:7,textTransform:'uppercase',letterSpacing:'0.12em',fontWeight:600}}>Password</div>
+          <input className="glx-input" type="password" value={loginPass} onChange={e=>setLoginPass(e.target.value)} onKeyDown={e=>e.key==='Enter'&&doLogin()} placeholder="Password" style={{width:'100%',background:'rgba(255,255,255,0.04)',border:`1px solid ${loginErr?'rgba(248,113,113,.55)':'rgba(124,58,237,.28)'}`,borderRadius:10,padding:'12px 16px',color:'#fff',fontSize:13,fontFamily:"'Roboto',sans-serif"}}/>
         </div>
-        {loginErr&&<div style={{fontSize:12,color:'#F87171',marginBottom:18,background:'rgba(248,113,113,.08)',border:'1px solid rgba(248,113,113,.22)',borderRadius:8,padding:'9px 14px'}}>Usuario o contrase\u00f1a incorrectos</div>}
-        <button className="glx-btn" onClick={doLogin} style={{width:'100%',padding:'14px',borderRadius:10,border:'none',background:'linear-gradient(135deg,#7c3aed,#059669,#7c3aed)',backgroundSize:'200% 200%',color:'#fff',fontSize:14,fontWeight:700,fontFamily:"'Poppins',sans-serif",cursor:'pointer',letterSpacing:'0.06em',animation:'btnGradient 4s ease-in-out infinite, btnPulse 3s ease-in-out infinite'}}>Ingresar</button>
+        {loginErr&&<div style={{fontSize:12,color:'#F87171',marginBottom:18,background:'rgba(248,113,113,.08)',border:'1px solid rgba(248,113,113,.22)',borderRadius:8,padding:'9px 14px'}}>Invalid username or password</div>}
+        <button className="glx-btn" onClick={doLogin} style={{width:'100%',padding:'14px',borderRadius:10,border:'none',background:'linear-gradient(135deg,#7c3aed,#059669,#7c3aed)',backgroundSize:'200% 200%',color:'#fff',fontSize:14,fontWeight:700,fontFamily:"'Poppins',sans-serif",cursor:'pointer',letterSpacing:'0.06em',animation:'btnGradient 4s ease-in-out infinite, btnPulse 3s ease-in-out infinite'}}>Sign In</button>
       </div>
     </div>
   );
