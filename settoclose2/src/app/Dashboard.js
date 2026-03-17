@@ -634,23 +634,114 @@ body{background:#080a0d;color:#fff;font-family:'Roboto',sans-serif;padding:36px 
   const inp={background:'rgba(255,255,255,0.05)',border:'1px solid rgba(255,255,255,0.1)',borderRadius:8,padding:'10px 14px',color:'#fff',fontSize:13,fontFamily:"'Roboto',sans-serif",width:'100%'};
   const btnP=c=>({padding:'10px 20px',borderRadius:8,border:`1px solid ${c}55`,background:c+'20',color:c,fontSize:13,fontWeight:600,fontFamily:"'Roboto',sans-serif",cursor:'pointer'});
 
+  // Deterministic star field data (golden-ratio distribution)
+  const STARS = Array.from({length:90},(_,i)=>({
+    x:((i*137.508)%100).toFixed(2),
+    y:((i*113.137)%100).toFixed(2),
+    dur:(2+(i*0.83)%3).toFixed(1),
+    delay:((i*0.47)%4).toFixed(1),
+    size:i%6===0?2.5:i%3===0?1.5:1,
+    green:i%2===0
+  }));
+  const ORBS=[
+    {x:8,y:18,s:7,c:'rgba(124,58,237,0.7)',d:4.2},
+    {x:88,y:12,s:5,c:'rgba(16,185,129,0.65)',d:6.1},
+    {x:15,y:78,s:6,c:'rgba(167,139,250,0.55)',d:7.8},
+    {x:80,y:72,s:8,c:'rgba(52,211,153,0.55)',d:3.9},
+    {x:50,y:8,s:4,c:'rgba(196,181,253,0.6)',d:5.5},
+    {x:92,y:55,s:5,c:'rgba(110,231,183,0.5)',d:8.2},
+    {x:5,y:48,s:4,c:'rgba(139,92,246,0.5)',d:6.6},
+    {x:45,y:90,s:6,c:'rgba(34,197,94,0.45)',d:5.0},
+  ];
+
   if (!authed) return (
-    <div style={{minHeight:'100vh',background:'#080a0d',display:'flex',alignItems:'center',justifyContent:'center',fontFamily:"'Roboto',sans-serif"}}>
-      <style>{'@import url(\'https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&family=Roboto:wght@300;400;500&display=swap\');*{box-sizing:border-box;margin:0;padding:0}input:focus{outline:none}'}</style>
-      <div style={{background:'rgba(255,255,255,0.03)',border:'1px solid rgba(255,255,255,0.08)',borderRadius:20,padding:'40px 36px',width:380,maxWidth:'90vw'}}>
-        <img src={LOGOS_INIT.STC} alt="SetToClose" style={{height:36,objectFit:'contain',marginBottom:28,display:'block'}}/>
-        <div style={{fontSize:18,fontWeight:700,fontFamily:"'Poppins',sans-serif",color:'#fff',marginBottom:6}}>Bienvenido</div>
-        <div style={{fontSize:13,color:'#444',marginBottom:28}}>Ingresa tus credenciales para continuar</div>
-        <div style={{marginBottom:14}}>
-          <div style={{fontSize:11,color:'#555',marginBottom:6,textTransform:'uppercase',letterSpacing:'0.1em'}}>Usuario</div>
-          <input value={loginUser} onChange={e=>setLoginUser(e.target.value)} onKeyDown={e=>e.key==='Enter'&&doLogin()} placeholder="Usuario" style={{width:'100%',background:'rgba(255,255,255,0.05)',border:`1px solid ${loginErr?'rgba(248,113,113,0.5)':'rgba(255,255,255,0.1)'}`,borderRadius:8,padding:'11px 14px',color:'#fff',fontSize:13,fontFamily:"'Roboto',sans-serif"}}/>
+    <div style={{minHeight:'100vh',position:'relative',overflow:'hidden',background:'#030009',display:'flex',alignItems:'center',justifyContent:'center',fontFamily:"'Roboto',sans-serif"}}>
+      <style>{`
+        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700;800&family=Roboto:wght@300;400;500&display=swap');
+        *{box-sizing:border-box;margin:0;padding:0}
+        input:focus{outline:none}
+        @keyframes nebulaFloat{0%,100%{transform:translate(0,0) scale(1) rotate(0deg)}33%{transform:translate(40px,-30px) scale(1.06) rotate(3deg)}66%{transform:translate(-25px,15px) scale(0.94) rotate(-2deg)}}
+        @keyframes nebulaFloat2{0%,100%{transform:translate(0,0) scale(1) rotate(0deg)}33%{transform:translate(-50px,25px) scale(1.09) rotate(-4deg)}66%{transform:translate(30px,-20px) scale(0.91) rotate(2deg)}}
+        @keyframes starTwinkle{0%,100%{opacity:.25;transform:scale(1)}50%{opacity:1;transform:scale(1.8)}}
+        @keyframes shootingStar{0%{transform:translateX(0) translateY(0) scaleX(1);opacity:1}100%{transform:translateX(-700px) translateY(350px) scaleX(0.3);opacity:0}}
+        @keyframes shootingStar2{0%{transform:translateX(0) translateY(0) scaleX(1);opacity:.8}100%{transform:translateX(-500px) translateY(250px) scaleX(0.2);opacity:0}}
+        @keyframes cardEntrance{0%{opacity:0;transform:translateY(80px) scale(0.85)}55%{transform:translateY(-12px) scale(1.02)}75%{transform:translateY(6px) scale(0.99)}90%{transform:translateY(-3px) scale(1.005)}100%{opacity:1;transform:translateY(0) scale(1)}}
+        @keyframes borderGlow{0%,100%{border-color:rgba(124,58,237,.5);box-shadow:0 0 40px rgba(124,58,237,.2),0 30px 80px rgba(0,0,0,.6),inset 0 0 30px rgba(124,58,237,.04)}50%{border-color:rgba(16,185,129,.55);box-shadow:0 0 40px rgba(16,185,129,.22),0 30px 80px rgba(0,0,0,.6),inset 0 0 30px rgba(16,185,129,.04)}}
+        @keyframes btnGradient{0%,100%{background-position:0% 50%}50%{background-position:100% 50%}}
+        @keyframes btnPulse{0%,100%{box-shadow:0 0 20px rgba(124,58,237,.45),0 6px 24px rgba(0,0,0,.5)}50%{box-shadow:0 0 35px rgba(16,185,129,.55),0 6px 24px rgba(0,0,0,.5)}}
+        @keyframes titleShimmer{0%,100%{background-position:0% 50%}50%{background-position:100% 50%}}
+        @keyframes floatOrb{0%,100%{transform:translateY(0) scale(1)}50%{transform:translateY(-22px) scale(1.12)}}
+        @keyframes ringRotate{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}
+        @keyframes ringRotateRev{from{transform:rotate(0deg)}to{transform:rotate(-360deg)}}
+        @keyframes particleFly{0%{transform:translateY(100vh);opacity:0}8%{opacity:.8}92%{opacity:.8}100%{transform:translateY(-120px) translateX(60px);opacity:0}}
+        @keyframes logoFloat{0%,100%{transform:translateY(0)}50%{transform:translateY(-5px)}}
+        .glx-input{transition:all .25s ease!important}
+        .glx-input:focus{border-color:rgba(124,58,237,.7)!important;box-shadow:0 0 0 3px rgba(124,58,237,.18),0 0 24px rgba(124,58,237,.12)!important;background:rgba(124,58,237,.07)!important}
+        .glx-btn{transition:transform .15s ease,filter .15s ease!important}
+        .glx-btn:hover{transform:translateY(-2px) scale(1.02)!important;filter:brightness(1.12)!important}
+        .glx-btn:active{transform:translateY(0) scale(0.98)!important}
+      `}</style>
+
+      {/* NEBULA */}
+      <div style={{position:'absolute',inset:0,zIndex:0,pointerEvents:'none'}}>
+        <div style={{position:'absolute',top:'-25%',left:'-15%',width:'65vw',height:'65vw',borderRadius:'50%',background:'radial-gradient(ellipse,rgba(124,58,237,.38) 0%,rgba(88,28,220,.18) 35%,transparent 70%)',animation:'nebulaFloat 14s ease-in-out infinite',filter:'blur(50px)'}}/>
+        <div style={{position:'absolute',bottom:'-20%',right:'-12%',width:'60vw',height:'60vw',borderRadius:'50%',background:'radial-gradient(ellipse,rgba(16,185,129,.32) 0%,rgba(5,150,105,.14) 35%,transparent 70%)',animation:'nebulaFloat2 17s ease-in-out infinite',filter:'blur(48px)'}}/>
+        <div style={{position:'absolute',top:'35%',right:'10%',width:'35vw',height:'35vw',borderRadius:'50%',background:'radial-gradient(ellipse,rgba(167,139,250,.18) 0%,transparent 70%)',animation:'nebulaFloat 22s ease-in-out infinite reverse',filter:'blur(35px)'}}/>
+        <div style={{position:'absolute',top:'15%',left:'25%',width:'28vw',height:'28vw',borderRadius:'50%',background:'radial-gradient(ellipse,rgba(52,211,153,.14) 0%,transparent 70%)',animation:'nebulaFloat2 25s ease-in-out infinite reverse',filter:'blur(30px)'}}/>
+        <div style={{position:'absolute',bottom:'10%',left:'5%',width:'22vw',height:'22vw',borderRadius:'50%',background:'radial-gradient(ellipse,rgba(139,92,246,.2) 0%,transparent 70%)',animation:'nebulaFloat 19s ease-in-out infinite',filter:'blur(28px)'}}/>
+      </div>
+
+      {/* RINGS */}
+      <div style={{position:'absolute',inset:0,zIndex:1,display:'flex',alignItems:'center',justifyContent:'center',pointerEvents:'none'}}>
+        <div style={{position:'absolute',width:'min(95vw,95vh)',height:'min(95vw,95vh)',borderRadius:'50%',border:'1px solid rgba(124,58,237,.07)',animation:'ringRotate 80s linear infinite'}}/>
+        <div style={{position:'absolute',width:'min(75vw,75vh)',height:'min(75vw,75vh)',borderRadius:'50%',border:'1px solid rgba(16,185,129,.055)',animation:'ringRotateRev 55s linear infinite'}}/>
+        <div style={{position:'absolute',width:'min(55vw,55vh)',height:'min(55vw,55vh)',borderRadius:'50%',border:'1px solid rgba(167,139,250,.045)',animation:'ringRotate 38s linear infinite'}}/>
+        <div style={{position:'absolute',width:'min(35vw,35vh)',height:'min(35vw,35vh)',borderRadius:'50%',border:'1px solid rgba(52,211,153,.04)',animation:'ringRotateRev 28s linear infinite'}}/>
+      </div>
+
+      {/* STARS */}
+      <div style={{position:'absolute',inset:0,zIndex:2,pointerEvents:'none'}}>
+        {STARS.map((s,i)=>(
+          <div key={i} style={{position:'absolute',left:`${s.x}%`,top:`${s.y}%`,width:s.size,height:s.size,borderRadius:'50%',background:s.green?'rgba(110,231,183,0.9)':'rgba(196,181,253,0.9)',animation:`starTwinkle ${s.dur}s ${s.delay}s ease-in-out infinite`,boxShadow:s.size>1.5?(s.green?`0 0 ${s.size*3}px rgba(110,231,183,0.6)`:`0 0 ${s.size*3}px rgba(196,181,253,0.6)`):'none'}}/>
+        ))}
+      </div>
+
+      {/* SHOOTING STARS */}
+      <div style={{position:'absolute',inset:0,zIndex:3,pointerEvents:'none',overflow:'hidden'}}>
+        {[{t:12,r:5,w:120,h:1.5,del:0,dur:5},{t:38,r:20,w:80,h:1,del:3.5,dur:7},{t:62,r:8,w:100,h:1.2,del:7,dur:5.5},{t:22,r:35,w:60,h:0.8,del:11,dur:8}].map((s,i)=>(
+          <div key={i} style={{position:'absolute',top:`${s.t}%`,right:`${s.r}%`,width:s.w,height:s.h,background:'linear-gradient(90deg,transparent,rgba(167,139,250,.85),rgba(110,231,183,.7),transparent)',animation:`${i%2===0?'shootingStar':'shootingStar2'} ${s.dur}s ${s.del}s linear infinite`,borderRadius:2,transformOrigin:'right center'}}/>
+        ))}
+      </div>
+
+      {/* ORBS */}
+      <div style={{position:'absolute',inset:0,zIndex:3,pointerEvents:'none'}}>
+        {ORBS.map((o,i)=>(
+          <div key={i} style={{position:'absolute',left:`${o.x}%`,top:`${o.y}%`,width:o.s,height:o.s,borderRadius:'50%',background:o.c,boxShadow:`0 0 ${o.s*4}px ${o.c}`,animation:`floatOrb ${o.d}s ease-in-out infinite`,animationDelay:`${i*0.7}s`}}/>
+        ))}
+      </div>
+
+      {/* PARTICLES */}
+      <div style={{position:'absolute',inset:0,zIndex:2,pointerEvents:'none',overflow:'hidden'}}>
+        {[{x:20,c:'rgba(124,58,237,.5)',d:9,del:0},{x:50,c:'rgba(16,185,129,.45)',d:12,del:4},{x:75,c:'rgba(167,139,250,.4)',d:10,del:7},{x:35,c:'rgba(52,211,153,.4)',d:14,del:2},{x:85,c:'rgba(139,92,246,.45)',d:11,del:9}].map((p,i)=>(
+          <div key={i} style={{position:'absolute',left:`${p.x}%`,bottom:0,width:2,height:2,borderRadius:'50%',background:p.c,boxShadow:`0 0 6px ${p.c}`,animation:`particleFly ${p.d}s ${p.del}s linear infinite`}}/>
+        ))}
+      </div>
+
+      {/* CARD */}
+      <div style={{position:'relative',zIndex:10,background:'rgba(3,0,9,0.82)',border:'1px solid rgba(124,58,237,.5)',borderRadius:24,padding:'44px 40px',width:410,maxWidth:'90vw',backdropFilter:'blur(28px)',WebkitBackdropFilter:'blur(28px)',animation:'cardEntrance .9s cubic-bezier(.34,1.56,.64,1) both, borderGlow 4.5s 1s ease-in-out infinite'}}>
+        <img src={LOGOS_INIT.STC} alt="SetToClose" style={{height:36,objectFit:'contain',marginBottom:32,display:'block',animation:'logoFloat 3.5s ease-in-out infinite'}}/>
+        <div style={{fontSize:24,fontWeight:800,fontFamily:"'Poppins',sans-serif",marginBottom:6,background:'linear-gradient(90deg,#a78bfa,#34d399,#a78bfa)',backgroundSize:'200% 100%',WebkitBackgroundClip:'text',WebkitTextFillColor:'transparent',backgroundClip:'text',animation:'titleShimmer 4s ease-in-out infinite'}}>Bienvenido</div>
+        <div style={{fontSize:13,color:'#6b6b8a',marginBottom:30}}>Ingresa tus credenciales para continuar</div>
+        <div style={{marginBottom:16}}>
+          <div style={{fontSize:11,color:'#a78bfa',marginBottom:7,textTransform:'uppercase',letterSpacing:'0.12em',fontWeight:600}}>Usuario</div>
+          <input className="glx-input" value={loginUser} onChange={e=>setLoginUser(e.target.value)} onKeyDown={e=>e.key==='Enter'&&doLogin()} placeholder="Usuario" style={{width:'100%',background:'rgba(255,255,255,0.04)',border:`1px solid ${loginErr?'rgba(248,113,113,.55)':'rgba(124,58,237,.28)'}`,borderRadius:10,padding:'12px 16px',color:'#fff',fontSize:13,fontFamily:"'Roboto',sans-serif"}}/>
         </div>
-        <div style={{marginBottom:20}}>
-          <div style={{fontSize:11,color:'#555',marginBottom:6,textTransform:'uppercase',letterSpacing:'0.1em'}}>Contraseña</div>
-          <input type="password" value={loginPass} onChange={e=>setLoginPass(e.target.value)} onKeyDown={e=>e.key==='Enter'&&doLogin()} placeholder="Contraseña" style={{width:'100%',background:'rgba(255,255,255,0.05)',border:`1px solid ${loginErr?'rgba(248,113,113,0.5)':'rgba(255,255,255,0.1)'}`,borderRadius:8,padding:'11px 14px',color:'#fff',fontSize:13,fontFamily:"'Roboto',sans-serif"}}/>
+        <div style={{marginBottom:26}}>
+          <div style={{fontSize:11,color:'#a78bfa',marginBottom:7,textTransform:'uppercase',letterSpacing:'0.12em',fontWeight:600}}>Contrase\u00f1a</div>
+          <input className="glx-input" type="password" value={loginPass} onChange={e=>setLoginPass(e.target.value)} onKeyDown={e=>e.key==='Enter'&&doLogin()} placeholder="Contrase\u00f1a" style={{width:'100%',background:'rgba(255,255,255,0.04)',border:`1px solid ${loginErr?'rgba(248,113,113,.55)':'rgba(124,58,237,.28)'}`,borderRadius:10,padding:'12px 16px',color:'#fff',fontSize:13,fontFamily:"'Roboto',sans-serif"}}/>
         </div>
-        {loginErr&&<div style={{fontSize:12,color:'#F87171',marginBottom:16}}>Usuario o contraseña incorrectos</div>}
-        <button onClick={doLogin} style={{width:'100%',padding:'12px',borderRadius:8,border:'none',background:'#38BDF8',color:'#000',fontSize:14,fontWeight:700,fontFamily:"'Poppins',sans-serif",cursor:'pointer'}}>Ingresar</button>
+        {loginErr&&<div style={{fontSize:12,color:'#F87171',marginBottom:18,background:'rgba(248,113,113,.08)',border:'1px solid rgba(248,113,113,.22)',borderRadius:8,padding:'9px 14px'}}>Usuario o contrase\u00f1a incorrectos</div>}
+        <button className="glx-btn" onClick={doLogin} style={{width:'100%',padding:'14px',borderRadius:10,border:'none',background:'linear-gradient(135deg,#7c3aed,#059669,#7c3aed)',backgroundSize:'200% 200%',color:'#fff',fontSize:14,fontWeight:700,fontFamily:"'Poppins',sans-serif",cursor:'pointer',letterSpacing:'0.06em',animation:'btnGradient 4s ease-in-out infinite, btnPulse 3s ease-in-out infinite'}}>Ingresar</button>
       </div>
     </div>
   );
