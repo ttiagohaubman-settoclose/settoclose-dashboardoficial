@@ -240,13 +240,14 @@ export default function Dashboard() {
   const [nCustomName, setNCustomName] = useState('');
   const [nCustomFormula, setNCustomFormula] = useState('');
   const [nCustomPrice, setNCustomPrice] = useState('');
-  const [bgThemes,  setBgThemes]  = useState({});
+  const [bgThemes,  setBgThemes]  = useState(()=>{try{const s=localStorage.getItem('stc_bg_themes');return s?JSON.parse(s):{}}catch{return {}}});
   const [editing,   setEditing]   = useState(null);
   const [editTabIdx,setEditTabIdx] = useState(0); // 0=Config 1=Metrics 2=BG
   const [editBgTab, setEditBgTab] = useState(false); // legacy compat
   const [editingSTC,setEditingSTC]= useState(false);
   const [globalLight,setGlobalLight]=useState(false);
   const mediaRef = useRef(); const newLogoRef = useRef(); const editLogoRef = useRef();
+  useEffect(()=>{try{localStorage.setItem('stc_bg_themes',JSON.stringify(bgThemes));}catch{}}, [bgThemes]);
 
   // ── LOGIN ────────────────────────────────────────────────────────
   const [authed, setAuthed] = useState(false);
