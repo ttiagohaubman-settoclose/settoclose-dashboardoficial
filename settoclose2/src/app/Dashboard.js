@@ -492,7 +492,7 @@ export default function Dashboard() {
 
   const activeBg = useMemo(() => {
     if (globalLight) return { background: '#f0f4f8' };
-    if (!activeId) return { background: '#080a0d' };
+    if (!activeId) return { background: 'transparent' };
     const theme = bgThemes[activeId];
     if (!theme) return { background: '#080a0d' };
     if (theme.type === 'solid') return { background: theme.color || '#080a0d' };
@@ -748,7 +748,7 @@ body{background:#080a0d;color:#fff;font-family:'Roboto',sans-serif;padding:36px 
 
   return (
     <div style={{minHeight:'100vh',...activeBg,color:textPrimary,fontFamily:"'Roboto',sans-serif",transition:'background .4s ease'}}>
-      <style>{`@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&family=Roboto:wght@300;400;500&display=swap');*{box-sizing:border-box;margin:0;padding:0}::-webkit-scrollbar{width:3px}::-webkit-scrollbar-thumb{background:#222}input:focus,select:focus,textarea:focus{outline:none}.hov:hover{background:rgba(255,255,255,0.06)!important}.arow:hover{background:rgba(255,255,255,0.05)!important;cursor:pointer}@keyframes pulse{0%,100%{opacity:.6}50%{opacity:1}}@keyframes slideIn{from{opacity:0;transform:translateY(-8px)}to{opacity:1;transform:translateY(0)}}[contenteditable][data-placeholder]:empty:before{content:attr(data-placeholder);color:#444;pointer-events:none;font-style:italic}`}</style>
+      <style>{`@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&family=Roboto:wght@300;400;500&display=swap');*{box-sizing:border-box;margin:0;padding:0}::-webkit-scrollbar{width:3px}::-webkit-scrollbar-thumb{background:#222}input:focus,select:focus,textarea:focus{outline:none}.hov:hover{background:rgba(255,255,255,0.06)!important}.arow:hover{background:rgba(255,255,255,0.05)!important;cursor:pointer}@keyframes pulse{0%,100%{opacity:.6}50%{opacity:1}}@keyframes slideIn{from{opacity:0;transform:translateY(-8px)}to{opacity:1;transform:translateY(0)}}[contenteditable][data-placeholder]:empty:before{content:attr(data-placeholder);color:#444;pointer-events:none;font-style:italic}@keyframes glxNebulaA{0%,100%{transform:translate(0,0) scale(1) rotate(0deg)}33%{transform:translate(50px,-35px) scale(1.07) rotate(4deg)}66%{transform:translate(-30px,20px) scale(0.93) rotate(-3deg)}}@keyframes glxNebulaB{0%,100%{transform:translate(0,0) scale(1) rotate(0deg)}33%{transform:translate(-60px,30px) scale(1.1) rotate(-5deg)}66%{transform:translate(35px,-25px) scale(0.9) rotate(3deg)}}@keyframes glxRingCW{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}@keyframes glxRingCCW{from{transform:rotate(0deg)}to{transform:rotate(-360deg)}}@keyframes glxShootA{0%{transform:translateX(0) translateY(0);opacity:1}100%{transform:translateX(-750px) translateY(380px);opacity:0}}@keyframes glxShootB{0%{transform:translateX(0) translateY(0);opacity:.85}100%{transform:translateX(-520px) translateY(260px);opacity:0}}@keyframes glxOrb{0%,100%{transform:translateY(0) scale(1)}50%{transform:translateY(-24px) scale(1.15)}}@keyframes glxParticle{0%{transform:translateY(100vh);opacity:0}8%{opacity:.9}92%{opacity:.9}100%{transform:translateY(-130px) translateX(70px);opacity:0}}@keyframes glxStarTwinkle{0%,100%{opacity:.2;transform:scale(1)}50%{opacity:1;transform:scale(1.9)}}@keyframes glxLogoFloat{0%,100%{transform:translateY(0) scale(1)}50%{transform:translateY(-8px) scale(1.03)}}@keyframes glxShimmer{0%,100%{background-position:0% 50%}50%{background-position:100% 50%}}@keyframes glxSubPulse{0%,100%{opacity:.45}50%{opacity:.8}}@keyframes glxDotPulse{0%,100%{transform:scale(1);opacity:.7}50%{transform:scale(1.5);opacity:1}}@keyframes glxCardFloat{0%,100%{transform:translateY(0)}50%{transform:translateY(-8px)}}@keyframes glxCardIn{from{opacity:0;transform:translateY(30px) scale(0.92)}to{opacity:1;transform:translateY(0) scale(1)}}@keyframes glxArrow{0%,100%{transform:translateX(0);opacity:.5}50%{transform:translateX(6px);opacity:1}}`}</style>
 
       {/* NAV */}
       <div style={{position:'sticky',top:0,zIndex:300,background:'rgba(8,10,13,0.97)',backdropFilter:'blur(16px)',borderBottom:'1px solid rgba(255,255,255,0.07)',display:'flex',alignItems:'center',padding:'0 24px',height:58,gap:16,flexWrap:'wrap'}}>
@@ -823,10 +823,89 @@ body{background:#080a0d;color:#fff;font-family:'Roboto',sans-serif;padding:36px 
       {/* CONTENT */}
       <div style={{padding:'24px 24px 60px',maxWidth:1440,margin:'0 auto'}}>
         {!activeId?(
-          <div style={{display:'flex',alignItems:'center',justifyContent:'center',height:'70vh',flexDirection:'column',gap:16}}>
-            <img src={logos.STC} alt="" style={{height:48,opacity:.15}}/>
-            <div style={{color:'#2a2a2a',fontSize:14}}>Select a client from the Clients menu</div>
-          </div>
+          <>
+            {/* ── GALAXY FIXED BACKGROUND ── */}
+            <div style={{position:'fixed',inset:0,zIndex:1,overflow:'hidden',background:'#030009',pointerEvents:'none'}}>
+              {/* Nebula */}
+              <div style={{position:'absolute',top:'-22%',left:'-12%',width:'62vw',height:'62vw',borderRadius:'50%',background:'radial-gradient(ellipse,rgba(109,40,217,.35) 0%,rgba(67,56,202,.14) 35%,transparent 70%)',animation:'glxNebulaA 15s ease-in-out infinite',filter:'blur(55px)'}}/>
+              <div style={{position:'absolute',bottom:'-22%',right:'-12%',width:'58vw',height:'58vw',borderRadius:'50%',background:'radial-gradient(ellipse,rgba(13,148,136,.28) 0%,rgba(8,145,178,.11) 35%,transparent 70%)',animation:'glxNebulaB 18s ease-in-out infinite',filter:'blur(50px)'}}/>
+              <div style={{position:'absolute',top:'32%',right:'6%',width:'38vw',height:'38vw',borderRadius:'50%',background:'radial-gradient(ellipse,rgba(124,58,237,.18) 0%,transparent 70%)',animation:'glxNebulaA 23s ease-in-out infinite reverse',filter:'blur(38px)'}}/>
+              <div style={{position:'absolute',top:'12%',left:'28%',width:'30vw',height:'30vw',borderRadius:'50%',background:'radial-gradient(ellipse,rgba(16,185,129,.14) 0%,transparent 70%)',animation:'glxNebulaB 27s ease-in-out infinite reverse',filter:'blur(32px)'}}/>
+              <div style={{position:'absolute',bottom:'12%',left:'6%',width:'24vw',height:'24vw',borderRadius:'50%',background:'radial-gradient(ellipse,rgba(139,92,246,.2) 0%,transparent 70%)',animation:'glxNebulaA 20s ease-in-out infinite',filter:'blur(28px)'}}/>
+              {/* Rings */}
+              <div style={{position:'absolute',inset:0,display:'flex',alignItems:'center',justifyContent:'center'}}>
+                <div style={{position:'absolute',width:'min(100vw,100vh)',height:'min(100vw,100vh)',borderRadius:'50%',border:'1px solid rgba(109,40,217,.065)',animation:'glxRingCW 90s linear infinite'}}/>
+                <div style={{position:'absolute',width:'min(80vw,80vh)',height:'min(80vw,80vh)',borderRadius:'50%',border:'1px solid rgba(13,148,136,.05)',animation:'glxRingCCW 65s linear infinite'}}/>
+                <div style={{position:'absolute',width:'min(60vw,60vh)',height:'min(60vw,60vh)',borderRadius:'50%',border:'1px solid rgba(167,139,250,.045)',animation:'glxRingCW 44s linear infinite'}}/>
+                <div style={{position:'absolute',width:'min(40vw,40vh)',height:'min(40vw,40vh)',borderRadius:'50%',border:'1px solid rgba(52,211,153,.038)',animation:'glxRingCCW 30s linear infinite'}}/>
+              </div>
+              {/* Stars */}
+              {STARS.map((s,i)=>(
+                <div key={i} style={{position:'absolute',left:`${s.x}%`,top:`${s.y}%`,width:s.size,height:s.size,borderRadius:'50%',background:s.green?'rgba(94,234,212,0.88)':'rgba(196,181,253,0.88)',animation:`glxStarTwinkle ${s.dur}s ${s.delay}s ease-in-out infinite`,boxShadow:s.size>1.5?(s.green?`0 0 ${s.size*3}px rgba(94,234,212,0.55)`:`0 0 ${s.size*3}px rgba(196,181,253,0.55)`):'none'}}/>
+              ))}
+              {/* Shooting stars */}
+              {[{t:8,r:10,w:120,del:0,dur:5.5},{t:32,r:22,w:80,del:4,dur:7.5},{t:60,r:6,w:100,del:9,dur:5},{t:78,r:38,w:65,del:13,dur:8}].map((s,i)=>(
+                <div key={i} style={{position:'absolute',top:`${s.t}%`,right:`${s.r}%`,width:s.w,height:1.3,background:'linear-gradient(90deg,transparent,rgba(167,139,250,.85),rgba(94,234,212,.65),transparent)',animation:`${i%2===0?'glxShootA':'glxShootB'} ${s.dur}s ${s.del}s linear infinite`,borderRadius:2,transformOrigin:'right center'}}/>
+              ))}
+              {/* Floating orbs */}
+              {ORBS.map((o,i)=>(
+                <div key={i} style={{position:'absolute',left:`${o.x}%`,top:`${o.y}%`,width:o.s,height:o.s,borderRadius:'50%',background:o.c,boxShadow:`0 0 ${o.s*4}px ${o.c}`,animation:`glxOrb ${o.d}s ease-in-out infinite`,animationDelay:`${i*0.7}s`}}/>
+              ))}
+              {/* Rising particles */}
+              {[{x:14,c:'rgba(109,40,217,.55)',d:10,dl:0},{x:44,c:'rgba(13,148,136,.5)',d:13,dl:4},{x:68,c:'rgba(167,139,250,.45)',d:11,dl:7},{x:30,c:'rgba(52,211,153,.45)',d:15,dl:2},{x:82,c:'rgba(139,92,246,.5)',d:12,dl:9}].map((p,i)=>(
+                <div key={i} style={{position:'absolute',left:`${p.x}%`,bottom:0,width:2,height:2,borderRadius:'50%',background:p.c,boxShadow:`0 0 7px ${p.c}`,animation:`glxParticle ${p.d}s ${p.dl}s linear infinite`}}/>
+              ))}
+            </div>
+
+            {/* ── CENTER CONTENT ── */}
+            <div style={{position:'relative',zIndex:2,display:'flex',alignItems:'center',justifyContent:'center',height:'80vh',flexDirection:'column',gap:0}}>
+              {/* Orbiting logo */}
+              <div style={{position:'relative',width:170,height:170,display:'flex',alignItems:'center',justifyContent:'center',marginBottom:28}}>
+                <div style={{position:'absolute',inset:0,borderRadius:'50%',border:'1px solid rgba(124,58,237,.35)',animation:'glxRingCW 7s linear infinite'}}/>
+                <div style={{position:'absolute',inset:12,borderRadius:'50%',border:'1px solid rgba(16,185,129,.28)',animation:'glxRingCCW 11s linear infinite'}}/>
+                <div style={{position:'absolute',inset:0,borderRadius:'50%',animation:'glxRingCW 5.5s linear infinite'}}>
+                  <div style={{position:'absolute',top:-5,left:'50%',marginLeft:-5,width:10,height:10,borderRadius:'50%',background:'#a78bfa',boxShadow:'0 0 14px rgba(167,139,250,0.9)'}}/>
+                </div>
+                <div style={{position:'absolute',inset:12,borderRadius:'50%',animation:'glxRingCCW 8.5s linear infinite'}}>
+                  <div style={{position:'absolute',top:-4,left:'50%',marginLeft:-4,width:8,height:8,borderRadius:'50%',background:'#34d399',boxShadow:'0 0 12px rgba(52,211,153,0.9)'}}/>
+                </div>
+                <div style={{position:'absolute',inset:26,borderRadius:'50%',animation:'glxRingCW 14s linear infinite'}}>
+                  <div style={{position:'absolute',bottom:-3,left:'50%',marginLeft:-3,width:6,height:6,borderRadius:'50%',background:'#60a5fa',boxShadow:'0 0 10px rgba(96,165,250,0.8)'}}/>
+                </div>
+                <div style={{position:'relative',zIndex:2,animation:'glxLogoFloat 3.5s ease-in-out infinite'}}>
+                  <img src={logos.STC} alt="SetToClose" style={{height:68,filter:'drop-shadow(0 0 22px rgba(124,58,237,0.65)) drop-shadow(0 0 44px rgba(16,185,129,0.3))'}}/>
+                </div>
+              </div>
+
+              {/* Title */}
+              <div style={{fontSize:20,fontWeight:700,fontFamily:"'Poppins',sans-serif",background:'linear-gradient(90deg,#a78bfa,#34d399,#60a5fa,#a78bfa)',backgroundSize:'300% 100%',WebkitBackgroundClip:'text',WebkitTextFillColor:'transparent',backgroundClip:'text',animation:'glxShimmer 5s ease-in-out infinite',marginBottom:10,letterSpacing:'0.03em'}}>Welcome to SetToClose</div>
+
+              {/* Subtitle */}
+              <div style={{fontSize:13,color:'#4a4a6a',letterSpacing:'0.06em',animation:'glxSubPulse 3.5s ease-in-out infinite',display:'flex',alignItems:'center',gap:8}}>
+                <span style={{animation:'glxArrow 1.5s ease-in-out infinite',display:'inline-block'}}>→</span>
+                Select a client from the Clients menu to get started
+              </div>
+
+              {/* Dot divider */}
+              <div style={{display:'flex',alignItems:'center',gap:10,marginTop:30,marginBottom:30}}>
+                <div style={{width:36,height:1,background:'linear-gradient(90deg,transparent,rgba(124,58,237,.5))'}}/>
+                {['#a78bfa','#34d399','#60a5fa','#f472b6'].map((c,i)=>(
+                  <div key={i} style={{width:5,height:5,borderRadius:'50%',background:c,boxShadow:`0 0 8px ${c}`,animation:`glxDotPulse 2s ${i*0.35}s ease-in-out infinite`}}/>
+                ))}
+                <div style={{width:36,height:1,background:'linear-gradient(90deg,rgba(52,211,153,.5),transparent)'}}/>
+              </div>
+
+              {/* Ghost stat cards */}
+              <div style={{display:'flex',gap:10,flexWrap:'wrap',justifyContent:'center'}}>
+                {[{l:'Leads',c:'#a78bfa'},{l:'Sales',c:'#34d399'},{l:'Shows',c:'#60a5fa'},{l:'Pipeline',c:'#f472b6'},{l:'Close Rate',c:'#fb923c'}].map((item,i)=>(
+                  <div key={i} style={{background:'rgba(255,255,255,0.022)',border:`1px solid ${item.c}22`,borderRadius:12,padding:'12px 20px',textAlign:'center',animation:`glxCardFloat ${3.2+i*0.45}s ${i*0.25}s ease-in-out infinite, glxCardIn .6s ${i*0.1}s both`,backdropFilter:'blur(10px)',boxShadow:`0 0 20px ${item.c}10`}}>
+                    <div style={{fontSize:20,fontWeight:700,color:item.c,fontFamily:"'Poppins',sans-serif",opacity:.35}}>—</div>
+                    <div style={{fontSize:9,color:'#3a3a5a',textTransform:'uppercase',letterSpacing:'0.12em',marginTop:3}}>{item.l}</div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </>
         ):activeId==='STC'?(
           <div style={{paddingBottom:60}}>
             {/* STC Header */}
