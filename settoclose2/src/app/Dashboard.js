@@ -34,24 +34,74 @@ const INDUSTRIES = [
 ];
 
 const METRIC_OPTIONS = [
-  { id:'leads',      label:'Leads',            group:'Meta Ads',      desc:'Leads generados por ads' },
-  { id:'cpl',        label:'CPL',              group:'Meta Ads',      desc:'Costo por lead' },
-  { id:'spend',      label:'Ad Spend',         group:'Meta Ads',      desc:'Inversión total en ads' },
-  { id:'roas',       label:'ROAS',             group:'Meta Ads',      desc:'Retorno sobre inversión' },
-  { id:'ctr',        label:'CTR',              group:'Meta Ads',      desc:'Click-through rate' },
-  { id:'cpc',        label:'CPC',              group:'Meta Ads',      desc:'Costo por click' },
-  { id:'impressions',label:'Impresiones',      group:'Meta Ads',      desc:'Alcance total de los ads' },
-  { id:'appsBooked', label:'Apps Booked',      group:'Embudo',        desc:'Citas agendadas' },
-  { id:'appsShowed', label:'Apps Showed',      group:'Embudo',        desc:'Citas que se presentaron' },
-  { id:'showRate',   label:'Show Rate',        group:'Embudo',        desc:'% de asistencia a citas' },
-  { id:'sales',      label:'Deals Closed',     group:'Embudo',        desc:'Ventas cerradas' },
-  { id:'closeRate',  label:'Close Rate',       group:'Embudo',        desc:'% cierre sobre shows' },
-  { id:'revenue',    label:'Ingresos',         group:'Finanzas',      desc:'Revenue total generado' },
-  { id:'cashflow',   label:'Cash Flow',        group:'Finanzas',      desc:'Efectivo neto' },
-  { id:'mrr',        label:'MRR',              group:'Finanzas',      desc:'Monthly Recurring Revenue' },
-  { id:'cac',        label:'CAC',              group:'Finanzas',      desc:'Costo de adquisición de cliente' },
-  { id:'calls',      label:'Llamadas',         group:'Embudo',        desc:'Llamadas realizadas' },
-  { id:'proposals',  label:'Propuestas',       group:'Embudo',        desc:'Propuestas enviadas' },
+  // ── Meta Ads – Rendimiento ──────────────────────────────────────
+  { id:'spend',              label:'Ad Spend',             group:'Meta Ads – Rendimiento',  desc:'Inversión total en anuncios' },
+  { id:'impressions',        label:'Impressions',          group:'Meta Ads – Rendimiento',  desc:'Veces que se mostró el anuncio' },
+  { id:'reach',              label:'Reach',                group:'Meta Ads – Rendimiento',  desc:'Personas únicas que vieron el anuncio' },
+  { id:'frequency',          label:'Frequency',            group:'Meta Ads – Rendimiento',  desc:'Promedio de veces que cada persona vio el anuncio' },
+  { id:'cpm',                label:'CPM',                  group:'Meta Ads – Rendimiento',  desc:'Costo por 1,000 impresiones' },
+  // ── Meta Ads – Clics ────────────────────────────────────────────
+  { id:'linkClicks',         label:'Link Clicks',          group:'Meta Ads – Clics',        desc:'Clics en el enlace del anuncio' },
+  { id:'cpc',                label:'CPC (Link)',            group:'Meta Ads – Clics',        desc:'Costo por clic en enlace' },
+  { id:'ctr',                label:'CTR (Link)',            group:'Meta Ads – Clics',        desc:'Tasa de clics en enlace' },
+  { id:'clicks',             label:'Clicks (All)',          group:'Meta Ads – Clics',        desc:'Total de clics incluyendo no-enlace' },
+  { id:'cpcAll',             label:'CPC (All)',             group:'Meta Ads – Clics',        desc:'Costo por cualquier clic' },
+  { id:'ctrAll',             label:'CTR (All)',             group:'Meta Ads – Clics',        desc:'CTR sobre todos los clics' },
+  { id:'uniqueClicks',       label:'Unique Clicks',        group:'Meta Ads – Clics',        desc:'Usuarios únicos que hicieron clic' },
+  { id:'outboundClicks',     label:'Outbound Clicks',      group:'Meta Ads – Clics',        desc:'Clics a URLs externas' },
+  // ── Meta Ads – Leads ────────────────────────────────────────────
+  { id:'leads',              label:'Leads',                group:'Meta Ads – Leads',        desc:'Leads generados por anuncios' },
+  { id:'cpl',                label:'CPL',                  group:'Meta Ads – Leads',        desc:'Costo por lead' },
+  { id:'leadFormOpens',      label:'Lead Form Opens',      group:'Meta Ads – Leads',        desc:'Aperturas de formularios de lead' },
+  { id:'leadFormCompletions',label:'Lead Form Completions',group:'Meta Ads – Leads',        desc:'Formularios de lead completados' },
+  { id:'registrations',      label:'Registrations',        group:'Meta Ads – Leads',        desc:'Registros completados' },
+  // ── Meta Ads – Conversiones ─────────────────────────────────────
+  { id:'purchases',          label:'Purchases',            group:'Meta Ads – Conversiones', desc:'Compras atribuidas a anuncios' },
+  { id:'purchaseValue',      label:'Purchase Value',       group:'Meta Ads – Conversiones', desc:'Valor total de compras' },
+  { id:'purchaseRoas',       label:'Purchase ROAS',        group:'Meta Ads – Conversiones', desc:'Revenue de compras / Ad Spend' },
+  { id:'costPerPurchase',    label:'Cost Per Purchase',    group:'Meta Ads – Conversiones', desc:'Gasto / Compras' },
+  { id:'roas',               label:'ROAS (Cash)',           group:'Meta Ads – Conversiones', desc:'Cash Collected / Ad Spend' },
+  { id:'addToCart',          label:'Add to Cart',          group:'Meta Ads – Conversiones', desc:'Eventos de añadir al carrito' },
+  { id:'initiateCheckout',   label:'Initiate Checkout',    group:'Meta Ads – Conversiones', desc:'Checkouts iniciados' },
+  { id:'viewContent',        label:'View Content',         group:'Meta Ads – Conversiones', desc:'Eventos de vista de contenido' },
+  // ── Meta Ads – Video ────────────────────────────────────────────
+  { id:'videoViews3s',       label:'Video Views (3s)',     group:'Meta Ads – Video',        desc:'Vistas de 3+ segundos' },
+  { id:'videoThruplay',      label:'ThruPlay Views',       group:'Meta Ads – Video',        desc:'Videos completados (ThruPlay)' },
+  { id:'videoCompletionRate',label:'Video Completion Rate',group:'Meta Ads – Video',        desc:'% de videos completados' },
+  { id:'videoP25',           label:'Video 25% Views',      group:'Meta Ads – Video',        desc:'Vistas hasta el 25% del video' },
+  { id:'videoP50',           label:'Video 50% Views',      group:'Meta Ads – Video',        desc:'Vistas hasta el 50% del video' },
+  { id:'videoP75',           label:'Video 75% Views',      group:'Meta Ads – Video',        desc:'Vistas hasta el 75% del video' },
+  { id:'videoP100',          label:'Video 100% Views',     group:'Meta Ads – Video',        desc:'Vistas completas del video' },
+  // ── Meta Ads – Engagement ───────────────────────────────────────
+  { id:'postEngagement',     label:'Post Engagement',      group:'Meta Ads – Engagement',   desc:'Total de interacciones con el post' },
+  { id:'reactions',          label:'Reactions',            group:'Meta Ads – Engagement',   desc:'Reacciones en anuncios' },
+  { id:'comments',           label:'Comments',             group:'Meta Ads – Engagement',   desc:'Comentarios en anuncios' },
+  { id:'shares',             label:'Shares',               group:'Meta Ads – Engagement',   desc:'Veces compartido' },
+  { id:'pageLikes',          label:'Page Likes',           group:'Meta Ads – Engagement',   desc:'Nuevos likes de página desde anuncios' },
+  { id:'postClicks',         label:'Post Clicks',          group:'Meta Ads – Engagement',   desc:'Clics en el post del anuncio' },
+  // ── Meta Ads – Mensajería ───────────────────────────────────────
+  { id:'messagingConversations',label:'Conversations',     group:'Meta Ads – Mensajería',   desc:'Conversaciones de mensajería iniciadas' },
+  { id:'costPerConversation', label:'Cost Per Conv.',      group:'Meta Ads – Mensajería',   desc:'Costo por conversación de mensajería' },
+  { id:'messagingReplies',   label:'Messaging Replies',    group:'Meta Ads – Mensajería',   desc:'Respuestas en conversaciones' },
+  // ── Embudo ──────────────────────────────────────────────────────
+  { id:'appsBooked',         label:'Apps Booked',          group:'Embudo',                  desc:'Citas agendadas' },
+  { id:'appsShowed',         label:'Apps Showed',          group:'Embudo',                  desc:'Citas que se presentaron' },
+  { id:'showRate',           label:'Show Rate',            group:'Embudo',                  desc:'% de asistencia a citas' },
+  { id:'sales',              label:'Deals Closed',         group:'Embudo',                  desc:'Ventas cerradas' },
+  { id:'closeRate',          label:'Close Rate',           group:'Embudo',                  desc:'% cierre sobre shows' },
+  { id:'noShows',            label:'No Shows',             group:'Embudo',                  desc:'Citas que no se presentaron' },
+  { id:'leadToAppRate',      label:'Lead → App Rate',      group:'Embudo',                  desc:'% de leads que agendan cita' },
+  { id:'calls',              label:'Llamadas',             group:'Embudo',                  desc:'Llamadas realizadas' },
+  { id:'proposals',          label:'Propuestas',           group:'Embudo',                  desc:'Propuestas enviadas' },
+  // ── Finanzas ────────────────────────────────────────────────────
+  { id:'revenue',            label:'Rev. Company',         group:'Finanzas',                desc:'Revenue nivel empresa' },
+  { id:'revOffice',          label:'Rev. Office',          group:'Finanzas',                desc:'Revenue nivel oficina' },
+  { id:'cashTiago',          label:'Cash Tiago',           group:'Finanzas',                desc:'Pago a Tiago (deals × payout)' },
+  { id:'cashflow',           label:'Cash Collected',       group:'Finanzas',                desc:'Cash neto de la oficina' },
+  { id:'cac',                label:'CAC',                  group:'Finanzas',                desc:'Costo de adquisición de cliente (Spend/Deals)' },
+  { id:'roi',                label:'ROI',                  group:'Finanzas',                desc:'Retorno sobre inversión %' },
+  { id:'profitMargin',       label:'Profit Margin',        group:'Finanzas',                desc:'Margen de ganancia neto' },
+  { id:'mrr',                label:'MRR',                  group:'Finanzas',                desc:'Monthly Recurring Revenue (manual)' },
 ];
 
 const BG_PRESETS = [
@@ -247,6 +297,7 @@ export default function Dashboard() {
   const [pendMedia, setPendMedia] = useState([]);
   const [filterType, setFilterType] = useState(null);
   const [lightboxMedia, setLightboxMedia] = useState(null);
+  const [metricSearch, setMetricSearch] = useState('');
   const [chart,     setChart]     = useState('cpl');
   const [showManual,setShowManual]= useState(false);
   const [mDate,     setMDate]     = useState(today());
@@ -1053,37 +1104,83 @@ body{background:#080a0d;color:#fff;font-family:'Roboto',sans-serif;padding:36px 
 
             {loading?<Spin color={office.color}/>:(
               <>
-                <Sec title="Meta Ads"/>
-                <div style={{display:'grid',gridTemplateColumns:'repeat(4,1fr)',gap:10,marginBottom:10}}>
-                  <KPI label="Ad Spend"    value={fmtK(T.spent)}          sub={`${T.leads} leads`}               color={office.color}/>
-                  <KPI label="Impressions" value={fmtN(T.impressions)}    sub="Total impressions"                color={office.color}/>
-                  <KPI label="Link Clicks" value={fmtN(T.linkClicks)}     sub="Clicks on link"                   color={office.color}/>
-                  <KPI label="CPC (Link)"  value={fmt$(cpcLink)}          sub="Cost per link click"              color={office.color}/>
-                </div>
-                <div style={{display:'grid',gridTemplateColumns:'repeat(4,1fr)',gap:10,marginBottom:20}}>
-                  <KPI label="CTR (Link)"  value={ctrLink.toFixed(2)+'%'} sub="Link click-through rate"          color={office.color}/>
-                  <KPI label="Frequency"   value={freq.toFixed(2)}        sub="Avg impressions/person"           color={office.color}/>
-                  <KPI label="CPL"         value={fmt$(cpl)}              sub="Cost per lead"                    color={office.color}/>
-                  <KPI label="Leads"       value={T.leads}                sub="Generated"                        color={office.color}/>
-                </div>
-
-                <Sec title="Appointments & Sales"/>
-                <div style={{display:'grid',gridTemplateColumns:'repeat(5,1fr)',gap:10,marginBottom:20}}>
-                  <KPI label="Apps Booked"  value={T.appsBooked}             sub="Total scheduled"                    color="#FB923C"/>
-                  <KPI label="Apps Showed"  value={T.appsShowed}             sub={`${showRate.toFixed(1)}% show rate`} color="#FB923C"/>
-                  <KPI label="Show Rate"    value={showRate.toFixed(1)+'%'}  sub="Showed / Booked"                    color="#FB923C"/>
-                  <KPI label="Deals Closed" value={T.sales}                  sub={`${closeRate.toFixed(1)}% close rate`} color="#FB923C"/>
-                  <KPI label="Close Rate"   value={closeRate.toFixed(1)+'%'} sub="Closed / Showed"                    color="#FB923C"/>
-                </div>
-
-                <Sec title="Revenue & Cash"/>
-                <div style={{display:'grid',gridTemplateColumns:'repeat(5,1fr)',gap:10,marginBottom:24}}>
-                  <KPI label="Rev. Company"          value={fmtK(T.revCompany)}     sub={`${T.sales} × $7,990`}            color="#4ADE80"/>
-                  <KPI label="Rev. Office"           value={fmtK(T.revOffice)}      sub={`${T.sales} × $3,000`}            color="#4ADE80"/>
-                  <KPI label="Cash Tiago"            value={fmtK(T.cashTiago)}      sub={`${T.sales} × $${office.payout}`} color="#4ADE80"/>
-                  <KPI label="Cash Collected (Office)" value={fmtK(T.cashOffice)}   sub="Rev Office − Tiago − Spend"       color="#4ADE80"/>
-                  <KPI label="ROAS (Cash)"           value={roasCash.toFixed(2)+'x'} sub="Cash Collected / Spend"          color="#4ADE80"/>
-                </div>
+                {(()=>{
+                  const cpm=T.impressions>0?T.spent/(T.impressions/1000):0;
+                  const cpcAllV=(T.clicks||T.linkClicks)>0?T.spent/(T.clicks||T.linkClicks):0;
+                  const ctrAllV=T.impressions>0?((T.clicks||T.linkClicks)/T.impressions)*100:0;
+                  const MV={
+                    spend:             {label:'Ad Spend',             value:fmtK(T.spent),                         sub:`${T.leads} leads generados`,             color:office.color},
+                    impressions:       {label:'Impressions',          value:fmtN(T.impressions),                   sub:'Total impresiones',                      color:office.color},
+                    reach:             {label:'Reach',                value:fmtN(T.reach||0),                      sub:'Personas únicas alcanzadas',              color:office.color},
+                    frequency:         {label:'Frequency',            value:freq.toFixed(2),                       sub:'Promedio impr./persona',                 color:office.color},
+                    cpm:               {label:'CPM',                  value:fmt$(cpm),                             sub:'Costo/1,000 impr.',                       color:office.color},
+                    linkClicks:        {label:'Link Clicks',          value:fmtN(T.linkClicks),                    sub:'Clics en enlace',                         color:office.color},
+                    cpc:               {label:'CPC (Link)',           value:fmt$(cpcLink),                         sub:'Costo por clic de enlace',               color:office.color},
+                    ctr:               {label:'CTR (Link)',           value:ctrLink.toFixed(2)+'%',                sub:'Click-through rate',                     color:office.color},
+                    clicks:            {label:'Clicks (All)',         value:fmtN(T.clicks||T.linkClicks),          sub:'Total clics',                            color:office.color},
+                    cpcAll:            {label:'CPC (All)',            value:fmt$(cpcAllV),                         sub:'Costo por cualquier clic',               color:office.color},
+                    ctrAll:            {label:'CTR (All)',            value:ctrAllV.toFixed(2)+'%',                sub:'CTR todos los clics',                    color:office.color},
+                    uniqueClicks:      {label:'Unique Clicks',        value:fmtN(T.uniqueClicks||T.linkClicks),    sub:'Usuarios únicos que clicaron',           color:office.color},
+                    outboundClicks:    {label:'Outbound Clicks',      value:fmtN(T.outboundClicks||T.linkClicks),  sub:'Clics a URLs externas',                  color:office.color},
+                    leads:             {label:'Leads',                value:fmtN(T.leads),                         sub:'Generados por anuncios',                 color:office.color},
+                    cpl:               {label:'CPL',                  value:fmt$(cpl),                             sub:'Costo por lead',                         color:office.color},
+                    leadFormOpens:     {label:'Lead Form Opens',      value:fmtN(T.leadFormOpens||0),              sub:'Aperturas de formulario',                color:office.color},
+                    leadFormCompletions:{label:'Lead Form Completions',value:fmtN(T.leadFormCompletions||T.leads), sub:'Formularios completados',               color:office.color},
+                    registrations:     {label:'Registrations',        value:fmtN(T.registrations||0),              sub:'Registros completados',                  color:office.color},
+                    purchases:         {label:'Purchases',            value:fmtN(T.purchases||0),                  sub:'Compras atribuidas',                     color:office.color},
+                    purchaseValue:     {label:'Purchase Value',       value:fmtK(T.purchaseValue||0),              sub:'Valor de compras',                       color:office.color},
+                    purchaseRoas:      {label:'Purchase ROAS',        value:(T.spent>0&&T.purchaseValue?T.purchaseValue/T.spent:0).toFixed(2)+'x', sub:'Revenue compras / Spend', color:office.color},
+                    costPerPurchase:   {label:'Cost/Purchase',        value:fmt$(T.purchases>0?T.spent/T.purchases:0), sub:'Gasto / Compras',                  color:office.color},
+                    roas:              {label:'ROAS (Cash)',           value:roasCash.toFixed(2)+'x',               sub:'Cash Collected / Spend',                 color:office.color},
+                    addToCart:         {label:'Add to Cart',          value:fmtN(T.addToCart||0),                  sub:'Eventos add to cart',                    color:office.color},
+                    initiateCheckout:  {label:'Initiate Checkout',    value:fmtN(T.initiateCheckout||0),           sub:'Checkouts iniciados',                    color:office.color},
+                    viewContent:       {label:'View Content',         value:fmtN(T.viewContent||0),                sub:'Vistas de contenido',                    color:office.color},
+                    videoViews3s:      {label:'Video Views (3s)',      value:fmtN(T.videoViews3s||0),               sub:'Vistas ≥3 segundos',                      color:office.color},
+                    videoThruplay:     {label:'ThruPlay Views',        value:fmtN(T.videoThruplay||0),              sub:'Videos completados',                     color:office.color},
+                    videoCompletionRate:{label:'Video Compl. Rate',   value:(T.videoViews3s>0&&T.videoThruplay?T.videoThruplay/T.videoViews3s*100:0).toFixed(1)+'%', sub:'% completados', color:office.color},
+                    videoP25:          {label:'Video 25% Views',       value:fmtN(T.videoP25||0),                   sub:'Vistas hasta 25%',                       color:office.color},
+                    videoP50:          {label:'Video 50% Views',       value:fmtN(T.videoP50||0),                   sub:'Vistas hasta 50%',                       color:office.color},
+                    videoP75:          {label:'Video 75% Views',       value:fmtN(T.videoP75||0),                   sub:'Vistas hasta 75%',                       color:office.color},
+                    videoP100:         {label:'Video 100% Views',      value:fmtN(T.videoP100||0),                  sub:'Vistas completas',                       color:office.color},
+                    postEngagement:    {label:'Post Engagement',       value:fmtN(T.postEngagement||0),             sub:'Interacciones totales',                  color:office.color},
+                    reactions:         {label:'Reactions',             value:fmtN(T.reactions||0),                  sub:'Reacciones en anuncios',                 color:office.color},
+                    comments:          {label:'Comments',              value:fmtN(T.comments||0),                   sub:'Comentarios en anuncios',                color:office.color},
+                    shares:            {label:'Shares',                value:fmtN(T.shares||0),                     sub:'Veces compartido',                       color:office.color},
+                    pageLikes:         {label:'Page Likes',            value:fmtN(T.pageLikes||0),                  sub:'Nuevos likes de página',                 color:office.color},
+                    postClicks:        {label:'Post Clicks',           value:fmtN(T.postClicks||T.linkClicks),      sub:'Clics en el post',                       color:office.color},
+                    messagingConversations:{label:'Conversations',     value:fmtN(T.messagingConversations||0),     sub:'Conversaciones iniciadas',               color:office.color},
+                    costPerConversation:   {label:'Cost/Conv.',        value:fmt$((T.messagingConversations||0)>0?T.spent/(T.messagingConversations||1):0), sub:'Gasto / Conversación', color:office.color},
+                    messagingReplies:  {label:'Messaging Replies',     value:fmtN(T.messagingReplies||0),           sub:'Respuestas de mensajería',               color:office.color},
+                    appsBooked:        {label:'Apps Booked',           value:fmtN(T.appsBooked),                    sub:'Citas agendadas',                        color:'#FB923C'},
+                    appsShowed:        {label:'Apps Showed',           value:fmtN(T.appsShowed),                    sub:`${showRate.toFixed(1)}% show rate`,      color:'#FB923C'},
+                    showRate:          {label:'Show Rate',             value:showRate.toFixed(1)+'%',               sub:'Showed / Booked',                        color:'#FB923C'},
+                    sales:             {label:'Deals Closed',          value:fmtN(T.sales),                         sub:`${closeRate.toFixed(1)}% close rate`,    color:'#FB923C'},
+                    closeRate:         {label:'Close Rate',            value:closeRate.toFixed(1)+'%',              sub:'Closed / Showed',                        color:'#FB923C'},
+                    noShows:           {label:'No Shows',              value:fmtN(Math.max(0,T.appsBooked-T.appsShowed)), sub:'No se presentaron',             color:'#FB923C'},
+                    leadToAppRate:     {label:'Lead→App Rate',         value:(T.leads>0?(T.appsBooked/T.leads*100):0).toFixed(1)+'%', sub:'Leads que agendan', color:'#FB923C'},
+                    calls:             {label:'Llamadas',              value:fmtN(T.calls||0),                      sub:'Llamadas realizadas',                    color:'#FB923C'},
+                    proposals:         {label:'Propuestas',            value:fmtN(T.proposals||0),                  sub:'Propuestas enviadas',                    color:'#FB923C'},
+                    revenue:           {label:'Rev. Company',          value:fmtK(T.revCompany),                    sub:`${T.sales} × $7,990`,                    color:'#4ADE80'},
+                    revOffice:         {label:'Rev. Office',           value:fmtK(T.revOffice),                     sub:`${T.sales} × $3,000`,                    color:'#4ADE80'},
+                    cashTiago:         {label:'Cash Tiago',            value:fmtK(T.cashTiago),                     sub:`${T.sales} × $${office.payout}`,         color:'#4ADE80'},
+                    cashflow:          {label:'Cash Collected',        value:fmtK(T.cashOffice),                    sub:'Rev − Tiago − Spend',                    color:'#4ADE80'},
+                    cac:               {label:'CAC',                   value:fmt$(T.sales>0?T.spent/T.sales:0),     sub:'Spend / Deals cerrados',                 color:'#4ADE80'},
+                    roi:               {label:'ROI',                   value:(T.spent>0?((T.cashOffice-T.spent)/T.spent*100):0).toFixed(1)+'%', sub:'(Cash − Spend) / Spend', color:'#4ADE80'},
+                    profitMargin:      {label:'Profit Margin',         value:(T.revCompany>0?(T.cashOffice/T.revCompany*100):0).toFixed(1)+'%', sub:'Cash / Revenue',         color:'#4ADE80'},
+                    mrr:               {label:'MRR',                   value:'—',                                   sub:'Entrada manual',                         color:'#4ADE80'},
+                  };
+                  const DEFAULT_METRICS=['spend','leads','cpl','roas','ctr','cpc','impressions','frequency','appsBooked','appsShowed','showRate','sales','closeRate','revenue','cashflow','cashTiago'];
+                  const selM=(office.metrics||[]).length>0?office.metrics:DEFAULT_METRICS;
+                  const cols=selM.length<=3?selM.length:selM.length<=6?3:selM.length<=8?4:4;
+                  return(
+                    <>
+                      <Sec title={`KPIs · ${selM.length} métricas seleccionadas`}/>
+                      <div style={{display:'grid',gridTemplateColumns:`repeat(${cols},1fr)`,gap:10,marginBottom:24}}>
+                        {selM.map(id=>{const m=MV[id];if(!m)return null;return <KPI key={id} label={m.label} value={m.value} sub={m.sub} color={m.color}/>;  })}
+                      </div>
+                    </>
+                  );
+                })()}
 
                 {/* Chart + Funnel */}
                 <div style={{display:'grid',gridTemplateColumns:'1.6fr 1fr',gap:16,marginBottom:16}}>
@@ -1544,36 +1641,50 @@ body{background:#080a0d;color:#fff;font-family:'Roboto',sans-serif;padding:36px 
 
       {/* STC EDIT MODAL */}
       {editingSTC&&(
-        <div style={{position:'fixed',inset:0,background:'rgba(0,0,0,0.85)',zIndex:500,display:'flex',alignItems:'center',justifyContent:'center',backdropFilter:'blur(4px)'}} onClick={()=>setEditingSTC(false)}>
-          <div style={{background:'#0b0d12',border:'1px solid rgba(255,255,255,0.1)',borderRadius:20,padding:0,width:420,maxWidth:'92vw',overflow:'hidden',boxShadow:'0 30px 80px rgba(0,0,0,0.7)'}} onClick={e=>e.stopPropagation()}>
-            <div style={{padding:'20px 24px',borderBottom:'1px solid rgba(255,255,255,0.07)',display:'flex',alignItems:'center',gap:12}}>
+        <div style={{position:'fixed',inset:0,background:'rgba(0,0,0,0.88)',zIndex:500,overflowY:'auto',backdropFilter:'blur(6px)'}} onClick={()=>setEditingSTC(false)}>
+          <div style={{minHeight:'100%',display:'flex',alignItems:'center',justifyContent:'center',padding:'20px 0'}}>
+          <div style={{background:'#0b0d12',border:'1px solid rgba(255,255,255,0.12)',borderRadius:20,padding:0,width:500,maxWidth:'94vw',boxShadow:'0 30px 80px rgba(0,0,0,0.8)'}} onClick={e=>e.stopPropagation()}>
+            <div style={{padding:'18px 24px',borderBottom:'1px solid rgba(255,255,255,0.07)',display:'flex',alignItems:'center',gap:12,position:'sticky',top:0,background:'#0b0d12',borderRadius:'20px 20px 0 0',zIndex:1}}>
               <img src={LOGOS_INIT.STC} alt="" style={{width:32,height:32,borderRadius:8,objectFit:'contain',background:'rgba(255,255,255,0.04)',padding:4}}/>
               <span style={{fontSize:15,fontWeight:700,fontFamily:"'Poppins',sans-serif",color:'#fff'}}>SetToClose — Configuración</span>
             </div>
             <div style={{padding:'24px',display:'flex',flexDirection:'column',gap:20}}>
               {/* Metrics */}
-              <div>
-                <div style={{fontSize:11,color:'#555',marginBottom:12,letterSpacing:'0.05em'}}>Métricas visibles en el panel global</div>
-                {Object.entries(METRIC_OPTIONS.reduce((acc,m)=>{if(!acc[m.group])acc[m.group]=[];acc[m.group].push(m);return acc;},{})).map(([group,metrics])=>(
-                  <div key={group} style={{marginBottom:10}}>
-                    <div style={{fontSize:9,color:'#2a2a2a',textTransform:'uppercase',letterSpacing:'0.1em',marginBottom:6,fontWeight:600}}>{group}</div>
-                    <div style={{display:'flex',flexWrap:'wrap',gap:5}}>
-                      {metrics.map(m=>{
-                        const stcM=bgThemes['STC']?.metrics||[];
-                        const sel=stcM.includes(m.id);
-                        return(
-                          <div key={m.id} onClick={()=>setBgThemes(p=>({...p,STC:{...(p.STC||{}),metrics:sel?(stcM).filter(x=>x!==m.id):[...stcM,m.id]}}))} style={{
-                            padding:'4px 11px',borderRadius:6,cursor:'pointer',fontSize:11,fontFamily:"'Roboto',sans-serif",transition:'all .15s',
-                            background:sel?'rgba(255,255,255,0.15)':'rgba(255,255,255,0.03)',
-                            border:`1px solid ${sel?'rgba(255,255,255,0.35)':'rgba(255,255,255,0.07)'}`,
-                            color:sel?'#fff':'#444'
-                          }}>{m.label}{sel&&' ✓'}</div>
-                        );
-                      })}
+              {(()=>{
+                const stcM=bgThemes['STC']?.metrics||[];
+                const mFiltered=metricSearch.trim()?METRIC_OPTIONS.filter(m=>m.label.toLowerCase().includes(metricSearch.toLowerCase())||m.group.toLowerCase().includes(metricSearch.toLowerCase())||m.desc.toLowerCase().includes(metricSearch.toLowerCase())):METRIC_OPTIONS;
+                const mGroups=mFiltered.reduce((acc,m)=>{if(!acc[m.group])acc[m.group]=[];acc[m.group].push(m);return acc;},{});
+                return(
+                  <div>
+                    <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',marginBottom:10}}>
+                      <div style={{fontSize:11,color:'#555',letterSpacing:'0.05em'}}>Métricas visibles en el panel global</div>
+                      <span style={{fontSize:10,color:'#333',fontFamily:'monospace'}}>{stcM.length} seleccionadas</span>
+                    </div>
+                    <input value={metricSearch} onChange={e=>setMetricSearch(e.target.value)} placeholder="🔍 Buscar métrica..." style={{background:'rgba(255,255,255,0.05)',border:'1px solid rgba(255,255,255,0.1)',borderRadius:8,padding:'8px 12px',color:'#aaa',fontSize:12,fontFamily:"'Roboto',sans-serif",outline:'none',width:'100%',boxSizing:'border-box',marginBottom:12}}/>
+                    <div style={{maxHeight:220,overflowY:'auto',paddingRight:4}}>
+                      {Object.entries(mGroups).map(([group,metrics])=>(
+                        <div key={group} style={{marginBottom:10}}>
+                          <div style={{fontSize:9,color:'#2a2a2a',textTransform:'uppercase',letterSpacing:'0.1em',marginBottom:6,fontWeight:700,display:'flex',alignItems:'center',gap:6}}>{group}<span style={{color:'#1a1a1a',fontWeight:400}}>({metrics.filter(m=>stcM.includes(m.id)).length}/{metrics.length})</span></div>
+                          <div style={{display:'flex',flexWrap:'wrap',gap:5}}>
+                            {metrics.map(m=>{
+                              const sel=stcM.includes(m.id);
+                              return(
+                                <div key={m.id} onClick={()=>setBgThemes(p=>({...p,STC:{...(p.STC||{}),metrics:sel?(stcM).filter(x=>x!==m.id):[...stcM,m.id]}}))} title={m.desc} style={{
+                                  padding:'4px 11px',borderRadius:6,cursor:'pointer',fontSize:11,fontFamily:"'Roboto',sans-serif",transition:'all .15s',
+                                  background:sel?'rgba(255,255,255,0.15)':'rgba(255,255,255,0.03)',
+                                  border:`1px solid ${sel?'rgba(255,255,255,0.35)':'rgba(255,255,255,0.07)'}`,
+                                  color:sel?'#fff':'#444'
+                                }}>{m.label}{sel&&' ✓'}</div>
+                              );
+                            })}
+                          </div>
+                        </div>
+                      ))}
+                      {Object.keys(mGroups).length===0&&<div style={{fontSize:11,color:'#333',textAlign:'center',padding:'20px 0'}}>No se encontraron métricas</div>}
                     </div>
                   </div>
-                ))}
-              </div>
+                );
+              })()}
               {/* Background */}
               <div>
                 <div style={{fontSize:11,color:'#555',marginBottom:10,letterSpacing:'0.05em'}}>Fondo del panel SetToClose</div>
@@ -1600,6 +1711,7 @@ body{background:#080a0d;color:#fff;font-family:'Roboto',sans-serif;padding:36px 
               </div>
               <button onClick={()=>setEditingSTC(false)} style={{padding:'11px',borderRadius:9,border:'1px solid rgba(255,255,255,0.15)',background:'rgba(255,255,255,0.07)',color:'#fff',cursor:'pointer',fontWeight:600,fontFamily:"'Roboto',sans-serif",fontSize:13}}>✓ Guardar</button>
             </div>
+          </div>
           </div>
         </div>
       )}
@@ -1668,27 +1780,43 @@ body{background:#080a0d;color:#fff;font-family:'Roboto',sans-serif;padding:36px 
                   </div>
                 </div>
                 <div>
-                  <div style={{fontSize:11,color:'#555',marginBottom:10,letterSpacing:'0.05em'}}>Métricas visibles en el dashboard</div>
-                  {Object.entries(METRIC_OPTIONS.reduce((acc,m)=>{if(!acc[m.group])acc[m.group]=[];acc[m.group].push(m);return acc;},{})).map(([group,metrics])=>(
-                    <div key={group} style={{marginBottom:10}}>
-                      <div style={{fontSize:9,color:'#333',textTransform:'uppercase',letterSpacing:'0.1em',marginBottom:6,fontWeight:600}}>{group}</div>
-                      <div style={{display:'flex',flexWrap:'wrap',gap:5}}>
-                        {metrics.map(m=>{
-                          const sel=(editing.metrics||[]).includes(m.id);
-                          return(
-                            <div key={m.id} onClick={()=>{const nm=sel?(editing.metrics||[]).filter(x=>x!==m.id):[...(editing.metrics||[]),m.id];setOffices(p=>p.map(o=>o.id===editing.id?{...o,metrics:nm}:o));setEditing(e=>({...e,metrics:nm}));}} style={{
-                              padding:'4px 11px',borderRadius:6,cursor:'pointer',fontSize:11,fontFamily:"'Roboto',sans-serif",transition:'all .15s',
-                              background:sel?editing.color+'20':'rgba(255,255,255,0.03)',
-                              border:`1px solid ${sel?editing.color+'50':'rgba(255,255,255,0.07)'}`,
-                              color:sel?editing.color:'#555'
-                            }} title={m.desc}>{m.label}{sel&&' ✓'}</div>
-                          );
-                        })}
-                      </div>
-                    </div>
-                  ))}
+                  {(()=>{
+                    const selM=editing.metrics||[];
+                    const mF=metricSearch.trim()?METRIC_OPTIONS.filter(m=>m.label.toLowerCase().includes(metricSearch.toLowerCase())||m.group.toLowerCase().includes(metricSearch.toLowerCase())||m.desc.toLowerCase().includes(metricSearch.toLowerCase())):METRIC_OPTIONS;
+                    const mG=mF.reduce((acc,m)=>{if(!acc[m.group])acc[m.group]=[];acc[m.group].push(m);return acc;},{});
+                    return(
+                      <>
+                        <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',marginBottom:8}}>
+                          <div style={{fontSize:11,color:'#555',letterSpacing:'0.05em'}}>Métricas visibles en el dashboard</div>
+                          <span style={{fontSize:10,color:editing.color,fontFamily:'monospace',background:`${editing.color}15`,padding:'2px 8px',borderRadius:10,border:`1px solid ${editing.color}30`}}>{selM.length} seleccionadas</span>
+                        </div>
+                        <input value={metricSearch} onChange={e=>setMetricSearch(e.target.value)} placeholder="🔍 Buscar métrica..." style={{background:'rgba(255,255,255,0.05)',border:`1px solid ${editing.color}20`,borderRadius:8,padding:'8px 12px',color:'#aaa',fontSize:12,fontFamily:"'Roboto',sans-serif",outline:'none',width:'100%',boxSizing:'border-box',marginBottom:10}}/>
+                        <div style={{maxHeight:240,overflowY:'auto',paddingRight:4,marginBottom:12}}>
+                          {Object.entries(mG).map(([group,metrics])=>(
+                            <div key={group} style={{marginBottom:10}}>
+                              <div style={{fontSize:9,color:'#333',textTransform:'uppercase',letterSpacing:'0.1em',marginBottom:6,fontWeight:700,display:'flex',alignItems:'center',gap:6}}>{group}<span style={{color:'#222',fontWeight:400}}>({metrics.filter(m=>selM.includes(m.id)).length}/{metrics.length})</span></div>
+                              <div style={{display:'flex',flexWrap:'wrap',gap:5}}>
+                                {metrics.map(m=>{
+                                  const sel=selM.includes(m.id);
+                                  return(
+                                    <div key={m.id} onClick={()=>{const nm=sel?selM.filter(x=>x!==m.id):[...selM,m.id];setOffices(p=>p.map(o=>o.id===editing.id?{...o,metrics:nm}:o));setEditing(e=>({...e,metrics:nm}));}} title={m.desc} style={{
+                                      padding:'4px 11px',borderRadius:6,cursor:'pointer',fontSize:11,fontFamily:"'Roboto',sans-serif",transition:'all .15s',
+                                      background:sel?editing.color+'22':'rgba(255,255,255,0.03)',
+                                      border:`1px solid ${sel?editing.color+'60':'rgba(255,255,255,0.07)'}`,
+                                      color:sel?editing.color:'#555'
+                                    }}>{m.label}{sel&&' ✓'}</div>
+                                  );
+                                })}
+                              </div>
+                            </div>
+                          ))}
+                          {Object.keys(mG).length===0&&<div style={{fontSize:11,color:'#333',textAlign:'center',padding:'20px 0'}}>No se encontraron métricas</div>}
+                        </div>
+                      </>
+                    );
+                  })()}
                 </div>
-                <button onClick={()=>setEditTabIdx(0)} style={{...btnP(editing.color),textAlign:'center',marginTop:4}}>✓ Guardar métricas</button>
+                <button onClick={()=>{setEditTabIdx(0);setMetricSearch('');}} style={{...btnP(editing.color),textAlign:'center',marginTop:4}}>✓ Guardar métricas</button>
               </div>
             )}
 
