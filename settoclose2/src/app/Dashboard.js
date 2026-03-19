@@ -1606,8 +1606,9 @@ body{background:#080a0d;color:#fff;font-family:'Roboto',sans-serif;padding:36px 
 
       {/* EDIT CLIENT MODAL */}
       {editing&&(
-        <div style={{position:'fixed',inset:0,background:'rgba(0,0,0,0.85)',zIndex:500,display:'flex',alignItems:'center',justifyContent:'center',backdropFilter:'blur(4px)'}} onClick={()=>{setEditing(null);setEditTabIdx(0);}}>
-          <div style={{background:'#0b0d12',border:'1px solid rgba(255,255,255,0.1)',borderRadius:20,padding:0,width:440,maxWidth:'92vw',overflow:'hidden',boxShadow:'0 30px 80px rgba(0,0,0,0.7)'}} onClick={e=>e.stopPropagation()}>
+        <div style={{position:'fixed',inset:0,background:'rgba(0,0,0,0.85)',zIndex:500,overflowY:'auto',backdropFilter:'blur(4px)'}} onClick={()=>{setEditing(null);setEditTabIdx(0);}}>
+          <div style={{minHeight:'100%',display:'flex',alignItems:'center',justifyContent:'center',padding:'20px 0'}}>
+          <div style={{background:'#0b0d12',border:'1px solid rgba(255,255,255,0.1)',borderRadius:20,padding:0,width:440,maxWidth:'92vw',boxShadow:'0 30px 80px rgba(0,0,0,0.7)'}} onClick={e=>e.stopPropagation()}>
             {/* Tabs */}
             <div style={{display:'flex',borderBottom:'1px solid rgba(255,255,255,0.07)',background:'rgba(255,255,255,0.02)'}}>
               {['Configuración','Métricas','Background'].map((tab,i)=>(
@@ -1728,6 +1729,7 @@ body{background:#080a0d;color:#fff;font-family:'Roboto',sans-serif;padding:36px 
 
             </div>
           </div>
+          </div>
         </div>
       )}
 
@@ -1735,8 +1737,9 @@ body{background:#080a0d;color:#fff;font-family:'Roboto',sans-serif;padding:36px 
       {editingAction&&(()=>{
         const et=ACTION_TYPES[editType]||ACTION_TYPES.test;
         return(
-          <div style={{position:'fixed',inset:0,background:'rgba(0,0,0,0.88)',zIndex:600,display:'flex',alignItems:'center',justifyContent:'center',backdropFilter:'blur(6px)'}} onClick={()=>{setEditingAction(null);setEditMedia([]);}}>
-            <div style={{background:'#0d0f14',border:`1px solid ${et.border}30`,borderRadius:20,width:520,maxWidth:'92vw',maxHeight:'90vh',overflow:'auto',boxShadow:`0 0 60px ${et.glow}`}} onClick={e=>e.stopPropagation()}>
+          <div style={{position:'fixed',inset:0,background:'rgba(0,0,0,0.88)',zIndex:600,overflowY:'auto',backdropFilter:'blur(6px)'}} onClick={()=>{setEditingAction(null);setEditMedia([]);}}>
+            <div style={{minHeight:'100%',display:'flex',alignItems:'center',justifyContent:'center',padding:'20px 0'}}>
+            <div style={{background:'#0d0f14',border:`1px solid ${et.border}30`,borderRadius:20,width:520,maxWidth:'92vw',boxShadow:`0 0 60px ${et.glow}`}} onClick={e=>e.stopPropagation()}>
               {/* Colored top bar */}
               <div style={{height:3,background:`linear-gradient(90deg,${et.border},${et.dot}88,transparent)`,borderRadius:'20px 20px 0 0'}}/>
               <div style={{padding:'22px 24px'}}>
@@ -1802,6 +1805,7 @@ body{background:#080a0d;color:#fff;font-family:'Roboto',sans-serif;padding:36px 
                   <button onClick={saveEdit} style={{flex:2,padding:'11px',borderRadius:10,border:`2px solid ${et.border}60`,background:`linear-gradient(135deg,${et.border}28,${et.border}10)`,color:et.border,cursor:'pointer',fontWeight:800,fontFamily:"'Poppins',sans-serif",fontSize:13,boxShadow:`0 0 20px ${et.glow}`,letterSpacing:'.04em',display:'flex',alignItems:'center',justifyContent:'center',gap:7}}><span>{et.icon}</span> Guardar cambios</button>
                 </div>
               </div>
+            </div>
             </div>
           </div>
         );
