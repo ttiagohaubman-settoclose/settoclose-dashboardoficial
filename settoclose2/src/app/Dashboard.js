@@ -1821,9 +1821,19 @@ body{background:#080a0d;color:#fff;font-family:'Roboto',sans-serif;padding:36px 
                 </div>
                 <div>
                   {(()=>{
-                    const selM=editing.metrics||[];
+                    // Read metrics from offices (canonical source) to avoid stale editing closure
+                    const selM=(offices.find(o=>o.id===editing.id)?.metrics)||[];
                     const mF=metricSearch.trim()?METRIC_OPTIONS.filter(m=>m.label.toLowerCase().includes(metricSearch.toLowerCase())||m.group.toLowerCase().includes(metricSearch.toLowerCase())||m.desc.toLowerCase().includes(metricSearch.toLowerCase())):METRIC_OPTIONS;
                     const mG=mF.reduce((acc,m)=>{if(!acc[m.group])acc[m.group]=[];acc[m.group].push(m);return acc;},{});
+                    const toggleMetric=(mid)=>{
+                      // Write directly to offices with functional updater — always reads latest state
+                      setOffices(p=>p.map(o=>{
+                        if(o.id!==editing.id) return o;
+                        const cur=o.metrics||[];
+                        const nm=cur.includes(mid)?cur.filter(x=>x!==mid):[...cur,mid];
+                        return {...o,metrics:nm};
+                      }));
+                    };
                     return(
                       <>
                         <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',marginBottom:8}}>
@@ -1839,16 +1849,7 @@ body{background:#080a0d;color:#fff;font-family:'Roboto',sans-serif;padding:36px 
                                 {metrics.map(m=>{
                                   const sel=selM.includes(m.id);
                                   return(
-                                    <div key={m.id} onClick={()=>{
-                                    // Use functional updater so we always read the LATEST editing.metrics
-                                    setEditing(e=>{
-                                      const cur=e.metrics||[];
-                                      const already=cur.includes(m.id);
-                                      const nm=already?cur.filter(x=>x!==m.id):[...cur,m.id];
-                                      setOffices(p=>p.map(o=>o.id===e.id?{...o,metrics:nm}:o));
-                                      return {...e,metrics:nm};
-                                    });
-                                  }} title={m.desc} style={{
+                                    <div key={m.id} onClick={()=>toggleMetric(m.id)} title={m.desc} style={{
                                       padding:'4px 11px',borderRadius:6,cursor:'pointer',fontSize:11,fontFamily:"'Roboto',sans-serif",transition:'all .15s',
                                       background:sel?editing.color+'22':'rgba(255,255,255,0.03)',
                                       border:`1px solid ${sel?editing.color+'60':'rgba(255,255,255,0.07)'}`,
