@@ -478,7 +478,14 @@ export default function Dashboard() {
       const r = await fetch(`/api/logs?officeId=${offId}`);
       const j = await r.json();
       if (j.logs?.length > 0) {
-        setActions(prev => ({ ...prev, [offId]: j.logs }));
+        // Only apply server data if we don't already have more recent local data
+        setActions(prev => {
+          const localLen = (prev[offId]||[]).length;
+          const serverLen = j.logs.length;
+          // If local has MORE entries, local is more recent — keep it
+          if (localLen > serverLen) return prev;
+          return { ...prev, [offId]: j.logs };
+        });
       }
     } catch(e) { console.warn('Load logs error:', e); }
   }, []);
@@ -547,31 +554,43 @@ export default function Dashboard() {
   const addAction=()=>{
     const html=newTextRef.current?.innerHTML||'';
     if(!html.replace(/<[^>]*>/g,'').trim()||!activeId) return;
+    const capturedOfficeId = activeId;
     const newEntry = {id:++uid,date:newDate,text:html,type:newType,media:pendMedia};
-    const updated = [newEntry, ...(actions[activeId]||[])];
-    setActions(prev=>({...prev,[activeId]:updated}));
-    saveLogs(activeId, updated);
+    // Clear editor immediately to prevent double-submit
     if(newTextRef.current) newTextRef.current.innerHTML='';
     setPendMedia([]);
+    // Use functional updater to read the LATEST state (not stale closure)
+    setActions(prev=>{
+      const updated = [newEntry, ...(prev[capturedOfficeId]||[])];
+      saveLogs(capturedOfficeId, updated);
+      return {...prev,[capturedOfficeId]:updated};
+    });
   };
 
   const saveEdit = () => {
     if (!editingAction || !activeId) return;
     const html=editTextRef.current?.innerHTML||editText;
-    const updated = (actions[activeId]||[]).map(a => a.id === editingAction
-      ? {...a, text: html, type: editType, date: editDate, media: [...(a.media||[]), ...editMedia]}
-      : a);
-    setActions(prev => ({ ...prev, [activeId]: updated }));
-    saveLogs(activeId, updated);
+    const capturedOfficeId = activeId;
+    const capturedEditingAction = editingAction;
     setEditingAction(null);
     setEditMedia([]);
+    setActions(prev=>{
+      const updated = (prev[capturedOfficeId]||[]).map(a => a.id === capturedEditingAction
+        ? {...a, text: html, type: editType, date: editDate, media: [...(a.media||[]), ...editMedia]}
+        : a);
+      saveLogs(capturedOfficeId, updated);
+      return {...prev,[capturedOfficeId]:updated};
+    });
   };
 
   const deleteAction = (id) => {
     if (!activeId) return;
-    const updated = (actions[activeId]||[]).filter(a => a.id !== id);
-    setActions(prev => ({ ...prev, [activeId]: updated }));
-    saveLogs(activeId, updated);
+    const capturedOfficeId = activeId;
+    setActions(prev=>{
+      const updated = (prev[capturedOfficeId]||[]).filter(a => a.id !== id);
+      saveLogs(capturedOfficeId, updated);
+      return {...prev,[capturedOfficeId]:updated};
+    });
   };
 
   const filtActions=useMemo(()=>{
