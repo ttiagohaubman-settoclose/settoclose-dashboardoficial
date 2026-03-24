@@ -41,14 +41,27 @@ export async function GET(request) {
 
     const bookedByDate = {}
     const showedByDate = {}
+    const noshowByDate = {}
+    // Statuses that count as "booked" (scheduled and not cancelled)
+    const BOOKED_STATUSES = new Set(['confirmed', 'showed', 'completed', 'noshow', 'inProgress'])
+    const SHOWED_STATUSES = new Set(['showed', 'completed'])
     allEvents.forEach(ev => {
+      const status = ev.appointmentStatus || ev.status || ''
+      // Skip cancelled and unconfirmed drafts
+      if (status === 'cancelled' || status === 'canceled' || status === 'invalid') return
       // Use startTime of appointment for the date
       const raw = ev.startTime || ev.dateAdded
       if (!raw) return
       const date = new Date(raw).toISOString().split('T')[0]
-      bookedByDate[date] = (bookedByDate[date] || 0) + 1
-      if (ev.appointmentStatus === 'showed' || ev.appointmentStatus === 'completed') {
+      // Count as booked if it has a recognized confirmed status, or if no status yet (new/pending)
+      if (!status || BOOKED_STATUSES.has(status)) {
+        bookedByDate[date] = (bookedByDate[date] || 0) + 1
+      }
+      if (SHOWED_STATUSES.has(status)) {
         showedByDate[date] = (showedByDate[date] || 0) + 1
+      }
+      if (status === 'noshow') {
+        noshowByDate[date] = (noshowByDate[date] || 0) + 1
       }
     })
 
@@ -128,8 +141,9 @@ export async function GET(request) {
       const appsBooked = bookedByDate[date] || 0
       const appsShowed = showedByDate[date] || 0
       const sales      = closedByDate[date] || 0
+      const noShows = noshowByDate[date] || 0
       days.push({
-        date, appsBooked, appsShowed,
+        date, appsBooked, appsShowed, noShows,
         showRate: appsBooked > 0 ? +((appsShowed / appsBooked) * 100).toFixed(1) : 0,
         sales,
       })

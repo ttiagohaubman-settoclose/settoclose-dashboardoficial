@@ -3,10 +3,10 @@ import { useState, useMemo, useRef, useEffect, useCallback } from 'react';
 import { LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, AreaChart, Area } from 'recharts';
 
 const INIT_OFFICES = [
-  { id:'SC', name:'South Carolina', color:'#38BDF8', payout:750, adAccountId:'751411627703795'  },
-  { id:'VA', name:'Virginia',        color:'#4ADE80', payout:750, adAccountId:'1423143898800903' },
-  { id:'MD', name:'Maryland',        color:'#A78BFA', payout:500, adAccountId:'795631173072316'  },
-  { id:'NC', name:'North Carolina',  color:'#FACC15', payout:750, adAccountId:'1482791790226418' },
+  { id:'SC', name:'South Carolina', color:'#38BDF8', payout:750, dealValue:7990, adAccountId:'751411627703795'  },
+  { id:'VA', name:'Virginia',        color:'#4ADE80', payout:750, dealValue:7990, adAccountId:'1423143898800903' },
+  { id:'MD', name:'Maryland',        color:'#A78BFA', payout:500, dealValue:7990, adAccountId:'795631173072316'  },
+  { id:'NC', name:'North Carolina',  color:'#FACC15', payout:750, dealValue:7990, adAccountId:'1482791790226418' },
 ];
 
 const LOGOS_INIT = {
@@ -309,6 +309,7 @@ export default function Dashboard() {
   const [nName,     setNName]     = useState('');
   const [nColor,    setNColor]    = useState('#38BDF8');
   const [nPayout,   setNPayout]   = useState('750');
+  const [nDealValue,setNDealValue] = useState('7990');
   const [nAccount,  setNAccount]  = useState('');
   const [nLocId,    setNLocId]    = useState('');
   const [nPipeId,   setNPipeId]   = useState('');
@@ -526,7 +527,7 @@ export default function Dashboard() {
       const ab=g.appsBooked??m.appsBooked??0;
       const as_=g.appsShowed??m.appsShowed??0;
       const s=g.sales??m.sales??0;
-      const rc=s*7990,ro=s*3000,ct=s*payout,co=ro-ct-d.spent;
+      const dv=office?.dealValue||7990;const rc=s*dv,ro=s*Math.round(dv*0.375),ct=s*payout,co=ro-ct-d.spent;
       return {...d,appsBooked:ab,appsShowed:as_,showRate:ab>0?+((as_/ab)*100).toFixed(1):0,sales:s,revCompany:rc,revOffice:ro,cashTiago:ct,cashOffice:co,roasCash:d.spent>0?+(co/d.spent).toFixed(2):0};
     });
   },[raw,manualData,activeId,office]);
@@ -1179,8 +1180,8 @@ body{background:#080a0d;color:#fff;font-family:'Roboto',sans-serif;padding:36px 
                     leadToAppRate:     {label:'Lead→App Rate',         value:(T.leads>0?(T.appsBooked/T.leads*100):0).toFixed(1)+'%', sub:'Leads que agendan', color:'#FB923C'},
                     calls:             {label:'Llamadas',              value:fmtN(T.calls||0),                      sub:'Llamadas realizadas',                    color:'#FB923C'},
                     proposals:         {label:'Propuestas',            value:fmtN(T.proposals||0),                  sub:'Propuestas enviadas',                    color:'#FB923C'},
-                    revenue:           {label:'Rev. Company',          value:fmtK(T.revCompany),                    sub:`${T.sales} × $7,990`,                    color:'#4ADE80'},
-                    revOffice:         {label:'Rev. Office',           value:fmtK(T.revOffice),                     sub:`${T.sales} × $3,000`,                    color:'#4ADE80'},
+                    revenue:           {label:'Rev. Company',          value:fmtK(T.revCompany),                    sub:`${T.sales} × $${fmtN(office.dealValue||7990)}`,  color:'#4ADE80'},
+                    revOffice:         {label:'Rev. Office',           value:fmtK(T.revOffice),                     sub:`${T.sales} × $${fmtN(Math.round((office.dealValue||7990)*0.375))}`, color:'#4ADE80'},
                     cashTiago:         {label:'Cash Tiago',            value:fmtK(T.cashTiago),                     sub:`${T.sales} × $${office.payout}`,         color:'#4ADE80'},
                     cashflow:          {label:'Cash Collected',        value:fmtK(T.cashOffice),                    sub:'Rev − Tiago − Spend',                    color:'#4ADE80'},
                     cac:               {label:'CAC',                   value:fmt$(T.sales>0?T.spent/T.sales:0),     sub:'Spend / Deals cerrados',                 color:'#4ADE80'},
@@ -1526,7 +1527,16 @@ body{background:#080a0d;color:#fff;font-family:'Roboto',sans-serif;padding:36px 
                 </div>
 
                 <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:12}}>
-                  <div><div style={{fontSize:10,color:'#555',marginBottom:5,textTransform:'uppercase',letterSpacing:'.08em'}}>Payout por Deal ($)</div><input value={nPayout} onChange={e=>setNPayout(e.target.value)} type="number" style={inp}/></div>
+                  <div>
+                    <div style={{fontSize:10,color:'#555',marginBottom:5,textTransform:'uppercase',letterSpacing:'.08em'}}>Tu comisión / deal ($)</div>
+                    <input value={nPayout} onChange={e=>setNPayout(e.target.value)} type="number" style={inp} placeholder="750"/>
+                    <div style={{fontSize:9,color:'#333',marginTop:4}}>Lo que te pagan por venta</div>
+                  </div>
+                  <div>
+                    <div style={{fontSize:10,color:'#555',marginBottom:5,textTransform:'uppercase',letterSpacing:'.08em'}}>Valor del deal ($)</div>
+                    <input value={nDealValue} onChange={e=>setNDealValue(e.target.value)} type="number" style={inp} placeholder="7990"/>
+                    <div style={{fontSize:9,color:'#333',marginTop:4}}>Lo que el cliente cobra por venta</div>
+                  </div>
                   <div>
                     <div style={{fontSize:10,color:'#555',marginBottom:5,textTransform:'uppercase',letterSpacing:'.08em'}}>Foto de Perfil</div>
                     <button onClick={()=>newLogoRef.current?.click()} style={{...inp,cursor:'pointer',color:nLogo?'#00FF88':'#555',textAlign:'left',fontSize:12}}>{nLogo?'✓ Foto cargada':'↑ Subir imagen'}</button>
@@ -1647,7 +1657,7 @@ body{background:#080a0d;color:#fff;font-family:'Roboto',sans-serif;padding:36px 
                 :<button onClick={()=>{
                   if(!nId.trim()||!nName.trim())return;
                   const id=nId.toUpperCase().replace(/\s/g,'');
-                  setOffices(p=>[...p,{id,name:nName,color:nColor,payout:parseInt(nPayout)||750,adAccountId:nAccount,locationId:nLocId,pipelineId:nPipeId,ghlToken:nGhlToken,industry:nIndustry,metrics:nMetrics,customMetrics:nCustomMetrics}]);
+                  setOffices(p=>[...p,{id,name:nName,color:nColor,payout:parseInt(nPayout)||750,dealValue:parseInt(nDealValue)||7990,adAccountId:nAccount,locationId:nLocId,pipelineId:nPipeId,ghlToken:nGhlToken,industry:nIndustry,metrics:nMetrics,customMetrics:nCustomMetrics}]);
                   setLogos(p=>({...p,[id]:nLogo||`https://ui-avatars.com/api/?name=${id}&background=222&color=fff&size=64`}));
                   setActions(p=>({...p,[id]:[]}));
                   setShowAdd(false);setNAddStep(1);setNName('');setNId('');setNLogo(null);setNAccount('');setNLocId('');setNPipeId('');setNGhlToken('');setNMetrics([]);setNCustomMetrics([]);
@@ -1761,7 +1771,18 @@ body{background:#080a0d;color:#fff;font-family:'Roboto',sans-serif;padding:36px 
                 </div>
                 <input ref={editLogoRef} type="file" accept="image/*" onChange={e=>{const f=e.target.files[0];if(!f)return;const r=new FileReader();r.onload=ev=>setLogos(p=>({...p,[editing.id]:ev.target.result}));r.readAsDataURL(f);}} style={{display:'none'}}/>
                 <div><div style={{fontSize:10,color:'#555',marginBottom:5,textTransform:'uppercase',letterSpacing:'.08em'}}>Nombre</div><input defaultValue={editing.name} onBlur={e=>setOffices(p=>p.map(o=>o.id===editing.id?{...o,name:e.target.value}:o))} style={inp}/></div>
-                <div><div style={{fontSize:10,color:'#555',marginBottom:5,textTransform:'uppercase',letterSpacing:'.08em'}}>Payout ($)</div><input type="number" defaultValue={editing.payout} onBlur={e=>setOffices(p=>p.map(o=>o.id===editing.id?{...o,payout:parseInt(e.target.value)||750}:o))} style={inp}/></div>
+                <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:8}}>
+                  <div>
+                    <div style={{fontSize:10,color:'#555',marginBottom:5,textTransform:'uppercase',letterSpacing:'.08em'}}>Tu comisión / deal ($)</div>
+                    <input type="number" defaultValue={editing.payout} onBlur={e=>setOffices(p=>p.map(o=>o.id===editing.id?{...o,payout:parseInt(e.target.value)||750}:o))} style={inp} placeholder="750"/>
+                    <div style={{fontSize:9,color:'#333',marginTop:4}}>Lo que te paga el cliente por venta</div>
+                  </div>
+                  <div>
+                    <div style={{fontSize:10,color:'#555',marginBottom:5,textTransform:'uppercase',letterSpacing:'.08em'}}>Valor del deal ($)</div>
+                    <input type="number" defaultValue={editing.dealValue||7990} onBlur={e=>setOffices(p=>p.map(o=>o.id===editing.id?{...o,dealValue:parseInt(e.target.value)||7990}:o))} style={inp} placeholder="7990"/>
+                    <div style={{fontSize:9,color:'#333',marginTop:4}}>Lo que el cliente cobra por cada venta</div>
+                  </div>
+                </div>
                 <div>
                   <div style={{fontSize:10,color:'#555',marginBottom:8,textTransform:'uppercase',letterSpacing:'.08em'}}>Color Accent</div>
                   <div style={{display:'flex',gap:8,flexWrap:'wrap',alignItems:'center'}}>
