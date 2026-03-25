@@ -1707,7 +1707,7 @@ body{background:#080a0d;color:#fff;font-family:'Roboto',sans-serif;padding:36px 
                             {metrics.map(m=>{
                               const sel=stcM.includes(m.id);
                               return(
-                                <div key={m.id} onClick={()=>setBgThemes(p=>({...p,STC:{...(p.STC||{}),metrics:sel?(stcM).filter(x=>x!==m.id):[...stcM,m.id]}}))} title={m.desc} style={{
+                                <div key={m.id} onClick={()=>setBgThemes(p=>{const cur=p.STC?.metrics||[];const nm=cur.includes(m.id)?cur.filter(x=>x!==m.id):[...cur,m.id];return{...p,STC:{...(p.STC||{}),metrics:nm}}})} title={m.desc} style={{
                                   padding:'4px 11px',borderRadius:6,cursor:'pointer',fontSize:11,fontFamily:"'Roboto',sans-serif",transition:'all .15s',
                                   background:sel?'rgba(255,255,255,0.15)':'rgba(255,255,255,0.03)',
                                   border:`1px solid ${sel?'rgba(255,255,255,0.35)':'rgba(255,255,255,0.07)'}`,
