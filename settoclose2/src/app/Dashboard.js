@@ -324,6 +324,7 @@ export default function Dashboard() {
   const [nCustomPrice, setNCustomPrice] = useState('');
   const [bgThemes,  setBgThemes]  = useState(()=>{try{const s=localStorage.getItem('stc_bg_themes');return s?JSON.parse(s):{}}catch{return {}}});
   const [editing,   setEditing]   = useState(null);
+  const [editMetrics, setEditMetrics] = useState([]); // isolated metrics state for the editor
   const [editTabIdx,setEditTabIdx] = useState(0); // 0=Config 1=Metrics 2=BG
   const [editBgTab, setEditBgTab] = useState(false); // legacy compat
   const [editingSTC,setEditingSTC]= useState(false);
@@ -367,6 +368,8 @@ export default function Dashboard() {
     loadSettings();
   }, []);
   useEffect(()=>{if(editingAction!==null&&editTextRef.current){editTextRef.current.innerHTML=editText;}}, [editingAction]);
+  // Sync editMetrics when a client modal opens or closes
+  useEffect(()=>{ setEditMetrics(editing ? (editing.metrics||[]) : []); }, [editing]);
 
   // ── LOGIN ────────────────────────────────────────────────────────
   const [authed, setAuthed] = useState(false);
@@ -1806,7 +1809,7 @@ body{background:#080a0d;color:#fff;font-family:'Roboto',sans-serif;padding:36px 
                   <div style={{fontSize:11,color:'#555',marginBottom:12,letterSpacing:'0.05em'}}>¿En qué industria opera este cliente?</div>
                   <div style={{display:'grid',gridTemplateColumns:'repeat(2,1fr)',gap:8}}>
                     {INDUSTRIES.map(ind=>(
-                      <div key={ind.id} onClick={()=>{const nd={industry:ind.id,metrics:ind.defaultMetrics};setOffices(p=>p.map(o=>o.id===editing.id?{...o,...nd}:o));setEditing(e=>({...e,...nd}));}} style={{
+                      <div key={ind.id} onClick={()=>{const nd={industry:ind.id,metrics:ind.defaultMetrics};setOffices(p=>p.map(o=>o.id===editing.id?{...o,...nd}:o));setEditing(e=>({...e,...nd}));setEditMetrics(ind.defaultMetrics);}} style={{
                         padding:'10px 14px',borderRadius:10,cursor:'pointer',transition:'all .2s',
                         border:`1px solid ${editing.industry===ind.id?editing.color+'80':'rgba(255,255,255,0.07)'}`,
                         background:editing.industry===ind.id?editing.color+'12':'rgba(255,255,255,0.02)',
@@ -1821,33 +1824,29 @@ body{background:#080a0d;color:#fff;font-family:'Roboto',sans-serif;padding:36px 
                 </div>
                 <div>
                   {(()=>{
-                    // Read metrics from offices (canonical source) to avoid stale editing closure
-                    const selM=(offices.find(o=>o.id===editing.id)?.metrics)||[];
                     const mF=metricSearch.trim()?METRIC_OPTIONS.filter(m=>m.label.toLowerCase().includes(metricSearch.toLowerCase())||m.group.toLowerCase().includes(metricSearch.toLowerCase())||m.desc.toLowerCase().includes(metricSearch.toLowerCase())):METRIC_OPTIONS;
                     const mG=mF.reduce((acc,m)=>{if(!acc[m.group])acc[m.group]=[];acc[m.group].push(m);return acc;},{});
                     const toggleMetric=(mid)=>{
-                      // Write directly to offices with functional updater — always reads latest state
-                      setOffices(p=>p.map(o=>{
-                        if(o.id!==editing.id) return o;
-                        const cur=o.metrics||[];
-                        const nm=cur.includes(mid)?cur.filter(x=>x!==mid):[...cur,mid];
-                        return {...o,metrics:nm};
-                      }));
+                      setEditMetrics(prev=>{
+                        const nm=prev.includes(mid)?prev.filter(x=>x!==mid):[...prev,mid];
+                        setOffices(p=>p.map(o=>o.id===editing.id?{...o,metrics:nm}:o));
+                        return nm;
+                      });
                     };
                     return(
                       <>
                         <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',marginBottom:8}}>
                           <div style={{fontSize:11,color:'#555',letterSpacing:'0.05em'}}>Métricas visibles en el dashboard</div>
-                          <span style={{fontSize:10,color:editing.color,fontFamily:'monospace',background:`${editing.color}15`,padding:'2px 8px',borderRadius:10,border:`1px solid ${editing.color}30`}}>{selM.length} seleccionadas</span>
+                          <span style={{fontSize:10,color:editing.color,fontFamily:'monospace',background:`${editing.color}15`,padding:'2px 8px',borderRadius:10,border:`1px solid ${editing.color}30`}}>{editMetrics.length} seleccionadas</span>
                         </div>
                         <input value={metricSearch} onChange={e=>setMetricSearch(e.target.value)} placeholder="🔍 Buscar métrica..." style={{background:'rgba(255,255,255,0.05)',border:`1px solid ${editing.color}20`,borderRadius:8,padding:'8px 12px',color:'#aaa',fontSize:12,fontFamily:"'Roboto',sans-serif",outline:'none',width:'100%',boxSizing:'border-box',marginBottom:10}}/>
                         <div style={{maxHeight:240,overflowY:'auto',paddingRight:4,marginBottom:12}}>
                           {Object.entries(mG).map(([group,metrics])=>(
                             <div key={group} style={{marginBottom:10}}>
-                              <div style={{fontSize:9,color:'#333',textTransform:'uppercase',letterSpacing:'0.1em',marginBottom:6,fontWeight:700,display:'flex',alignItems:'center',gap:6}}>{group}<span style={{color:'#222',fontWeight:400}}>({metrics.filter(m=>selM.includes(m.id)).length}/{metrics.length})</span></div>
+                              <div style={{fontSize:9,color:'#333',textTransform:'uppercase',letterSpacing:'0.1em',marginBottom:6,fontWeight:700,display:'flex',alignItems:'center',gap:6}}>{group}<span style={{color:'#222',fontWeight:400}}>({metrics.filter(m=>editMetrics.includes(m.id)).length}/{metrics.length})</span></div>
                               <div style={{display:'flex',flexWrap:'wrap',gap:5}}>
                                 {metrics.map(m=>{
-                                  const sel=selM.includes(m.id);
+                                  const sel=editMetrics.includes(m.id);
                                   return(
                                     <div key={m.id} onClick={()=>toggleMetric(m.id)} title={m.desc} style={{
                                       padding:'4px 11px',borderRadius:6,cursor:'pointer',fontSize:11,fontFamily:"'Roboto',sans-serif",transition:'all .15s',
