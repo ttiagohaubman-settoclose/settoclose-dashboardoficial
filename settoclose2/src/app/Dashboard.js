@@ -1045,16 +1045,28 @@ body{background:#080a0d;color:#fff;font-family:'Roboto',sans-serif;padding:36px 
             </div>
             <div style={{fontSize:11,fontWeight:600,color:'#555',letterSpacing:'.1em',textTransform:'uppercase',marginBottom:14}}>Métricas Globales</div>
             <div style={{display:'grid',gridTemplateColumns:'repeat(4,1fr)',gap:12,marginBottom:32}}>
-              {[
-                { id:'spend',      label:'Ad Spend Total',   value: fmt$(stcTotals.spend),       sub: `${offices.length} cuentas`,                                                             vals: allOfficesData.map(o=>({id:o.id,name:o.name,color:o.color,v:fmt$(o.spend)})) },
-                { id:'leads',      label:'Total Leads',      value: fmtN(stcTotals.leads),       sub: `CPL: ${fmt$(stcTotals.leads>0?stcTotals.spend/stcTotals.leads:0)}`,                    vals: allOfficesData.map(o=>({id:o.id,name:o.name,color:o.color,v:fmtN(o.leads)})) },
-                { id:'cpl',        label:'CPL Promedio',     value: fmt$(stcTotals.leads>0?stcTotals.spend/stcTotals.leads:0), sub: 'Costo por lead',                                         vals: allOfficesData.map(o=>({id:o.id,name:o.name,color:o.color,v:fmt$(o.cpl)})) },
-                { id:'apps',       label:'Apps Booked',      value: fmtN(stcTotals.appsBooked),  sub: `Show rate: ${stcTotals.appsBooked>0?((stcTotals.appsShowed/stcTotals.appsBooked)*100).toFixed(1):0}%`, vals: allOfficesData.map(o=>({id:o.id,name:o.name,color:o.color,v:fmtN(o.appsBooked)})) },
-                { id:'showed',     label:'Apps Showed',      value: fmtN(stcTotals.appsShowed),  sub: 'Total presentadas',                                                                    vals: allOfficesData.map(o=>({id:o.id,name:o.name,color:o.color,v:fmtN(o.appsShowed)})) },
-                { id:'sales',      label:'Deals Cerrados',   value: fmtN(stcTotals.sales),       sub: `Close: ${stcTotals.appsShowed>0?((stcTotals.sales/stcTotals.appsShowed)*100).toFixed(1):0}%`, vals: allOfficesData.map(o=>({id:o.id,name:o.name,color:o.color,v:fmtN(o.sales)})) },
-                { id:'cash',       label:'Cash Tiago Total', value: fmt$(stcTotals.cashTiago),   sub: 'Tu revenue personal',                                                                  vals: allOfficesData.map(o=>({id:o.id,name:o.name,color:o.color,v:fmt$(o.cashTiago)})) },
-                { id:'impressions',label:'Impresiones',      value: fmtN(stcTotals.impressions), sub: 'Total alcance',                                                                        vals: allOfficesData.map(o=>({id:o.id,name:o.name,color:o.color,v:fmtN(o.impressions)})) },
-              ].map(kpi=>(
+              {(()=>{
+                const _sr=stcTotals.appsBooked>0?(stcTotals.appsShowed/stcTotals.appsBooked*100):0;
+                const _cr=stcTotals.appsShowed>0?(stcTotals.sales/stcTotals.appsShowed*100):0;
+                const _cac=stcTotals.sales>0?(stcTotals.spend/stcTotals.sales):0;
+                const _roas=stcTotals.spend>0?(stcTotals.cashTiago/stcTotals.spend):0;
+                const stcSelM=bgThemes['STC']?.metrics||[];
+                return [
+                { metricId:'spend',      id:'spend',      label:'Ad Spend Total',   value: fmt$(stcTotals.spend),       sub: `${offices.length} cuentas`,             vals: allOfficesData.map(o=>({id:o.id,name:o.name,color:o.color,v:fmt$(o.spend)})) },
+                { metricId:'leads',      id:'leads',      label:'Total Leads',      value: fmtN(stcTotals.leads),       sub: `CPL: ${fmt$(stcTotals.leads>0?stcTotals.spend/stcTotals.leads:0)}`, vals: allOfficesData.map(o=>({id:o.id,name:o.name,color:o.color,v:fmtN(o.leads)})) },
+                { metricId:'cpl',        id:'cpl',        label:'CPL Promedio',     value: fmt$(stcTotals.leads>0?stcTotals.spend/stcTotals.leads:0), sub: 'Costo por lead', vals: allOfficesData.map(o=>({id:o.id,name:o.name,color:o.color,v:fmt$(o.cpl)})) },
+                { metricId:'appsBooked', id:'apps',       label:'Apps Booked',      value: fmtN(stcTotals.appsBooked),  sub: `Show rate: ${_sr.toFixed(1)}%`,         vals: allOfficesData.map(o=>({id:o.id,name:o.name,color:o.color,v:fmtN(o.appsBooked)})) },
+                { metricId:'appsShowed', id:'showed',     label:'Apps Showed',      value: fmtN(stcTotals.appsShowed),  sub: 'Total presentadas',                     vals: allOfficesData.map(o=>({id:o.id,name:o.name,color:o.color,v:fmtN(o.appsShowed)})) },
+                { metricId:'showRate',   id:'showRate',   label:'Show Rate',        value: `${_sr.toFixed(1)}%`,        sub: 'Showed / Booked',                       vals: allOfficesData.map(o=>({id:o.id,name:o.name,color:o.color,v:`${o.appsBooked>0?((o.appsShowed/o.appsBooked)*100).toFixed(1):0}%`})) },
+                { metricId:'sales',      id:'sales',      label:'Deals Cerrados',   value: fmtN(stcTotals.sales),       sub: `Close: ${_cr.toFixed(1)}%`,             vals: allOfficesData.map(o=>({id:o.id,name:o.name,color:o.color,v:fmtN(o.sales)})) },
+                { metricId:'closeRate',  id:'closeRate',  label:'Close Rate',       value: `${_cr.toFixed(1)}%`,        sub: 'Closed / Showed',                       vals: allOfficesData.map(o=>({id:o.id,name:o.name,color:o.color,v:`${o.appsShowed>0?((o.sales/o.appsShowed)*100).toFixed(1):0}%`})) },
+                { metricId:'cashTiago',  id:'cash',       label:'Cash Tiago Total', value: fmt$(stcTotals.cashTiago),   sub: 'Tu revenue personal',                   vals: allOfficesData.map(o=>({id:o.id,name:o.name,color:o.color,v:fmt$(o.cashTiago)})) },
+                { metricId:'impressions',id:'impressions',label:'Impresiones',      value: fmtN(stcTotals.impressions), sub: 'Total alcance',                         vals: allOfficesData.map(o=>({id:o.id,name:o.name,color:o.color,v:fmtN(o.impressions)})) },
+                { metricId:'linkClicks', id:'linkClicks', label:'Link Clicks',      value: fmtN(stcTotals.linkClicks),  sub: 'Total clics en enlace',                 vals: allOfficesData.map(o=>({id:o.id,name:o.name,color:o.color,v:fmtN(o.linkClicks)})) },
+                { metricId:'cac',        id:'cac',        label:'CAC Promedio',     value: fmt$(_cac),                  sub: 'Spend / Deals',                         vals: allOfficesData.map(o=>({id:o.id,name:o.name,color:o.color,v:fmt$(o.sales>0?o.spend/o.sales:0)})) },
+                { metricId:'roas',       id:'roas',       label:'ROAS (Cash)',      value: `${_roas.toFixed(2)}x`,      sub: 'Cash Tiago / Spend',                    vals: allOfficesData.map(o=>({id:o.id,name:o.name,color:o.color,v:`${o.spend>0?(o.cashTiago/o.spend).toFixed(2):0}x`})) },
+                ].filter(kpi=>stcSelM.length===0||stcSelM.includes(kpi.metricId))
+                .map(kpi=>(
                 <div key={kpi.id} onClick={()=>setExpandedKpi(expandedKpi===kpi.id?null:kpi.id)} style={{background:'rgba(255,255,255,0.03)',border:`1px solid ${expandedKpi===kpi.id?'rgba(255,255,255,0.2)':'rgba(255,255,255,0.07)'}`,borderRadius:14,padding:'16px 18px',cursor:'pointer',transition:'all .2s',position:'relative'}}>
                   <div style={{fontSize:10,color:'#555',textTransform:'uppercase',letterSpacing:'.1em',marginBottom:8,fontWeight:600}}>{kpi.label}</div>
                   <div style={{fontSize:24,fontWeight:700,fontFamily:"'Poppins',sans-serif",color:textPrimary,marginBottom:4}}>{kpi.value}</div>
@@ -1074,7 +1086,8 @@ body{background:#080a0d;color:#fff;font-family:'Roboto',sans-serif;padding:36px 
                     </div>
                   )}
                 </div>
-              ))}
+              ))
+              })()}
             </div>
             {allVentas.length>0&&(
               <>
