@@ -325,6 +325,7 @@ export default function Dashboard() {
   const [bgThemes,  setBgThemes]  = useState(()=>{try{const s=localStorage.getItem('stc_bg_themes');return s?JSON.parse(s):{}}catch{return {}}});
   const [editing,   setEditing]   = useState(null);
   const [editMetrics, setEditMetrics] = useState([]); // isolated metrics state for the editor
+  const editMetricsRef = useRef([]); // ref mirror — always in sync, immune to stale closures
   const [editTabIdx,setEditTabIdx] = useState(0); // 0=Config 1=Metrics 2=BG
   const [editBgTab, setEditBgTab] = useState(false); // legacy compat
   const [editingSTC,setEditingSTC]= useState(false);
@@ -368,8 +369,13 @@ export default function Dashboard() {
     loadSettings();
   }, []);
   useEffect(()=>{if(editingAction!==null&&editTextRef.current){editTextRef.current.innerHTML=editText;}}, [editingAction]);
-  // Sync editMetrics when a client modal opens or closes
-  useEffect(()=>{ setEditMetrics(editing ? (editing.metrics||[]) : []); }, [editing]);
+  // Sync editMetrics when a DIFFERENT client modal opens (keyed by id, not object reference)
+  useEffect(()=>{
+    const m = editing ? (offices.find(o=>o.id===editing.id)?.metrics||[]) : [];
+    editMetricsRef.current = m;
+    setEditMetrics(m);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [editing?.id]);
 
   // ── LOGIN ────────────────────────────────────────────────────────
   const [authed, setAuthed] = useState(false);
@@ -1809,7 +1815,7 @@ body{background:#080a0d;color:#fff;font-family:'Roboto',sans-serif;padding:36px 
                   <div style={{fontSize:11,color:'#555',marginBottom:12,letterSpacing:'0.05em'}}>¿En qué industria opera este cliente?</div>
                   <div style={{display:'grid',gridTemplateColumns:'repeat(2,1fr)',gap:8}}>
                     {INDUSTRIES.map(ind=>(
-                      <div key={ind.id} onClick={()=>{const nd={industry:ind.id,metrics:ind.defaultMetrics};setOffices(p=>p.map(o=>o.id===editing.id?{...o,...nd}:o));setEditing(e=>({...e,...nd}));setEditMetrics(ind.defaultMetrics);}} style={{
+                      <div key={ind.id} onClick={()=>{const nd={industry:ind.id,metrics:ind.defaultMetrics};setOffices(p=>p.map(o=>o.id===editing.id?{...o,...nd}:o));setEditing(e=>({...e,...nd}));editMetricsRef.current=ind.defaultMetrics;setEditMetrics(ind.defaultMetrics);}} style={{
                         padding:'10px 14px',borderRadius:10,cursor:'pointer',transition:'all .2s',
                         border:`1px solid ${editing.industry===ind.id?editing.color+'80':'rgba(255,255,255,0.07)'}`,
                         background:editing.industry===ind.id?editing.color+'12':'rgba(255,255,255,0.02)',
@@ -1827,11 +1833,12 @@ body{background:#080a0d;color:#fff;font-family:'Roboto',sans-serif;padding:36px 
                     const mF=metricSearch.trim()?METRIC_OPTIONS.filter(m=>m.label.toLowerCase().includes(metricSearch.toLowerCase())||m.group.toLowerCase().includes(metricSearch.toLowerCase())||m.desc.toLowerCase().includes(metricSearch.toLowerCase())):METRIC_OPTIONS;
                     const mG=mF.reduce((acc,m)=>{if(!acc[m.group])acc[m.group]=[];acc[m.group].push(m);return acc;},{});
                     const toggleMetric=(mid)=>{
-                      setEditMetrics(prev=>{
-                        const nm=prev.includes(mid)?prev.filter(x=>x!==mid):[...prev,mid];
-                        setOffices(p=>p.map(o=>o.id===editing.id?{...o,metrics:nm}:o));
-                        return nm;
-                      });
+                      // Use ref as source of truth — never stale, always synchronous
+                      const cur=editMetricsRef.current;
+                      const nm=cur.includes(mid)?cur.filter(x=>x!==mid):[...cur,mid];
+                      editMetricsRef.current=nm;
+                      setEditMetrics(nm);
+                      setOffices(p=>p.map(o=>o.id===editing.id?{...o,metrics:nm}:o));
                     };
                     return(
                       <>
