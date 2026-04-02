@@ -556,6 +556,10 @@ export default function Dashboard() {
     };
     (office?.customConversions||[]).forEach(cv=>{ z[`conv_${cv.id}`]=0; });
     data.forEach(d=>Object.keys(z).forEach(k=>{z[k]+=d[k]||0;}));
+    // Accumulate ALL raw action types from _a dict — enables any Meta event as a metric
+    const _actionTotals = {};
+    data.forEach(d=>{ Object.entries(d._a||{}).forEach(([k,v])=>{ _actionTotals[k]=(_actionTotals[k]||0)+v; }); });
+    z._actionTotals = _actionTotals;
     return z;
   },[data, office]);
 
@@ -1226,6 +1230,14 @@ body{background:#080a0d;color:#fff;font-family:'Roboto',sans-serif;padding:36px 
                       ...acc,
                       [`conv_${cv.id}`]:{label:cv.name,value:fmtN(T[`conv_${cv.id}`]||0),sub:'Conv. personalizada',color:'#C084FC'},
                     }),{}),
+                    // Dynamic action metrics — any Meta event_type the user selected
+                    ...(office.customActionMetrics||[]).reduce((acc,m)=>{
+                      const tot=T._actionTotals?.[m.actionType]||0;
+                      const costPer=tot>0?(T.spent/tot):0;
+                      acc[`act_${m.actionType}`]={label:m.label,value:fmtN(tot),sub:tot>0?`$${costPer.toFixed(2)} c/u`:'Sin datos',color:'#38BDF8'};
+                      if(m.showCost) acc[`act_cost_${m.actionType}`]={label:`Costo / ${m.label}`,value:fmt$(costPer),sub:`${fmtN(tot)} eventos`,color:'#38BDF8'};
+                      return acc;
+                    },{}),
                   };
                   const DEFAULT_METRICS=['spend','leads','cpl','roas','ctr','cpc','impressions','frequency','appsBooked','appsShowed','showRate','sales','closeRate','revenue','cashflow','cashTiago'];
                   const selM=(office.metrics||[]).length>0?office.metrics:DEFAULT_METRICS;
@@ -1860,7 +1872,12 @@ body{background:#080a0d;color:#fff;font-family:'Roboto',sans-serif;padding:36px 
                 <div>
                   {(()=>{
                     const customConvMetrics=(editing.customConversions||[]).map(cv=>({id:`conv_${cv.id}`,label:cv.name,group:'Conversiones Personalizadas',desc:`Conv. personalizada · ID ${cv.id}`}));
-                    const allMetricOpts=[...METRIC_OPTIONS,...customConvMetrics];
+                    const customActionMetrics=(editing.customActionMetrics||[]).flatMap(m=>{
+                      const items=[{id:`act_${m.actionType}`,label:m.label,group:'Eventos Meta (Custom)',desc:`Action type: ${m.actionType}`}];
+                      if(m.showCost) items.push({id:`act_cost_${m.actionType}`,label:`Costo / ${m.label}`,group:'Eventos Meta (Custom)',desc:`Costo por ${m.actionType}`});
+                      return items;
+                    });
+                    const allMetricOpts=[...METRIC_OPTIONS,...customConvMetrics,...customActionMetrics];
                     const mF=metricSearch.trim()?allMetricOpts.filter(m=>m.label.toLowerCase().includes(metricSearch.toLowerCase())||m.group.toLowerCase().includes(metricSearch.toLowerCase())||m.desc.toLowerCase().includes(metricSearch.toLowerCase())):allMetricOpts;
                     const mG=mF.reduce((acc,m)=>{if(!acc[m.group])acc[m.group]=[];acc[m.group].push(m);return acc;},{});
                     const toggleMetric=(mid)=>{
@@ -1942,109 +1959,129 @@ body{background:#080a0d;color:#fff;font-family:'Roboto',sans-serif;padding:36px 
               </div>
             )}
 
-            {/* ── TAB 3: CONVERSIONES PERSONALIZADAS ── */}
-            {editTabIdx===3&&(
-              <div style={{display:'flex',flexDirection:'column',gap:16}}>
+            {/* ── TAB 3: EVENTOS META (cualquier action_type) ── */}
+            {editTabIdx===3&&(()=>{
+              const activeAct = editing.customActionMetrics||[];
+              const addActionMetric = (actionType, label, showCost=false) => {
+                if(activeAct.find(x=>x.actionType===actionType)) return;
+                const nm2 = [...(editing.metrics||[]), `act_${actionType}`, ...(showCost?[`act_cost_${actionType}`]:[])];
+                const na  = [...activeAct, {actionType, label, showCost}];
+                setOffices(p=>p.map(o=>o.id===editing.id?{...o,customActionMetrics:na,metrics:nm2}:o));
+                setEditing(e=>({...e,customActionMetrics:na,metrics:nm2}));
+                editMetricsRef.current=nm2; setEditMetrics(nm2);
+              };
+              const removeActionMetric = (actionType) => {
+                const na = activeAct.filter(x=>x.actionType!==actionType);
+                const nm2 = (editing.metrics||[]).filter(m=>m!==`act_${actionType}`&&m!==`act_cost_${actionType}`);
+                setOffices(p=>p.map(o=>o.id===editing.id?{...o,customActionMetrics:na,metrics:nm2}:o));
+                setEditing(e=>({...e,customActionMetrics:na,metrics:nm2}));
+                editMetricsRef.current=nm2; setEditMetrics(nm2);
+              };
+              return(
+              <div style={{display:'flex',flexDirection:'column',gap:14}}>
                 <div>
-                  <div style={{fontSize:14,fontWeight:700,color:'#fff',fontFamily:"'Poppins',sans-serif",marginBottom:4}}>Conversiones Personalizadas</div>
-                  <div style={{fontSize:11,color:'#555',marginBottom:12}}>Selecciona los eventos de Meta que quieres trackear como métricas en el dashboard.</div>
-                  {!editing.adAccountId&&(
-                    <div style={{background:'rgba(251,146,60,0.08)',border:'1px solid rgba(251,146,60,0.25)',borderRadius:10,padding:'10px 14px',fontSize:11,color:'#FB923C'}}>
-                      ⚠ Este cliente no tiene un Ad Account ID configurado. Agrégalo en la pestaña Config.
-                    </div>
-                  )}
-                  {editing.adAccountId&&(
-                    <button
-                      onClick={async()=>{
-                        setConvLoading(true);
-                        setAvailableConversions([]);
-                        try{
-                          const r=await fetch(`/api/meta/conversions?adAccountId=${editing.adAccountId}`);
-                          const j=await r.json();
-                          if(j.error){alert('Error: '+j.error);return;}
-                          setAvailableConversions([...(j.conversions||[]),...(j.standardEvents||[])]);
-                        }catch(e){alert('Error al cargar: '+e.message);}
-                        finally{setConvLoading(false);}
-                      }}
-                      style={{...btnP(editing.color),marginBottom:12,width:'100%',textAlign:'center'}}
-                    >
-                      {convLoading?'Cargando...':'⬇ Cargar conversiones disponibles'}
-                    </button>
-                  )}
+                  <div style={{fontSize:13,fontWeight:700,color:'#fff',fontFamily:"'Poppins',sans-serif",marginBottom:3}}>Eventos Meta</div>
+                  <div style={{fontSize:11,color:'#555'}}>Agrega CUALQUIER evento de Meta como métrica: Landing Page Views, eventos personalizados, etc.</div>
                 </div>
 
-                {/* Active custom conversions */}
-                {(editing.customConversions||[]).length>0&&(
+                {!editing.adAccountId&&(
+                  <div style={{background:'rgba(251,146,60,0.08)',border:'1px solid rgba(251,146,60,0.25)',borderRadius:8,padding:'10px 14px',fontSize:11,color:'#FB923C'}}>
+                    ⚠ Configura el Ad Account ID en la pestaña Config primero.
+                  </div>
+                )}
+
+                {/* Load events from account */}
+                {editing.adAccountId&&(
+                  <button onClick={async()=>{
+                    setConvLoading(true); setAvailableConversions([]);
+                    try{
+                      const r=await fetch(`/api/meta/actions?adAccountId=${editing.adAccountId}&dateFrom=${dateFrom}&dateTo=${dateTo}`);
+                      const j=await r.json();
+                      if(j.error){alert('Error: '+j.error);return;}
+                      setAvailableConversions(j.actions||[]);
+                    }catch(e){alert('Error: '+e.message);}
+                    finally{setConvLoading(false);}
+                  }} style={{...btnP(editing.color),width:'100%',textAlign:'center'}}>
+                    {convLoading?'Cargando eventos...':'🔍 Explorar eventos activos en tu cuenta'}
+                  </button>
+                )}
+
+                {/* Eventos activos */}
+                {activeAct.length>0&&(
                   <div>
-                    <div style={{fontSize:10,color:editing.color,textTransform:'uppercase',letterSpacing:'.1em',marginBottom:8,fontWeight:700}}>Conversiones activas ({(editing.customConversions||[]).length})</div>
+                    <div style={{fontSize:10,color:editing.color,textTransform:'uppercase',letterSpacing:'.1em',marginBottom:6,fontWeight:700}}>Activos ({activeAct.length})</div>
                     <div style={{display:'flex',flexDirection:'column',gap:5}}>
-                      {(editing.customConversions||[]).map(cv=>(
-                        <div key={cv.id} style={{display:'flex',alignItems:'center',justifyContent:'space-between',background:`${editing.color}10`,border:`1px solid ${editing.color}30`,borderRadius:8,padding:'8px 12px'}}>
-                          <div>
-                            <div style={{fontSize:12,color:'#ddd',fontWeight:600}}>{cv.name}</div>
-                            <div style={{fontSize:10,color:'#444',fontFamily:'monospace',marginTop:2}}>ID: {cv.id}</div>
+                      {activeAct.map(m=>(
+                        <div key={m.actionType} style={{display:'flex',alignItems:'center',justifyContent:'space-between',background:`${editing.color}10`,border:`1px solid ${editing.color}30`,borderRadius:8,padding:'8px 12px'}}>
+                          <div style={{flex:1,minWidth:0}}>
+                            <div style={{fontSize:12,color:'#ddd',fontWeight:600}}>{m.label}</div>
+                            <div style={{display:'flex',gap:8,marginTop:2,alignItems:'center'}}>
+                              <span style={{fontSize:10,color:'#444',fontFamily:'monospace'}}>{m.actionType}</span>
+                              {m.showCost&&<span style={{fontSize:9,color:editing.color,background:`${editing.color}15`,padding:'1px 6px',borderRadius:4,border:`1px solid ${editing.color}30`}}>+ Costo</span>}
+                            </div>
                           </div>
-                          <button
-                            onClick={()=>{
-                              const nc=(editing.customConversions||[]).filter(x=>x.id!==cv.id);
-                              setOffices(p=>p.map(o=>o.id===editing.id?{...o,customConversions:nc,metrics:(o.metrics||[]).filter(m=>m!==`conv_${cv.id}`)}:o));
-                              setEditing(e=>({...e,customConversions:nc}));
-                            }}
-                            style={{background:'rgba(255,77,77,0.1)',border:'1px solid rgba(255,77,77,0.25)',borderRadius:6,padding:'4px 10px',color:'#FF4D4D',fontSize:11,cursor:'pointer'}}
-                          >Quitar</button>
+                          <div style={{display:'flex',gap:5,alignItems:'center'}}>
+                            <button onClick={()=>{
+                              const na=activeAct.map(x=>x.actionType===m.actionType?{...x,showCost:!x.showCost}:x);
+                              const nm2=(editing.metrics||[]).filter(k=>k!==`act_cost_${m.actionType}`);
+                              if(!m.showCost) nm2.push(`act_cost_${m.actionType}`);
+                              setOffices(p=>p.map(o=>o.id===editing.id?{...o,customActionMetrics:na,metrics:nm2}:o));
+                              setEditing(e=>({...e,customActionMetrics:na,metrics:nm2}));
+                              editMetricsRef.current=nm2; setEditMetrics(nm2);
+                            }} title="Toggle costo" style={{background:'rgba(255,255,255,0.05)',border:'1px solid rgba(255,255,255,0.1)',borderRadius:6,padding:'3px 8px',color:m.showCost?editing.color:'#444',fontSize:10,cursor:'pointer'}}>
+                              {m.showCost?'✓ Costo':'+ Costo'}
+                            </button>
+                            <button onClick={()=>removeActionMetric(m.actionType)} style={{background:'rgba(255,77,77,0.1)',border:'1px solid rgba(255,77,77,0.2)',borderRadius:6,padding:'3px 8px',color:'#FF4D4D',fontSize:10,cursor:'pointer'}}>✕</button>
+                          </div>
                         </div>
                       ))}
                     </div>
                   </div>
                 )}
 
-                {/* Available conversions list */}
+                {/* Eventos descubiertos en la cuenta */}
                 {availableConversions.length>0&&(
                   <div>
-                    <div style={{fontSize:10,color:'#555',textTransform:'uppercase',letterSpacing:'.1em',marginBottom:8,fontWeight:700}}>Disponibles en tu cuenta</div>
-                    <div style={{display:'flex',flexDirection:'column',gap:5,maxHeight:260,overflowY:'auto'}}>
-                      {availableConversions.filter(cv=>!(editing.customConversions||[]).find(x=>x.id===cv.id)).map(cv=>(
-                        <div key={cv.id} style={{display:'flex',alignItems:'center',justifyContent:'space-between',background:'rgba(255,255,255,0.02)',border:'1px solid rgba(255,255,255,0.07)',borderRadius:8,padding:'8px 12px'}}>
+                    <div style={{fontSize:10,color:'#555',textTransform:'uppercase',letterSpacing:'.1em',marginBottom:6,fontWeight:700}}>Encontrados en tu cuenta</div>
+                    <div style={{display:'flex',flexDirection:'column',gap:4,maxHeight:280,overflowY:'auto',paddingRight:2}}>
+                      {availableConversions.filter(ev=>!activeAct.find(x=>x.actionType===ev.actionType)).map(ev=>(
+                        <div key={ev.actionType} style={{display:'flex',alignItems:'center',justifyContent:'space-between',background:'rgba(255,255,255,0.02)',border:'1px solid rgba(255,255,255,0.06)',borderRadius:8,padding:'8px 12px'}}>
                           <div style={{flex:1,minWidth:0}}>
-                            <div style={{fontSize:12,color:'#bbb',fontWeight:500,whiteSpace:'nowrap',overflow:'hidden',textOverflow:'ellipsis'}}>{cv.name}</div>
-                            <div style={{fontSize:10,color:'#333',fontFamily:'monospace',marginTop:1}}>{cv.eventType} · {cv.id}</div>
+                            <div style={{fontSize:12,color:'#bbb',fontWeight:500}}>{ev.label}</div>
+                            <div style={{display:'flex',gap:8,marginTop:1,alignItems:'center'}}>
+                              <span style={{fontSize:10,color:'#333',fontFamily:'monospace',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap',maxWidth:180}}>{ev.actionType}</span>
+                              <span style={{fontSize:9,color:'#555'}}>{fmtN(ev.count)} eventos</span>
+                              {ev.hasCost&&<span style={{fontSize:9,color:'#4ADE80'}}>tiene costo</span>}
+                            </div>
                           </div>
-                          <button
-                            onClick={()=>{
-                              const nc=[...(editing.customConversions||[]),{id:cv.id,name:cv.name}];
-                              const nm=[...(editing.metrics||[]),`conv_${cv.id}`];
-                              setOffices(p=>p.map(o=>o.id===editing.id?{...o,customConversions:nc,metrics:nm}:o));
-                              setEditing(e=>({...e,customConversions:nc,metrics:nm}));
-                              editMetricsRef.current=nm;
-                              setEditMetrics(nm);
-                            }}
-                            style={{...btnP(editing.color),padding:'4px 10px',fontSize:11,flexShrink:0,marginLeft:8}}
-                          >+ Agregar</button>
+                          <button onClick={()=>addActionMetric(ev.actionType, ev.label, ev.hasCost)} style={{...btnP(editing.color),padding:'4px 10px',fontSize:11,flexShrink:0,marginLeft:8}}>+ Agregar</button>
                         </div>
                       ))}
                     </div>
                   </div>
                 )}
 
-                {/* Manual add by ID */}
+                {/* Agregar por action_type manual */}
                 <div style={{borderTop:'1px solid rgba(255,255,255,0.06)',paddingTop:12}}>
-                  <div style={{fontSize:10,color:'#555',marginBottom:8,textTransform:'uppercase',letterSpacing:'.08em'}}>Agregar manualmente por ID</div>
+                  <div style={{fontSize:10,color:'#555',marginBottom:8,textTransform:'uppercase',letterSpacing:'.08em'}}>Agregar por action_type manual</div>
                   {(()=>{
-                    let mId='',mName='';
+                    let mType='', mLabel='', mCost=false;
                     return(
-                      <div style={{display:'flex',gap:6}}>
-                        <input placeholder="ID de conversión" onChange={e=>mId=e.target.value} style={{...inp,flex:1,fontSize:11}} />
-                        <input placeholder="Nombre" onChange={e=>mName=e.target.value} style={{...inp,flex:1,fontSize:11}} />
-                        <button onClick={()=>{
-                          if(!mId.trim())return;
-                          const name=mName.trim()||mId;
-                          const nc=[...(editing.customConversions||[]),{id:mId.trim(),name}];
-                          const nm=[...(editing.metrics||[]),`conv_${mId.trim()}`];
-                          setOffices(p=>p.map(o=>o.id===editing.id?{...o,customConversions:nc,metrics:nm}:o));
-                          setEditing(e=>({...e,customConversions:nc,metrics:nm}));
-                          editMetricsRef.current=nm;
-                          setEditMetrics(nm);
-                        }} style={{...btnP(editing.color),padding:'0 12px',fontSize:11,flexShrink:0}}>+</button>
+                      <div style={{display:'flex',flexDirection:'column',gap:6}}>
+                        <div style={{display:'flex',gap:6}}>
+                          <input placeholder="action_type (ej: landing_page_view)" onChange={e=>{mType=e.target.value;}} style={{...inp,flex:2,fontSize:11,fontFamily:'monospace'}}/>
+                          <input placeholder="Nombre a mostrar" onChange={e=>{mLabel=e.target.value;}} style={{...inp,flex:1,fontSize:11}}/>
+                        </div>
+                        <div style={{display:'flex',gap:8,alignItems:'center'}}>
+                          <label style={{fontSize:11,color:'#555',display:'flex',alignItems:'center',gap:5,cursor:'pointer'}}>
+                            <input type="checkbox" onChange={e=>{mCost=e.target.checked;}} style={{accentColor:editing.color}}/>
+                            Agregar también "Costo por evento"
+                          </label>
+                          <button onClick={()=>{
+                            if(!mType.trim())return;
+                            addActionMetric(mType.trim(), mLabel.trim()||mType.trim(), mCost);
+                          }} style={{...btnP(editing.color),padding:'6px 14px',fontSize:11,marginLeft:'auto'}}>+ Agregar</button>
+                        </div>
                       </div>
                     );
                   })()}
@@ -2052,7 +2089,8 @@ body{background:#080a0d;color:#fff;font-family:'Roboto',sans-serif;padding:36px 
 
                 <button onClick={()=>{setEditTabIdx(0);fetchMeta(editing.id,dateFrom,dateTo);}} style={{...btnP(editing.color),textAlign:'center',marginTop:4}}>✓ Guardar y recargar datos</button>
               </div>
-            )}
+              );
+            })()}
 
             </div>
           </div>

@@ -40,16 +40,14 @@ export async function GET(request) {
     return data
   }
 
-  // Helper: extract numeric value from action array by action_type (tries multiple types)
-  const fromActions = (actions, ...types) => {
+  const fromActions = (arr, ...types) => {
     for (const t of types) {
-      const hit = actions.find(a => a.action_type === t)
+      const hit = arr.find(a => a.action_type === t)
       if (hit) return parseFloat(hit.value) || 0
     }
     return 0
   }
 
-  // Helper: sum all values from a video-watched array field
   const fromVideoField = (arr) => {
     if (!Array.isArray(arr)) return 0
     return arr.reduce((s, a) => s + (parseFloat(a.value) || 0), 0)
@@ -79,104 +77,78 @@ export async function GET(request) {
       const costPerAction = d.cost_per_action_type || []
       const spent         = parseFloat(d.spend || 0)
 
-      // ── Leads ──────────────────────────────────────────────────────
-      const leads = fromActions(actions,
-        'lead', 'onsite_conversion.lead_grouped', 'leadgen_grouped',
-        'offsite_conversion.fb_pixel_lead',
-      )
-      const cplAction = costPerAction.find(a =>
-        ['lead','onsite_conversion.lead_grouped','leadgen_grouped','offsite_conversion.fb_pixel_lead'].includes(a.action_type)
-      )
-      const cpl = cplAction ? parseFloat(cplAction.value) : (leads > 0 ? +(spent / leads).toFixed(2) : 0)
+      // ── Build raw action dict — covers EVERY event type Meta returns ──
+      // _a = {action_type: count}, _c = {action_type: cost_per_one}
+      const _a = {}
+      const _c = {}
+      actions.forEach(a => {
+        _a[a.action_type] = (_a[a.action_type] || 0) + (parseFloat(a.value) || 0)
+      })
+      costPerAction.forEach(a => {
+        // cost_per_action_type is average cost for that day; store raw so dashboard
+        // can recompute as total_spend / total_count across days.
+        _c[a.action_type] = parseFloat(a.value) || 0
+      })
 
-      // ── Conversiones estándar ──────────────────────────────────────
-      const purchases       = fromActions(actions, 'purchase', 'offsite_conversion.fb_pixel_purchase', 'omni_purchase')
-      const purchaseValue   = fromActions(actions, 'offsite_conversion.fb_pixel_custom', 'purchase_value') ||
-                              fromActions(costPerAction, 'purchase', 'offsite_conversion.fb_pixel_purchase') * purchases
-      const addToCart       = fromActions(actions, 'add_to_cart', 'offsite_conversion.fb_pixel_add_to_cart', 'omni_add_to_cart')
-      const initiateCheckout= fromActions(actions, 'initiate_checkout', 'offsite_conversion.fb_pixel_initiate_checkout', 'omni_initiated_checkout')
-      const viewContent     = fromActions(actions, 'view_content', 'offsite_conversion.fb_pixel_view_content', 'omni_view_content')
-      const registrations   = fromActions(actions, 'complete_registration', 'offsite_conversion.fb_pixel_complete_registration')
-      const leadFormOpens   = fromActions(actions, 'onsite_conversion.lead_grouped', 'lead_grouped')
-      const leadFormCompletions = leads // best approximation without a separate field
-
-      // ── Video ──────────────────────────────────────────────────────
-      const videoViews3s  = fromActions(actions, 'video_view')
-      const videoThruplay = fromVideoField(d.video_thruplay_watched_actions)
-      const videoP25      = fromVideoField(d.video_p25_watched_actions)
-      const videoP50      = fromVideoField(d.video_p50_watched_actions)
-      const videoP75      = fromVideoField(d.video_p75_watched_actions)
-      const videoP100     = fromVideoField(d.video_p100_watched_actions)
-
-      // ── Engagement ─────────────────────────────────────────────────
+      // ── Named fields (kept for backward compat + charts) ─────────────
+      const leads          = fromActions(actions, 'lead', 'onsite_conversion.lead_grouped', 'leadgen_grouped', 'offsite_conversion.fb_pixel_lead')
+      const cplAction      = costPerAction.find(a => ['lead','onsite_conversion.lead_grouped','leadgen_grouped','offsite_conversion.fb_pixel_lead'].includes(a.action_type))
+      const cpl            = cplAction ? parseFloat(cplAction.value) : (leads > 0 ? +(spent / leads).toFixed(2) : 0)
+      const purchases      = fromActions(actions, 'purchase', 'offsite_conversion.fb_pixel_purchase', 'omni_purchase')
+      const purchaseValue  = fromActions(actions, 'offsite_conversion.fb_pixel_custom', 'purchase_value') ||
+                             fromActions(costPerAction, 'purchase', 'offsite_conversion.fb_pixel_purchase') * purchases
+      const addToCart      = fromActions(actions, 'add_to_cart', 'offsite_conversion.fb_pixel_add_to_cart', 'omni_add_to_cart')
+      const initiateCheckout = fromActions(actions, 'initiate_checkout', 'offsite_conversion.fb_pixel_initiate_checkout', 'omni_initiated_checkout')
+      const viewContent    = fromActions(actions, 'view_content', 'offsite_conversion.fb_pixel_view_content', 'omni_view_content')
+      const registrations  = fromActions(actions, 'complete_registration', 'offsite_conversion.fb_pixel_complete_registration')
+      const videoViews3s   = fromActions(actions, 'video_view')
+      const videoThruplay  = fromVideoField(d.video_thruplay_watched_actions)
+      const videoP25       = fromVideoField(d.video_p25_watched_actions)
+      const videoP50       = fromVideoField(d.video_p50_watched_actions)
+      const videoP75       = fromVideoField(d.video_p75_watched_actions)
+      const videoP100      = fromVideoField(d.video_p100_watched_actions)
       const postEngagement = fromActions(actions, 'post_engagement', 'page_engagement')
       const reactions      = fromActions(actions, 'post_reaction', 'like')
       const comments       = fromActions(actions, 'comment')
       const shares         = fromActions(actions, 'post', 'share')
       const pageLikes      = fromActions(actions, 'like', 'page_like')
       const postClicks     = fromActions(actions, 'post_click', 'link_click')
-
-      // ── Mensajería ─────────────────────────────────────────────────
-      const messagingConversations = fromActions(actions,
-        'onsite_conversion.messaging_conversation_started_7d',
-        'onsite_conversion.messaging_first_reply',
-      )
+      const messagingConversations = fromActions(actions, 'onsite_conversion.messaging_conversation_started_7d', 'onsite_conversion.messaging_first_reply')
       const messagingReplies = fromActions(actions, 'onsite_conversion.messaging_reply')
-
-      // ── Conversiones personalizadas ─────────────────────────────────
-      const customConvValues = {}
-      for (const cv of customConversions) {
-        customConvValues[`conv_${cv.id}`] = fromActions(actions,
-          `offsite_conversion.custom.${cv.id}`,
-          cv.id,
-        )
-      }
-
-      // ── Clics ──────────────────────────────────────────────────────
       const linkClicks     = parseInt(d.inline_link_clicks || 0)
       const clicks         = parseInt(d.clicks || 0) || linkClicks
       const uniqueClicks   = parseInt(d.unique_clicks || 0) || parseInt(d.unique_inline_link_clicks || 0)
       const outboundClicks = fromVideoField(d.outbound_clicks) || linkClicks
 
+      // ── Custom conversions (legacy, kept for compat) ──────────────────
+      const customConvValues = {}
+      for (const cv of customConversions) {
+        customConvValues[`conv_${cv.id}`] = fromActions(actions, `offsite_conversion.custom.${cv.id}`, cv.id)
+      }
+
       return {
         date: d.date_start,
         spent,
-        impressions:           parseInt(d.impressions || 0),
-        reach:                 parseInt(d.reach || 0),
-        frequency:             parseFloat(d.frequency || 0),
-        cpm:                   parseFloat(d.cpm || 0),
-        clicks,
-        uniqueClicks,
-        linkClicks,
-        ctrLink:               parseFloat(d.inline_link_click_ctr || 0),
-        cpcLink:               parseFloat(d.cost_per_inline_link_click || 0),
+        impressions:      parseInt(d.impressions || 0),
+        reach:            parseInt(d.reach || 0),
+        frequency:        parseFloat(d.frequency || 0),
+        cpm:              parseFloat(d.cpm || 0),
+        clicks, uniqueClicks, linkClicks,
+        ctrLink:          parseFloat(d.inline_link_click_ctr || 0),
+        cpcLink:          parseFloat(d.cost_per_inline_link_click || 0),
         outboundClicks,
-        leads,
-        cpl,
-        purchases,
-        purchaseValue,
-        addToCart,
-        initiateCheckout,
-        viewContent,
-        registrations,
-        leadFormOpens,
-        leadFormCompletions,
-        videoViews3s,
-        videoThruplay,
-        videoP25,
-        videoP50,
-        videoP75,
-        videoP100,
-        postEngagement,
-        reactions,
-        comments,
-        shares,
-        pageLikes,
-        postClicks,
-        messagingConversations,
-        messagingReplies,
+        leads, cpl,
+        purchases, purchaseValue, addToCart, initiateCheckout, viewContent, registrations,
+        leadFormOpens: fromActions(actions, 'onsite_conversion.lead_grouped', 'lead_grouped'),
+        leadFormCompletions: leads,
+        videoViews3s, videoThruplay, videoP25, videoP50, videoP75, videoP100,
+        postEngagement, reactions, comments, shares, pageLikes, postClicks,
+        messagingConversations, messagingReplies,
         ...customConvValues,
-        // GHL fields (filled downstream)
+        // Raw action dicts — used by dashboard to compute ANY metric dynamically
+        _a,
+        _c,
+        // GHL fields filled downstream
         appsBooked: 0, appsShowed: 0, showRate: 0,
         sales: 0, revCompany: 0, revOffice: 0, cashTiago: 0, cashOffice: 0, roasCash: 0,
       }
