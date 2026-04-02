@@ -19,7 +19,7 @@ export async function GET(request) {
     const params = new URLSearchParams({
       fields: 'actions,cost_per_action_type',
       time_range: JSON.stringify({ since: from, until: to }),
-      time_increment: 'all',   // aggregate — one row for the whole range
+      time_increment: 'all_days',   // aggregate — one row for the whole range
       level: 'account',
       limit: 1,
       access_token: TOKEN,
