@@ -35,73 +35,84 @@ const INDUSTRIES = [
 
 const METRIC_OPTIONS = [
   // ── Meta Ads – Rendimiento ──────────────────────────────────────
-  { id:'spend',              label:'Ad Spend',             group:'Meta Ads – Rendimiento',  desc:'Inversión total en anuncios' },
-  { id:'impressions',        label:'Impressions',          group:'Meta Ads – Rendimiento',  desc:'Veces que se mostró el anuncio' },
-  { id:'reach',              label:'Reach',                group:'Meta Ads – Rendimiento',  desc:'Personas únicas que vieron el anuncio' },
-  { id:'frequency',          label:'Frequency',            group:'Meta Ads – Rendimiento',  desc:'Promedio de veces que cada persona vio el anuncio' },
-  { id:'cpm',                label:'CPM',                  group:'Meta Ads – Rendimiento',  desc:'Costo por 1,000 impresiones' },
+  { id:'spend',                    label:'Ad Spend',                   group:'Meta Ads – Rendimiento',  desc:'Inversión total en anuncios' },
+  { id:'impressions',              label:'Impressions',                group:'Meta Ads – Rendimiento',  desc:'Veces que se mostró el anuncio' },
+  { id:'reach',                    label:'Reach',                      group:'Meta Ads – Rendimiento',  desc:'Personas únicas que vieron el anuncio' },
+  { id:'frequency',                label:'Frequency',                  group:'Meta Ads – Rendimiento',  desc:'Promedio de veces que cada persona vio el anuncio' },
+  { id:'cpm',                      label:'CPM',                        group:'Meta Ads – Rendimiento',  desc:'Costo por 1,000 impresiones' },
   // ── Meta Ads – Clics ────────────────────────────────────────────
-  { id:'linkClicks',         label:'Link Clicks',          group:'Meta Ads – Clics',        desc:'Clics en el enlace del anuncio' },
-  { id:'cpc',                label:'CPC (Link)',            group:'Meta Ads – Clics',        desc:'Costo por clic en enlace' },
-  { id:'ctr',                label:'CTR (Link)',            group:'Meta Ads – Clics',        desc:'Tasa de clics en enlace' },
-  { id:'clicks',             label:'Clicks (All)',          group:'Meta Ads – Clics',        desc:'Total de clics incluyendo no-enlace' },
-  { id:'cpcAll',             label:'CPC (All)',             group:'Meta Ads – Clics',        desc:'Costo por cualquier clic' },
-  { id:'ctrAll',             label:'CTR (All)',             group:'Meta Ads – Clics',        desc:'CTR sobre todos los clics' },
-  { id:'uniqueClicks',       label:'Unique Clicks',        group:'Meta Ads – Clics',        desc:'Usuarios únicos que hicieron clic' },
-  { id:'outboundClicks',     label:'Outbound Clicks',      group:'Meta Ads – Clics',        desc:'Clics a URLs externas' },
+  { id:'linkClicks',               label:'Link Clicks',                group:'Meta Ads – Clics',        desc:'Clics en el enlace del anuncio' },
+  { id:'cpc',                      label:'CPC (Link)',                  group:'Meta Ads – Clics',        desc:'Costo por clic en enlace' },
+  { id:'ctr',                      label:'CTR (Link)',                  group:'Meta Ads – Clics',        desc:'Tasa de clics en enlace' },
+  { id:'clicks',                   label:'Clicks (All)',                group:'Meta Ads – Clics',        desc:'Total de clics incluyendo no-enlace' },
+  { id:'cpcAll',                   label:'CPC (All)',                   group:'Meta Ads – Clics',        desc:'Costo por cualquier clic' },
+  { id:'ctrAll',                   label:'CTR (All)',                   group:'Meta Ads – Clics',        desc:'CTR sobre todos los clics' },
+  { id:'uniqueClicks',             label:'Unique Clicks',              group:'Meta Ads – Clics',        desc:'Usuarios únicos que hicieron clic' },
+  { id:'costPerUniqueClick',       label:'Cost / Unique Click',        group:'Meta Ads – Clics',        desc:'Gasto / Clics únicos' },
+  { id:'outboundClicks',           label:'Outbound Clicks',            group:'Meta Ads – Clics',        desc:'Clics a URLs externas' },
+  { id:'costPerOutboundClick',     label:'Cost / Outbound Click',      group:'Meta Ads – Clics',        desc:'Gasto / Clics externos' },
+  { id:'landingPageViews',         label:'Landing Page Views',         group:'Meta Ads – Clics',        desc:'Personas que llegaron a la landing page' },
+  { id:'costPerLandingPageView',   label:'Cost / Landing Page View',   group:'Meta Ads – Clics',        desc:'Gasto / Landing Page Views' },
   // ── Meta Ads – Leads ────────────────────────────────────────────
-  { id:'leads',              label:'Leads',                group:'Meta Ads – Leads',        desc:'Leads generados por anuncios' },
-  { id:'cpl',                label:'CPL',                  group:'Meta Ads – Leads',        desc:'Costo por lead' },
-  { id:'leadFormOpens',      label:'Lead Form Opens',      group:'Meta Ads – Leads',        desc:'Aperturas de formularios de lead' },
-  { id:'leadFormCompletions',label:'Lead Form Completions',group:'Meta Ads – Leads',        desc:'Formularios de lead completados' },
-  { id:'registrations',      label:'Registrations',        group:'Meta Ads – Leads',        desc:'Registros completados' },
+  { id:'leads',                    label:'Leads',                      group:'Meta Ads – Leads',        desc:'Leads generados por anuncios' },
+  { id:'cpl',                      label:'CPL',                        group:'Meta Ads – Leads',        desc:'Costo por lead' },
+  { id:'leadFormOpens',            label:'Lead Form Opens',            group:'Meta Ads – Leads',        desc:'Aperturas de formularios de lead' },
+  { id:'leadFormCompletions',      label:'Lead Form Completions',      group:'Meta Ads – Leads',        desc:'Formularios de lead completados' },
+  { id:'registrations',            label:'Registrations',              group:'Meta Ads – Leads',        desc:'Registros completados' },
+  { id:'costPerRegistration',      label:'Cost / Registration',        group:'Meta Ads – Leads',        desc:'Gasto / Registros' },
   // ── Meta Ads – Conversiones ─────────────────────────────────────
-  { id:'purchases',          label:'Purchases',            group:'Meta Ads – Conversiones', desc:'Compras atribuidas a anuncios' },
-  { id:'purchaseValue',      label:'Purchase Value',       group:'Meta Ads – Conversiones', desc:'Valor total de compras' },
-  { id:'purchaseRoas',       label:'Purchase ROAS',        group:'Meta Ads – Conversiones', desc:'Revenue de compras / Ad Spend' },
-  { id:'costPerPurchase',    label:'Cost Per Purchase',    group:'Meta Ads – Conversiones', desc:'Gasto / Compras' },
-  { id:'roas',               label:'ROAS (Cash)',           group:'Meta Ads – Conversiones', desc:'Cash Collected / Ad Spend' },
-  { id:'addToCart',          label:'Add to Cart',          group:'Meta Ads – Conversiones', desc:'Eventos de añadir al carrito' },
-  { id:'initiateCheckout',   label:'Initiate Checkout',    group:'Meta Ads – Conversiones', desc:'Checkouts iniciados' },
-  { id:'viewContent',        label:'View Content',         group:'Meta Ads – Conversiones', desc:'Eventos de vista de contenido' },
+  { id:'purchases',                label:'Purchases',                  group:'Meta Ads – Conversiones', desc:'Compras atribuidas a anuncios' },
+  { id:'purchaseValue',            label:'Purchase Value',             group:'Meta Ads – Conversiones', desc:'Valor total de compras' },
+  { id:'purchaseRoas',             label:'Purchase ROAS',              group:'Meta Ads – Conversiones', desc:'Revenue de compras / Ad Spend' },
+  { id:'costPerPurchase',          label:'Cost Per Purchase',          group:'Meta Ads – Conversiones', desc:'Gasto / Compras' },
+  { id:'roas',                     label:'ROAS (Cash)',                 group:'Meta Ads – Conversiones', desc:'Cash Collected / Ad Spend' },
+  { id:'addToCart',                label:'Add to Cart',                group:'Meta Ads – Conversiones', desc:'Eventos de añadir al carrito' },
+  { id:'costPerAddToCart',         label:'Cost / Add to Cart',         group:'Meta Ads – Conversiones', desc:'Gasto / Add to Cart' },
+  { id:'initiateCheckout',         label:'Initiate Checkout',          group:'Meta Ads – Conversiones', desc:'Checkouts iniciados' },
+  { id:'costPerInitiateCheckout',  label:'Cost / Initiate Checkout',   group:'Meta Ads – Conversiones', desc:'Gasto / Initiate Checkout' },
+  { id:'viewContent',              label:'View Content',               group:'Meta Ads – Conversiones', desc:'Eventos de vista de contenido' },
+  { id:'costPerViewContent',       label:'Cost / View Content',        group:'Meta Ads – Conversiones', desc:'Gasto / View Content' },
   // ── Meta Ads – Video ────────────────────────────────────────────
-  { id:'videoViews3s',       label:'Video Views (3s)',     group:'Meta Ads – Video',        desc:'Vistas de 3+ segundos' },
-  { id:'videoThruplay',      label:'ThruPlay Views',       group:'Meta Ads – Video',        desc:'Videos completados (ThruPlay)' },
-  { id:'videoCompletionRate',label:'Video Completion Rate',group:'Meta Ads – Video',        desc:'% de videos completados' },
-  { id:'videoP25',           label:'Video 25% Views',      group:'Meta Ads – Video',        desc:'Vistas hasta el 25% del video' },
-  { id:'videoP50',           label:'Video 50% Views',      group:'Meta Ads – Video',        desc:'Vistas hasta el 50% del video' },
-  { id:'videoP75',           label:'Video 75% Views',      group:'Meta Ads – Video',        desc:'Vistas hasta el 75% del video' },
-  { id:'videoP100',          label:'Video 100% Views',     group:'Meta Ads – Video',        desc:'Vistas completas del video' },
+  { id:'videoViews3s',             label:'Video Views (3s)',           group:'Meta Ads – Video',        desc:'Vistas de 3+ segundos' },
+  { id:'costPerVideoView',         label:'Cost / Video View (3s)',     group:'Meta Ads – Video',        desc:'Gasto / Video Views' },
+  { id:'videoThruplay',            label:'ThruPlay Views',             group:'Meta Ads – Video',        desc:'Videos completados (ThruPlay)' },
+  { id:'costPerThruplay',          label:'Cost / ThruPlay',            group:'Meta Ads – Video',        desc:'Gasto / ThruPlay Views' },
+  { id:'videoCompletionRate',      label:'Video Completion Rate',      group:'Meta Ads – Video',        desc:'% de videos completados' },
+  { id:'videoP25',                 label:'Video 25% Views',            group:'Meta Ads – Video',        desc:'Vistas hasta el 25% del video' },
+  { id:'videoP50',                 label:'Video 50% Views',            group:'Meta Ads – Video',        desc:'Vistas hasta el 50% del video' },
+  { id:'videoP75',                 label:'Video 75% Views',            group:'Meta Ads – Video',        desc:'Vistas hasta el 75% del video' },
+  { id:'videoP100',                label:'Video 100% Views',           group:'Meta Ads – Video',        desc:'Vistas completas del video' },
   // ── Meta Ads – Engagement ───────────────────────────────────────
-  { id:'postEngagement',     label:'Post Engagement',      group:'Meta Ads – Engagement',   desc:'Total de interacciones con el post' },
-  { id:'reactions',          label:'Reactions',            group:'Meta Ads – Engagement',   desc:'Reacciones en anuncios' },
-  { id:'comments',           label:'Comments',             group:'Meta Ads – Engagement',   desc:'Comentarios en anuncios' },
-  { id:'shares',             label:'Shares',               group:'Meta Ads – Engagement',   desc:'Veces compartido' },
-  { id:'pageLikes',          label:'Page Likes',           group:'Meta Ads – Engagement',   desc:'Nuevos likes de página desde anuncios' },
-  { id:'postClicks',         label:'Post Clicks',          group:'Meta Ads – Engagement',   desc:'Clics en el post del anuncio' },
+  { id:'postEngagement',           label:'Post Engagement',            group:'Meta Ads – Engagement',   desc:'Total de interacciones con el post' },
+  { id:'costPerPostEngagement',    label:'Cost / Post Engagement',     group:'Meta Ads – Engagement',   desc:'Gasto / Post Engagement' },
+  { id:'reactions',                label:'Reactions',                  group:'Meta Ads – Engagement',   desc:'Reacciones en anuncios' },
+  { id:'comments',                 label:'Comments',                   group:'Meta Ads – Engagement',   desc:'Comentarios en anuncios' },
+  { id:'shares',                   label:'Shares',                     group:'Meta Ads – Engagement',   desc:'Veces compartido' },
+  { id:'pageLikes',                label:'Page Likes',                 group:'Meta Ads – Engagement',   desc:'Nuevos likes de página desde anuncios' },
+  { id:'postClicks',               label:'Post Clicks',                group:'Meta Ads – Engagement',   desc:'Clics en el post del anuncio' },
   // ── Meta Ads – Mensajería ───────────────────────────────────────
-  { id:'messagingConversations',label:'Conversations',     group:'Meta Ads – Mensajería',   desc:'Conversaciones de mensajería iniciadas' },
-  { id:'costPerConversation', label:'Cost Per Conv.',      group:'Meta Ads – Mensajería',   desc:'Costo por conversación de mensajería' },
-  { id:'messagingReplies',   label:'Messaging Replies',    group:'Meta Ads – Mensajería',   desc:'Respuestas en conversaciones' },
+  { id:'messagingConversations',   label:'Conversations',              group:'Meta Ads – Mensajería',   desc:'Conversaciones de mensajería iniciadas' },
+  { id:'costPerConversation',      label:'Cost Per Conv.',             group:'Meta Ads – Mensajería',   desc:'Costo por conversación de mensajería' },
+  { id:'messagingReplies',         label:'Messaging Replies',          group:'Meta Ads – Mensajería',   desc:'Respuestas en conversaciones' },
   // ── Embudo ──────────────────────────────────────────────────────
-  { id:'appsBooked',         label:'Apps Booked',          group:'Embudo',                  desc:'Citas agendadas' },
-  { id:'appsShowed',         label:'Apps Showed',          group:'Embudo',                  desc:'Citas que se presentaron' },
-  { id:'showRate',           label:'Show Rate',            group:'Embudo',                  desc:'% de asistencia a citas' },
-  { id:'sales',              label:'Deals Closed',         group:'Embudo',                  desc:'Ventas cerradas' },
-  { id:'closeRate',          label:'Close Rate',           group:'Embudo',                  desc:'% cierre sobre shows' },
-  { id:'noShows',            label:'No Shows',             group:'Embudo',                  desc:'Citas que no se presentaron' },
-  { id:'leadToAppRate',      label:'Lead → App Rate',      group:'Embudo',                  desc:'% de leads que agendan cita' },
-  { id:'calls',              label:'Llamadas',             group:'Embudo',                  desc:'Llamadas realizadas' },
-  { id:'proposals',          label:'Propuestas',           group:'Embudo',                  desc:'Propuestas enviadas' },
+  { id:'appsBooked',               label:'Apps Booked',                group:'Embudo',                  desc:'Citas agendadas' },
+  { id:'appsShowed',               label:'Apps Showed',                group:'Embudo',                  desc:'Citas que se presentaron' },
+  { id:'showRate',                 label:'Show Rate',                  group:'Embudo',                  desc:'% de asistencia a citas' },
+  { id:'sales',                    label:'Deals Closed',               group:'Embudo',                  desc:'Ventas cerradas' },
+  { id:'closeRate',                label:'Close Rate',                 group:'Embudo',                  desc:'% cierre sobre shows' },
+  { id:'noShows',                  label:'No Shows',                   group:'Embudo',                  desc:'Citas que no se presentaron' },
+  { id:'leadToAppRate',            label:'Lead → App Rate',            group:'Embudo',                  desc:'% de leads que agendan cita' },
+  { id:'calls',                    label:'Llamadas',                   group:'Embudo',                  desc:'Llamadas realizadas' },
+  { id:'proposals',                label:'Propuestas',                 group:'Embudo',                  desc:'Propuestas enviadas' },
   // ── Finanzas ────────────────────────────────────────────────────
-  { id:'revenue',            label:'Rev. Company',         group:'Finanzas',                desc:'Revenue nivel empresa' },
-  { id:'revOffice',          label:'Rev. Office',          group:'Finanzas',                desc:'Revenue nivel oficina' },
-  { id:'cashTiago',          label:'Cash Tiago',           group:'Finanzas',                desc:'Pago a Tiago (deals × payout)' },
-  { id:'cashflow',           label:'Cash Collected',       group:'Finanzas',                desc:'Cash neto de la oficina' },
-  { id:'cac',                label:'CAC',                  group:'Finanzas',                desc:'Costo de adquisición de cliente (Spend/Deals)' },
-  { id:'roi',                label:'ROI',                  group:'Finanzas',                desc:'Retorno sobre inversión %' },
-  { id:'profitMargin',       label:'Profit Margin',        group:'Finanzas',                desc:'Margen de ganancia neto' },
-  { id:'mrr',                label:'MRR',                  group:'Finanzas',                desc:'Monthly Recurring Revenue (manual)' },
+  { id:'revenue',                  label:'Rev. Company',               group:'Finanzas',                desc:'Revenue nivel empresa' },
+  { id:'revOffice',                label:'Rev. Office',                group:'Finanzas',                desc:'Revenue nivel oficina' },
+  { id:'cashTiago',                label:'Cash Tiago',                 group:'Finanzas',                desc:'Pago a Tiago (deals × payout)' },
+  { id:'cashflow',                 label:'Cash Collected',             group:'Finanzas',                desc:'Cash neto de la oficina' },
+  { id:'cac',                      label:'CAC',                        group:'Finanzas',                desc:'Costo de adquisición de cliente (Spend/Deals)' },
+  { id:'roi',                      label:'ROI',                        group:'Finanzas',                desc:'Retorno sobre inversión %' },
+  { id:'profitMargin',             label:'Profit Margin',              group:'Finanzas',                desc:'Margen de ganancia neto' },
+  { id:'mrr',                      label:'MRR',                        group:'Finanzas',                desc:'Monthly Recurring Revenue (manual)' },
 ];
 
 const BG_PRESETS = [
@@ -1178,29 +1189,39 @@ body{background:#080a0d;color:#fff;font-family:'Roboto',sans-serif;padding:36px 
                     clicks:            {label:'Clicks (All)',         value:fmtN(T.clicks||T.linkClicks),          sub:'Total clics',                            color:office.color},
                     cpcAll:            {label:'CPC (All)',            value:fmt$(cpcAllV),                         sub:'Costo por cualquier clic',               color:office.color},
                     ctrAll:            {label:'CTR (All)',            value:ctrAllV.toFixed(2)+'%',                sub:'CTR todos los clics',                    color:office.color},
-                    uniqueClicks:      {label:'Unique Clicks',        value:fmtN(T.uniqueClicks||T.linkClicks),    sub:'Usuarios únicos que clicaron',           color:office.color},
-                    outboundClicks:    {label:'Outbound Clicks',      value:fmtN(T.outboundClicks||T.linkClicks),  sub:'Clics a URLs externas',                  color:office.color},
-                    leads:             {label:'Leads',                value:fmtN(T.leads),                         sub:'Generados por anuncios',                 color:office.color},
-                    cpl:               {label:'CPL',                  value:fmt$(cpl),                             sub:'Costo por lead',                         color:office.color},
-                    leadFormOpens:     {label:'Lead Form Opens',      value:fmtN(T.leadFormOpens||0),              sub:'Aperturas de formulario',                color:office.color},
-                    leadFormCompletions:{label:'Lead Form Completions',value:fmtN(T.leadFormCompletions||T.leads), sub:'Formularios completados',               color:office.color},
-                    registrations:     {label:'Registrations',        value:fmtN(T.registrations||0),              sub:'Registros completados',                  color:office.color},
-                    purchases:         {label:'Purchases',            value:fmtN(T.purchases||0),                  sub:'Compras atribuidas',                     color:office.color},
-                    purchaseValue:     {label:'Purchase Value',       value:fmtK(T.purchaseValue||0),              sub:'Valor de compras',                       color:office.color},
-                    purchaseRoas:      {label:'Purchase ROAS',        value:(T.spent>0&&T.purchaseValue?T.purchaseValue/T.spent:0).toFixed(2)+'x', sub:'Revenue compras / Spend', color:office.color},
-                    costPerPurchase:   {label:'Cost/Purchase',        value:fmt$(T.purchases>0?T.spent/T.purchases:0), sub:'Gasto / Compras',                  color:office.color},
+                    uniqueClicks:           {label:'Unique Clicks',           value:fmtN(T.uniqueClicks||T.linkClicks),    sub:'Usuarios únicos que clicaron',           color:office.color},
+                    costPerUniqueClick:     {label:'Cost/Unique Click',       value:fmt$((T.uniqueClicks||T.linkClicks)>0?T.spent/(T.uniqueClicks||T.linkClicks):0), sub:'Gasto / Unique Clicks', color:office.color},
+                    outboundClicks:         {label:'Outbound Clicks',         value:fmtN(T.outboundClicks||T.linkClicks),  sub:'Clics a URLs externas',                  color:office.color},
+                    costPerOutboundClick:   {label:'Cost/Outbound Click',     value:fmt$((T.outboundClicks||T.linkClicks)>0?T.spent/(T.outboundClicks||T.linkClicks):0), sub:'Gasto / Outbound', color:office.color},
+                    landingPageViews:       {label:'Landing Page Views',      value:fmtN(T._actionTotals?.['landing_page_view']||0), sub:'Visitas a landing page', color:office.color},
+                    costPerLandingPageView: {label:'Cost / LPV',              value:fmt$((T._actionTotals?.['landing_page_view']||0)>0?T.spent/(T._actionTotals['landing_page_view']):0), sub:'Gasto / Landing Page View', color:office.color},
+                    leads:                  {label:'Leads',                   value:fmtN(T.leads),                         sub:'Generados por anuncios',                 color:office.color},
+                    cpl:                    {label:'CPL',                     value:fmt$(cpl),                             sub:'Costo por lead',                         color:office.color},
+                    leadFormOpens:          {label:'Lead Form Opens',         value:fmtN(T.leadFormOpens||0),              sub:'Aperturas de formulario',                color:office.color},
+                    leadFormCompletions:    {label:'Lead Form Completions',   value:fmtN(T.leadFormCompletions||T.leads), sub:'Formularios completados',                color:office.color},
+                    registrations:          {label:'Registrations',           value:fmtN(T.registrations||0),              sub:'Registros completados',                  color:office.color},
+                    costPerRegistration:    {label:'Cost/Registration',       value:fmt$((T.registrations||0)>0?T.spent/(T.registrations||1):0), sub:'Gasto / Registro', color:office.color},
+                    purchases:              {label:'Purchases',               value:fmtN(T.purchases||0),                  sub:'Compras atribuidas',                     color:office.color},
+                    purchaseValue:          {label:'Purchase Value',          value:fmtK(T.purchaseValue||0),              sub:'Valor de compras',                       color:office.color},
+                    purchaseRoas:           {label:'Purchase ROAS',           value:(T.spent>0&&T.purchaseValue?T.purchaseValue/T.spent:0).toFixed(2)+'x', sub:'Revenue compras / Spend', color:office.color},
+                    costPerPurchase:        {label:'Cost/Purchase',           value:fmt$(T.purchases>0?T.spent/T.purchases:0), sub:'Gasto / Compras',                   color:office.color},
                     roas:              {label:'ROAS (Cash)',           value:roasCash.toFixed(2)+'x',               sub:'Cash Collected / Spend',                 color:office.color},
                     addToCart:         {label:'Add to Cart',          value:fmtN(T.addToCart||0),                  sub:'Eventos add to cart',                    color:office.color},
-                    initiateCheckout:  {label:'Initiate Checkout',    value:fmtN(T.initiateCheckout||0),           sub:'Checkouts iniciados',                    color:office.color},
-                    viewContent:       {label:'View Content',         value:fmtN(T.viewContent||0),                sub:'Vistas de contenido',                    color:office.color},
-                    videoViews3s:      {label:'Video Views (3s)',      value:fmtN(T.videoViews3s||0),               sub:'Vistas ≥3 segundos',                      color:office.color},
-                    videoThruplay:     {label:'ThruPlay Views',        value:fmtN(T.videoThruplay||0),              sub:'Videos completados',                     color:office.color},
-                    videoCompletionRate:{label:'Video Compl. Rate',   value:(T.videoViews3s>0&&T.videoThruplay?T.videoThruplay/T.videoViews3s*100:0).toFixed(1)+'%', sub:'% completados', color:office.color},
-                    videoP25:          {label:'Video 25% Views',       value:fmtN(T.videoP25||0),                   sub:'Vistas hasta 25%',                       color:office.color},
-                    videoP50:          {label:'Video 50% Views',       value:fmtN(T.videoP50||0),                   sub:'Vistas hasta 50%',                       color:office.color},
-                    videoP75:          {label:'Video 75% Views',       value:fmtN(T.videoP75||0),                   sub:'Vistas hasta 75%',                       color:office.color},
-                    videoP100:         {label:'Video 100% Views',      value:fmtN(T.videoP100||0),                  sub:'Vistas completas',                       color:office.color},
-                    postEngagement:    {label:'Post Engagement',       value:fmtN(T.postEngagement||0),             sub:'Interacciones totales',                  color:office.color},
+                    initiateCheckout:        {label:'Initiate Checkout',      value:fmtN(T.initiateCheckout||0),           sub:'Checkouts iniciados',                    color:office.color},
+                    costPerInitiateCheckout: {label:'Cost/Initiate Checkout', value:fmt$((T.initiateCheckout||0)>0?T.spent/(T.initiateCheckout||1):0), sub:'Gasto / Checkout', color:office.color},
+                    viewContent:             {label:'View Content',           value:fmtN(T.viewContent||0),                sub:'Vistas de contenido',                    color:office.color},
+                    costPerViewContent:      {label:'Cost/View Content',      value:fmt$((T.viewContent||0)>0?T.spent/(T.viewContent||1):0), sub:'Gasto / View Content', color:office.color},
+                    videoViews3s:            {label:'Video Views (3s)',        value:fmtN(T.videoViews3s||0),               sub:'Vistas ≥3 segundos',                      color:office.color},
+                    costPerVideoView:        {label:'Cost/Video View (3s)',    value:fmt$((T.videoViews3s||0)>0?T.spent/(T.videoViews3s||1):0), sub:'Gasto / Video View', color:office.color},
+                    videoThruplay:           {label:'ThruPlay Views',          value:fmtN(T.videoThruplay||0),              sub:'Videos completados',                     color:office.color},
+                    costPerThruplay:         {label:'Cost/ThruPlay',           value:fmt$((T.videoThruplay||0)>0?T.spent/(T.videoThruplay||1):0), sub:'Gasto / ThruPlay', color:office.color},
+                    videoCompletionRate:     {label:'Video Compl. Rate',       value:(T.videoViews3s>0&&T.videoThruplay?T.videoThruplay/T.videoViews3s*100:0).toFixed(1)+'%', sub:'% completados', color:office.color},
+                    videoP25:                {label:'Video 25% Views',         value:fmtN(T.videoP25||0),                   sub:'Vistas hasta 25%',                       color:office.color},
+                    videoP50:                {label:'Video 50% Views',         value:fmtN(T.videoP50||0),                   sub:'Vistas hasta 50%',                       color:office.color},
+                    videoP75:                {label:'Video 75% Views',         value:fmtN(T.videoP75||0),                   sub:'Vistas hasta 75%',                       color:office.color},
+                    videoP100:               {label:'Video 100% Views',        value:fmtN(T.videoP100||0),                  sub:'Vistas completas',                       color:office.color},
+                    postEngagement:          {label:'Post Engagement',         value:fmtN(T.postEngagement||0),             sub:'Interacciones totales',                  color:office.color},
+                    costPerPostEngagement:   {label:'Cost/Post Engagement',    value:fmt$((T.postEngagement||0)>0?T.spent/(T.postEngagement||1):0), sub:'Gasto / Engagement', color:office.color},
                     reactions:         {label:'Reactions',             value:fmtN(T.reactions||0),                  sub:'Reacciones en anuncios',                 color:office.color},
                     comments:          {label:'Comments',              value:fmtN(T.comments||0),                   sub:'Comentarios en anuncios',                color:office.color},
                     shares:            {label:'Shares',                value:fmtN(T.shares||0),                     sub:'Veces compartido',                       color:office.color},
@@ -1871,19 +1892,26 @@ body{background:#080a0d;color:#fff;font-family:'Roboto',sans-serif;padding:36px 
                 </div>
                 <div>
                   {(()=>{
-                    const customConvMetrics=(editing.customConversions||[]).map(cv=>({id:`conv_${cv.id}`,label:cv.name,group:'Conversiones Personalizadas',desc:`Conv. personalizada · ID ${cv.id}`}));
-                    const customActionMetrics=(editing.customActionMetrics||[]).flatMap(m=>{
-                      const items=[{id:`act_${m.actionType}`,label:m.label,group:'Eventos Meta (Custom)',desc:`Action type: ${m.actionType}`}];
-                      if(m.showCost) items.push({id:`act_cost_${m.actionType}`,label:`Costo / ${m.label}`,group:'Eventos Meta (Custom)',desc:`Costo por ${m.actionType}`});
-                      return items;
-                    });
-                    const allMetricOpts=[...METRIC_OPTIONS,...customConvMetrics,...customActionMetrics];
+                    // Build dynamic metrics from already-loaded events (persisted in office)
+                    const dynamicMetrics=(editing.customActionMetrics||[]).flatMap(m=>[
+                      {id:`act_${m.actionType}`,label:m.label,group:'Tus Eventos de Facebook',desc:`Evento: ${m.actionType}`},
+                      {id:`act_cost_${m.actionType}`,label:`Cost / ${m.label}`,group:'Tus Eventos de Facebook',desc:`Costo por ${m.actionType}`},
+                    ]);
+                    const allMetricOpts=[...METRIC_OPTIONS,...dynamicMetrics];
                     const mF=metricSearch.trim()?allMetricOpts.filter(m=>m.label.toLowerCase().includes(metricSearch.toLowerCase())||m.group.toLowerCase().includes(metricSearch.toLowerCase())||m.desc.toLowerCase().includes(metricSearch.toLowerCase())):allMetricOpts;
                     const mG=mF.reduce((acc,m)=>{if(!acc[m.group])acc[m.group]=[];acc[m.group].push(m);return acc;},{});
-                    const toggleMetric=(mid)=>{
-                      // Use ref as source of truth — never stale, always synchronous
+                    const toggleMetric=(mid, metaEvent)=>{
                       const cur=editMetricsRef.current;
-                      const nm=cur.includes(mid)?cur.filter(x=>x!==mid):[...cur,mid];
+                      let nm=cur.includes(mid)?cur.filter(x=>x!==mid):[...cur,mid];
+                      // If adding a dynamic act_* metric, also persist it in customActionMetrics
+                      if(!cur.includes(mid)&&metaEvent){
+                        const alreadyStored=(editing.customActionMetrics||[]).find(x=>x.actionType===metaEvent.actionType);
+                        if(!alreadyStored){
+                          const na=[...(editing.customActionMetrics||[]),metaEvent];
+                          setOffices(p=>p.map(o=>o.id===editing.id?{...o,customActionMetrics:na}:o));
+                          setEditing(e=>({...e,customActionMetrics:na}));
+                        }
+                      }
                       editMetricsRef.current=nm;
                       setEditMetrics(nm);
                       setOffices(p=>p.map(o=>o.id===editing.id?{...o,metrics:nm}:o));
@@ -1894,16 +1922,41 @@ body{background:#080a0d;color:#fff;font-family:'Roboto',sans-serif;padding:36px 
                           <div style={{fontSize:11,color:'#555',letterSpacing:'0.05em'}}>Métricas visibles en el dashboard</div>
                           <span style={{fontSize:10,color:editing.color,fontFamily:'monospace',background:`${editing.color}15`,padding:'2px 8px',borderRadius:10,border:`1px solid ${editing.color}30`}}>{editMetrics.length} seleccionadas</span>
                         </div>
-                        <input value={metricSearch} onChange={e=>setMetricSearch(e.target.value)} placeholder="🔍 Buscar métrica..." style={{background:'rgba(255,255,255,0.05)',border:`1px solid ${editing.color}20`,borderRadius:8,padding:'8px 12px',color:'#aaa',fontSize:12,fontFamily:"'Roboto',sans-serif",outline:'none',width:'100%',boxSizing:'border-box',marginBottom:10}}/>
-                        <div style={{maxHeight:240,overflowY:'auto',paddingRight:4,marginBottom:12}}>
+                        <input value={metricSearch} onChange={e=>setMetricSearch(e.target.value)} placeholder="🔍 Buscar métrica..." style={{background:'rgba(255,255,255,0.05)',border:`1px solid ${editing.color}20`,borderRadius:8,padding:'8px 12px',color:'#aaa',fontSize:12,fontFamily:"'Roboto',sans-serif",outline:'none',width:'100%',boxSizing:'border-box',marginBottom:8}}/>
+                        {/* Load custom events from Meta account — adds them searchable to this same list */}
+                        {editing.adAccountId&&(
+                          <button onClick={async()=>{
+                            setConvLoading(true);
+                            try{
+                              const r=await fetch(`/api/meta/actions?adAccountId=${editing.adAccountId}&dateFrom=${dateFrom}&dateTo=${dateTo}`);
+                              const j=await r.json();
+                              if(j.error){alert('Error cargando eventos: '+j.error);return;}
+                              // Merge loaded events into customActionMetrics so they persist and appear in list
+                              const existing=editing.customActionMetrics||[];
+                              const newEvents=(j.actions||[]).filter(ev=>!existing.find(x=>x.actionType===ev.actionType));
+                              if(newEvents.length>0){
+                                const na=[...existing,...newEvents.map(ev=>({actionType:ev.actionType,label:ev.label,showCost:ev.hasCost}))];
+                                setOffices(p=>p.map(o=>o.id===editing.id?{...o,customActionMetrics:na}:o));
+                                setEditing(e=>({...e,customActionMetrics:na}));
+                              }
+                            }catch(e){alert('Error: '+e.message);}
+                            finally{setConvLoading(false);}
+                          }} style={{width:'100%',padding:'7px',borderRadius:7,border:`1px solid ${editing.color}30`,background:`${editing.color}08`,color:editing.color,cursor:'pointer',fontSize:11,fontFamily:"'Roboto',sans-serif",marginBottom:8,transition:'all .15s'}}>
+                            {convLoading?'Cargando...':'🔗 Cargar todos los eventos de tu cuenta Meta'}
+                          </button>
+                        )}
+                        <div style={{maxHeight:280,overflowY:'auto',paddingRight:4,marginBottom:12}}>
                           {Object.entries(mG).map(([group,metrics])=>(
                             <div key={group} style={{marginBottom:10}}>
-                              <div style={{fontSize:9,color:'#333',textTransform:'uppercase',letterSpacing:'0.1em',marginBottom:6,fontWeight:700,display:'flex',alignItems:'center',gap:6}}>{group}<span style={{color:'#222',fontWeight:400}}>({metrics.filter(m=>editMetrics.includes(m.id)).length}/{metrics.length})</span></div>
+                              <div style={{fontSize:9,color:group==='Tus Eventos de Facebook'?editing.color:'#333',textTransform:'uppercase',letterSpacing:'0.1em',marginBottom:6,fontWeight:700,display:'flex',alignItems:'center',gap:6}}>{group}<span style={{color:'#222',fontWeight:400}}>({metrics.filter(m=>editMetrics.includes(m.id)).length}/{metrics.length})</span></div>
                               <div style={{display:'flex',flexWrap:'wrap',gap:5}}>
                                 {metrics.map(m=>{
                                   const sel=editMetrics.includes(m.id);
+                                  // For dynamic act_* metrics, pass the metaEvent object for persistence
+                                  const isAct=m.id.startsWith('act_')&&!m.id.startsWith('act_cost_');
+                                  const metaEvent=isAct?{actionType:m.id.replace(/^act_/,''),label:m.label,showCost:false}:null;
                                   return(
-                                    <div key={m.id} onClick={()=>toggleMetric(m.id)} title={m.desc} style={{
+                                    <div key={m.id} onClick={()=>toggleMetric(m.id,metaEvent)} title={m.desc} style={{
                                       padding:'4px 11px',borderRadius:6,cursor:'pointer',fontSize:11,fontFamily:"'Roboto',sans-serif",transition:'all .15s',
                                       background:sel?editing.color+'22':'rgba(255,255,255,0.03)',
                                       border:`1px solid ${sel?editing.color+'60':'rgba(255,255,255,0.07)'}`,
