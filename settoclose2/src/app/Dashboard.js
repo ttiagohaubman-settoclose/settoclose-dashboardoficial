@@ -329,6 +329,8 @@ export default function Dashboard() {
   const [editTabIdx,setEditTabIdx] = useState(0); // 0=Config 1=Metrics 2=BG
   const [editBgTab, setEditBgTab] = useState(false); // legacy compat
   const [editingSTC,setEditingSTC]= useState(false);
+  const [convLoading,setConvLoading]=useState(false);
+  const [availableConversions,setAvailableConversions]=useState([]);
   const [globalLight,setGlobalLight]=useState(false);
   const mediaRef = useRef(); const newLogoRef = useRef(); const editLogoRef = useRef();
   const newTextRef = useRef(); const editTextRef = useRef();
@@ -399,7 +401,7 @@ export default function Dashboard() {
     const off = offices.find(o=>o.id===offId); if(!off) return;
     setLoading(true); setApiErr(null);
     try {
-      const p = new URLSearchParams({adAccountId:off.adAccountId,dateFrom:from,dateTo:to,payout:off.payout});
+      const p = new URLSearchParams({adAccountId:off.adAccountId,dateFrom:from,dateTo:to,payout:off.payout,customConversions:JSON.stringify(off.customConversions||[])});
       const r = await fetch('/api/meta?'+p);
       const j = await r.json();
       if(j.error){setApiErr(j.error);setLoading(false);return;}
@@ -542,10 +544,20 @@ export default function Dashboard() {
   },[raw,manualData,activeId,office]);
 
   const T = useMemo(()=>{
-    const z={spent:0,impressions:0,linkClicks:0,leads:0,appsBooked:0,appsShowed:0,sales:0,revCompany:0,revOffice:0,cashTiago:0,cashOffice:0};
+    const z={
+      spent:0,impressions:0,reach:0,clicks:0,uniqueClicks:0,linkClicks:0,outboundClicks:0,
+      leads:0,leadFormOpens:0,leadFormCompletions:0,registrations:0,
+      purchases:0,purchaseValue:0,addToCart:0,initiateCheckout:0,viewContent:0,
+      videoViews3s:0,videoThruplay:0,videoP25:0,videoP50:0,videoP75:0,videoP100:0,
+      postEngagement:0,reactions:0,comments:0,shares:0,pageLikes:0,postClicks:0,
+      messagingConversations:0,messagingReplies:0,
+      appsBooked:0,appsShowed:0,sales:0,calls:0,proposals:0,
+      revCompany:0,revOffice:0,cashTiago:0,cashOffice:0,
+    };
+    (office?.customConversions||[]).forEach(cv=>{ z[`conv_${cv.id}`]=0; });
     data.forEach(d=>Object.keys(z).forEach(k=>{z[k]+=d[k]||0;}));
     return z;
-  },[data]);
+  },[data, office]);
 
   const cpl      = T.leads>0?T.spent/T.leads:0;
   const cpcLink  = T.linkClicks>0?T.spent/T.linkClicks:0;
@@ -1210,6 +1222,10 @@ body{background:#080a0d;color:#fff;font-family:'Roboto',sans-serif;padding:36px 
                     roi:               {label:'ROI',                   value:(T.spent>0?((T.cashOffice-T.spent)/T.spent*100):0).toFixed(1)+'%', sub:'(Cash − Spend) / Spend', color:'#4ADE80'},
                     profitMargin:      {label:'Profit Margin',         value:(T.revCompany>0?(T.cashOffice/T.revCompany*100):0).toFixed(1)+'%', sub:'Cash / Revenue',         color:'#4ADE80'},
                     mrr:               {label:'MRR',                   value:'—',                                   sub:'Entrada manual',                         color:'#4ADE80'},
+                    ...(office.customConversions||[]).reduce((acc,cv)=>({
+                      ...acc,
+                      [`conv_${cv.id}`]:{label:cv.name,value:fmtN(T[`conv_${cv.id}`]||0),sub:'Conv. personalizada',color:'#C084FC'},
+                    }),{}),
                   };
                   const DEFAULT_METRICS=['spend','leads','cpl','roas','ctr','cpc','impressions','frequency','appsBooked','appsShowed','showRate','sales','closeRate','revenue','cashflow','cashTiago'];
                   const selM=(office.metrics||[]).length>0?office.metrics:DEFAULT_METRICS;
@@ -1774,8 +1790,8 @@ body{background:#080a0d;color:#fff;font-family:'Roboto',sans-serif;padding:36px 
           <div style={{background:'#0b0d12',border:'1px solid rgba(255,255,255,0.1)',borderRadius:20,padding:0,width:440,maxWidth:'92vw',boxShadow:'0 30px 80px rgba(0,0,0,0.7)'}} onClick={e=>e.stopPropagation()}>
             {/* Tabs */}
             <div style={{display:'flex',borderBottom:'1px solid rgba(255,255,255,0.07)',background:'rgba(255,255,255,0.02)'}}>
-              {['Configuración','Métricas','Background'].map((tab,i)=>(
-                <button key={tab} onClick={()=>setEditTabIdx(i)} style={{flex:1,padding:'14px',border:'none',cursor:'pointer',background:'transparent',color:editTabIdx===i?editing.color:'#444',fontWeight:editTabIdx===i?700:400,fontFamily:"'Poppins',sans-serif",fontSize:11,borderBottom:editTabIdx===i?`2px solid ${editing.color}`:'2px solid transparent',transition:'all .2s'}}>{tab}</button>
+              {['Config','Métricas','Background','Conversiones'].map((tab,i)=>(
+                <button key={tab} onClick={()=>setEditTabIdx(i)} style={{flex:1,padding:'13px 4px',border:'none',cursor:'pointer',background:'transparent',color:editTabIdx===i?editing.color:'#444',fontWeight:editTabIdx===i?700:400,fontFamily:"'Poppins',sans-serif",fontSize:10,borderBottom:editTabIdx===i?`2px solid ${editing.color}`:'2px solid transparent',transition:'all .2s'}}>{tab}</button>
               ))}
             </div>
 
@@ -1843,7 +1859,9 @@ body{background:#080a0d;color:#fff;font-family:'Roboto',sans-serif;padding:36px 
                 </div>
                 <div>
                   {(()=>{
-                    const mF=metricSearch.trim()?METRIC_OPTIONS.filter(m=>m.label.toLowerCase().includes(metricSearch.toLowerCase())||m.group.toLowerCase().includes(metricSearch.toLowerCase())||m.desc.toLowerCase().includes(metricSearch.toLowerCase())):METRIC_OPTIONS;
+                    const customConvMetrics=(editing.customConversions||[]).map(cv=>({id:`conv_${cv.id}`,label:cv.name,group:'Conversiones Personalizadas',desc:`Conv. personalizada · ID ${cv.id}`}));
+                    const allMetricOpts=[...METRIC_OPTIONS,...customConvMetrics];
+                    const mF=metricSearch.trim()?allMetricOpts.filter(m=>m.label.toLowerCase().includes(metricSearch.toLowerCase())||m.group.toLowerCase().includes(metricSearch.toLowerCase())||m.desc.toLowerCase().includes(metricSearch.toLowerCase())):allMetricOpts;
                     const mG=mF.reduce((acc,m)=>{if(!acc[m.group])acc[m.group]=[];acc[m.group].push(m);return acc;},{});
                     const toggleMetric=(mid)=>{
                       // Use ref as source of truth — never stale, always synchronous
@@ -1921,6 +1939,118 @@ body{background:#080a0d;color:#fff;font-family:'Roboto',sans-serif;padding:36px 
                   </div>
                 </div>
                 <button onClick={()=>{setEditing(null);setEditTabIdx(0);}} style={{...btnP(editing.color),textAlign:'center',marginTop:4}}>✓ Guardar tema</button>
+              </div>
+            )}
+
+            {/* ── TAB 3: CONVERSIONES PERSONALIZADAS ── */}
+            {editTabIdx===3&&(
+              <div style={{display:'flex',flexDirection:'column',gap:16}}>
+                <div>
+                  <div style={{fontSize:14,fontWeight:700,color:'#fff',fontFamily:"'Poppins',sans-serif",marginBottom:4}}>Conversiones Personalizadas</div>
+                  <div style={{fontSize:11,color:'#555',marginBottom:12}}>Selecciona los eventos de Meta que quieres trackear como métricas en el dashboard.</div>
+                  {!editing.adAccountId&&(
+                    <div style={{background:'rgba(251,146,60,0.08)',border:'1px solid rgba(251,146,60,0.25)',borderRadius:10,padding:'10px 14px',fontSize:11,color:'#FB923C'}}>
+                      ⚠ Este cliente no tiene un Ad Account ID configurado. Agrégalo en la pestaña Config.
+                    </div>
+                  )}
+                  {editing.adAccountId&&(
+                    <button
+                      onClick={async()=>{
+                        setConvLoading(true);
+                        setAvailableConversions([]);
+                        try{
+                          const r=await fetch(`/api/meta/conversions?adAccountId=${editing.adAccountId}`);
+                          const j=await r.json();
+                          if(j.error){alert('Error: '+j.error);return;}
+                          setAvailableConversions([...(j.conversions||[]),...(j.standardEvents||[])]);
+                        }catch(e){alert('Error al cargar: '+e.message);}
+                        finally{setConvLoading(false);}
+                      }}
+                      style={{...btnP(editing.color),marginBottom:12,width:'100%',textAlign:'center'}}
+                    >
+                      {convLoading?'Cargando...':'⬇ Cargar conversiones disponibles'}
+                    </button>
+                  )}
+                </div>
+
+                {/* Active custom conversions */}
+                {(editing.customConversions||[]).length>0&&(
+                  <div>
+                    <div style={{fontSize:10,color:editing.color,textTransform:'uppercase',letterSpacing:'.1em',marginBottom:8,fontWeight:700}}>Conversiones activas ({(editing.customConversions||[]).length})</div>
+                    <div style={{display:'flex',flexDirection:'column',gap:5}}>
+                      {(editing.customConversions||[]).map(cv=>(
+                        <div key={cv.id} style={{display:'flex',alignItems:'center',justifyContent:'space-between',background:`${editing.color}10`,border:`1px solid ${editing.color}30`,borderRadius:8,padding:'8px 12px'}}>
+                          <div>
+                            <div style={{fontSize:12,color:'#ddd',fontWeight:600}}>{cv.name}</div>
+                            <div style={{fontSize:10,color:'#444',fontFamily:'monospace',marginTop:2}}>ID: {cv.id}</div>
+                          </div>
+                          <button
+                            onClick={()=>{
+                              const nc=(editing.customConversions||[]).filter(x=>x.id!==cv.id);
+                              setOffices(p=>p.map(o=>o.id===editing.id?{...o,customConversions:nc,metrics:(o.metrics||[]).filter(m=>m!==`conv_${cv.id}`)}:o));
+                              setEditing(e=>({...e,customConversions:nc}));
+                            }}
+                            style={{background:'rgba(255,77,77,0.1)',border:'1px solid rgba(255,77,77,0.25)',borderRadius:6,padding:'4px 10px',color:'#FF4D4D',fontSize:11,cursor:'pointer'}}
+                          >Quitar</button>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Available conversions list */}
+                {availableConversions.length>0&&(
+                  <div>
+                    <div style={{fontSize:10,color:'#555',textTransform:'uppercase',letterSpacing:'.1em',marginBottom:8,fontWeight:700}}>Disponibles en tu cuenta</div>
+                    <div style={{display:'flex',flexDirection:'column',gap:5,maxHeight:260,overflowY:'auto'}}>
+                      {availableConversions.filter(cv=>!(editing.customConversions||[]).find(x=>x.id===cv.id)).map(cv=>(
+                        <div key={cv.id} style={{display:'flex',alignItems:'center',justifyContent:'space-between',background:'rgba(255,255,255,0.02)',border:'1px solid rgba(255,255,255,0.07)',borderRadius:8,padding:'8px 12px'}}>
+                          <div style={{flex:1,minWidth:0}}>
+                            <div style={{fontSize:12,color:'#bbb',fontWeight:500,whiteSpace:'nowrap',overflow:'hidden',textOverflow:'ellipsis'}}>{cv.name}</div>
+                            <div style={{fontSize:10,color:'#333',fontFamily:'monospace',marginTop:1}}>{cv.eventType} · {cv.id}</div>
+                          </div>
+                          <button
+                            onClick={()=>{
+                              const nc=[...(editing.customConversions||[]),{id:cv.id,name:cv.name}];
+                              const nm=[...(editing.metrics||[]),`conv_${cv.id}`];
+                              setOffices(p=>p.map(o=>o.id===editing.id?{...o,customConversions:nc,metrics:nm}:o));
+                              setEditing(e=>({...e,customConversions:nc,metrics:nm}));
+                              editMetricsRef.current=nm;
+                              setEditMetrics(nm);
+                            }}
+                            style={{...btnP(editing.color),padding:'4px 10px',fontSize:11,flexShrink:0,marginLeft:8}}
+                          >+ Agregar</button>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Manual add by ID */}
+                <div style={{borderTop:'1px solid rgba(255,255,255,0.06)',paddingTop:12}}>
+                  <div style={{fontSize:10,color:'#555',marginBottom:8,textTransform:'uppercase',letterSpacing:'.08em'}}>Agregar manualmente por ID</div>
+                  {(()=>{
+                    let mId='',mName='';
+                    return(
+                      <div style={{display:'flex',gap:6}}>
+                        <input placeholder="ID de conversión" onChange={e=>mId=e.target.value} style={{...inp,flex:1,fontSize:11}} />
+                        <input placeholder="Nombre" onChange={e=>mName=e.target.value} style={{...inp,flex:1,fontSize:11}} />
+                        <button onClick={()=>{
+                          if(!mId.trim())return;
+                          const name=mName.trim()||mId;
+                          const nc=[...(editing.customConversions||[]),{id:mId.trim(),name}];
+                          const nm=[...(editing.metrics||[]),`conv_${mId.trim()}`];
+                          setOffices(p=>p.map(o=>o.id===editing.id?{...o,customConversions:nc,metrics:nm}:o));
+                          setEditing(e=>({...e,customConversions:nc,metrics:nm}));
+                          editMetricsRef.current=nm;
+                          setEditMetrics(nm);
+                        }} style={{...btnP(editing.color),padding:'0 12px',fontSize:11,flexShrink:0}}>+</button>
+                      </div>
+                    );
+                  })()}
+                </div>
+
+                <button onClick={()=>{setEditTabIdx(0);fetchMeta(editing.id,dateFrom,dateTo);}} style={{...btnP(editing.color),textAlign:'center',marginTop:4}}>✓ Guardar y recargar datos</button>
               </div>
             )}
 
