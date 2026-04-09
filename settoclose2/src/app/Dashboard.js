@@ -33,14 +33,25 @@ const fmtK  = v => v>=1000 ? '$'+(v/1000).toFixed(1)+'k' : fmt$(v);
 const fmtN  = v => Number(v).toLocaleString('en-US');
 const today = () => new Date().toISOString().split('T')[0];
 const dAgo  = n => { const d=new Date(); d.setDate(d.getDate()-n+1); return d.toISOString().split('T')[0]; };
-let uid = 100;
+const genId = () => Date.now() + Math.floor(Math.random() * 10000);
 
-const KPI = ({label,value,sub,color}) => (
-  <div style={{background:'rgba(255,255,255,0.03)',border:'1px solid rgba(255,255,255,0.07)',borderRadius:12,padding:'16px 18px',position:'relative',overflow:'hidden'}}>
-    <div style={{position:'absolute',top:0,left:0,right:0,height:2,background:color}}/>
-    <div style={{fontSize:10,color:'#555',letterSpacing:'0.1em',textTransform:'uppercase',marginBottom:7,fontFamily:"'Roboto',sans-serif"}}>{label}</div>
-    <div style={{fontSize:22,fontWeight:700,color:'#fff',fontFamily:"'Poppins',sans-serif",letterSpacing:'-0.02em'}}>{value}</div>
-    {sub&&<div style={{fontSize:11,color:'#444',marginTop:3,fontFamily:"'Roboto',sans-serif"}}>{sub}</div>}
+const KPI = ({label,value,sub,color,sparkData,sparkKey}) => (
+  <div style={{background:'rgba(255,255,255,0.03)',border:'1px solid rgba(255,255,255,0.07)',borderRadius:10,padding:'11px 13px',position:'relative',overflow:'hidden',display:'flex',alignItems:'flex-start',gap:8}}>
+    <div style={{position:'absolute',top:0,left:0,right:0,height:2,background:color,opacity:.7}}/>
+    <div style={{flex:1,minWidth:0}}>
+      <div style={{fontSize:9,color:'#555',letterSpacing:'0.1em',textTransform:'uppercase',marginBottom:5,fontFamily:"'Roboto',sans-serif",fontWeight:600}}>{label}</div>
+      <div style={{fontSize:18,fontWeight:700,color:'#fff',fontFamily:"'Poppins',sans-serif",letterSpacing:'-0.02em',lineHeight:1}}>{value}</div>
+      {sub&&<div style={{fontSize:10,color:'#3a3a4a',marginTop:4,fontFamily:"'Roboto',sans-serif",lineHeight:1.3}}>{sub}</div>}
+    </div>
+    {sparkData&&sparkData.length>1&&(
+      <div style={{width:56,height:34,flexShrink:0,marginTop:6,opacity:.85}}>
+        <ResponsiveContainer width="100%" height="100%">
+          <LineChart data={sparkData} margin={{top:2,right:0,left:0,bottom:2}}>
+            <Line type="monotone" dataKey={sparkKey||'v'} stroke={color} strokeWidth={1.5} dot={false} isAnimationActive={false}/>
+          </LineChart>
+        </ResponsiveContainer>
+      </div>
+    )}
   </div>
 );
 
@@ -131,6 +142,9 @@ export default function Dashboard() {
   const [logos,     setLogos]     = useState(LOGOS_INIT);
   const [activeId,  setActiveId]  = useState(null);
   const [menuOpen,  setMenuOpen]  = useState(false);
+  const [sidebarTab, setSidebarTab] = useState('dashboard');
+  const [adMedia,   setAdMedia]   = useState([]);
+  const adMediaRef = useRef();
   const [apiData,   setApiData]   = useState({});
   const [manualData,setManualData]= useState({});
   const [loading,   setLoading]   = useState(false);
@@ -140,6 +154,8 @@ export default function Dashboard() {
   const [preset,    setPreset]    = useState(30);
   const [calOpen,   setCalOpen]   = useState(false);
   const [expandedKpi, setExpandedKpi] = useState(null);
+  const [stcVisibleMetrics, setStcVisibleMetrics] = useState({spend:true,leads:true,cpl:true,apps:true,showed:true,sales:true,cash:true,impressions:true});
+  const [stcCustomizing, setStcCustomizing] = useState(false);
   const [actions,   setActions]   = useState({SC:[],VA:[],MD:[],NC:[]});
   const [newText,   setNewText]   = useState('');
   const [newType,   setNewType]   = useState('test');
@@ -174,14 +190,42 @@ export default function Dashboard() {
 
   // ── LOGIN ────────────────────────────────────────────────────────
   const [authed, setAuthed] = useState(false);
+  const [isAdmin, setIsAdmin] = useState(false);
+  const [restrictedToOffice, setRestrictedToOffice] = useState(null);
   const [loginUser, setLoginUser] = useState('');
   const [loginPass, setLoginPass] = useState('');
   const [loginErr, setLoginErr] = useState(false);
+  const [loginLoading, setLoginLoading] = useState(false);
+  // Client users management
+  const [clientUsers, setClientUsers] = useState([]);
+  const [showUserMgmt, setShowUserMgmt] = useState(null); // officeId being managed
+  const [newUserLogin, setNewUserLogin] = useState('');
+  const [newUserPass, setNewUserPass] = useState('');
 
-  const doLogin = () => {
+  const doLogin = async () => {
     if (loginUser === 'Settoclose' && loginPass === 'Guitarra2018') {
-      setAuthed(true); setLoginErr(false);
-    } else { setLoginErr(true); }
+      setAuthed(true); setIsAdmin(true); setLoginErr(false);
+      // Load client users on admin login
+      try { const r=await fetch('/api/users'); const j=await r.json(); if(j.users) setClientUsers(j.users); } catch(e){}
+      return;
+    }
+    // Try client user login
+    setLoginLoading(true);
+    try {
+      const r = await fetch('/api/users', {method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'login',username:loginUser,password:loginPass})});
+      const j = await r.json();
+      if (j.ok) {
+        setAuthed(true); setIsAdmin(false); setRestrictedToOffice(j.officeId);
+        setActiveId(j.officeId); setSidebarTab('dashboard');
+        setLoginErr(false);
+      } else { setLoginErr(true); }
+    } catch(e) { setLoginErr(true); }
+    setLoginLoading(false);
+  };
+
+  const saveClientUsers = async (users) => {
+    setClientUsers(users);
+    try { await fetch('/api/users',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'save',users})}); } catch(e){}
   };
   // ────────────────────────────────────────────────────────────────
 
@@ -351,7 +395,7 @@ export default function Dashboard() {
 
   const addAction=()=>{
     if(!newText.trim()||!activeId) return;
-    const newEntry = {id:++uid,date:newDate,text:newText,type:newType,media:pendMedia};
+    const newEntry = {id:genId(),date:newDate,text:newText,type:newType,media:pendMedia};
     const updated = [newEntry, ...(actions[activeId]||[])];
     setActions(prev=>({...prev,[activeId]:updated}));
     saveLogs(activeId, updated);
@@ -360,11 +404,14 @@ export default function Dashboard() {
 
   const saveEdit = () => {
     if (!editingAction || !activeId) return;
-    const updated = (actions[activeId]||[]).map(a => a.id === editingAction
-      ? {...a, text: editText, type: editType, date: editDate, media: [...(a.media||[]), ...editMedia]}
-      : a);
-    setActions(prev => ({ ...prev, [activeId]: updated }));
-    saveLogs(activeId, updated);
+    setActions(prev => {
+      const current = prev[activeId] || [];
+      const updated = current.map(a => a.id === editingAction
+        ? {...a, text: editText, type: editType, date: editDate, media: editMedia.length > 0 ? [...(a.media||[]), ...editMedia] : (a.media||[])}
+        : a);
+      saveLogs(activeId, updated);
+      return { ...prev, [activeId]: updated };
+    });
     setEditingAction(null);
     setEditMedia([]);
   };
@@ -417,34 +464,34 @@ export default function Dashboard() {
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700;800&family=Roboto:wght@300;400;500&display=swap');
 *{box-sizing:border-box;margin:0;padding:0}
-body{background:#080a0d;color:#fff;font-family:'Roboto',sans-serif;padding:36px 40px;-webkit-print-color-adjust:exact;print-color-adjust:exact}
-.header{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:32px;padding-bottom:24px;border-bottom:1px solid rgba(255,255,255,0.06)}
-.header-left h1{font-family:'Poppins',sans-serif;font-size:28px;font-weight:800;color:${office.color};margin-bottom:4px}
-.header-left .period{font-size:13px;color:#555;font-family:'Roboto',sans-serif}
+body{background:#ffffff;color:#111;font-family:'Roboto',sans-serif;padding:36px 40px;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+.header{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:32px;padding-bottom:24px;border-bottom:2px solid ${office.color}}
+.header-left h1{font-family:'Poppins',sans-serif;font-size:26px;font-weight:800;color:${office.color};margin-bottom:4px}
+.header-left .period{font-size:12px;color:#666;font-family:'Roboto',sans-serif}
 .header-right{text-align:right}
-.header-right .generated{font-size:11px;color:#333;margin-bottom:6px}
-.stc-badge{background:${office.color}15;border:1px solid ${office.color}30;color:${office.color};padding:4px 14px;border-radius:20px;font-size:12px;font-weight:600;font-family:'Poppins',sans-serif}
-.section-title{font-family:'Poppins',sans-serif;font-size:11px;font-weight:600;color:#444;text-transform:uppercase;letter-spacing:.12em;margin:28px 0 12px;padding-bottom:8px;border-bottom:1px solid rgba(255,255,255,0.05)}
+.header-right .generated{font-size:11px;color:#888;margin-bottom:6px}
+.stc-badge{background:#f5f5f5;border:1px solid #ddd;color:#555;padding:4px 14px;border-radius:20px;font-size:11px;font-weight:600;font-family:'Poppins',sans-serif}
+.section-title{font-family:'Poppins',sans-serif;font-size:10px;font-weight:700;color:#888;text-transform:uppercase;letter-spacing:.14em;margin:28px 0 12px;padding-bottom:8px;border-bottom:1px solid #eee}
 .grid-4{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
 .grid-5{display:grid;grid-template-columns:repeat(5,1fr);gap:10px}
-.card{background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.07);border-radius:12px;padding:16px;position:relative;overflow:hidden}
-.card::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:${office.color};opacity:.4}
-.card-label{font-size:9px;color:#444;text-transform:uppercase;letter-spacing:.1em;margin-bottom:8px;font-weight:600}
-.card-value{font-size:22px;font-weight:700;font-family:'Poppins',sans-serif;color:#fff;line-height:1}
+.card{background:#f9f9fb;border:1px solid #e8e8ee;border-radius:10px;padding:16px;position:relative;overflow:hidden}
+.card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:${office.color}}
+.card-label{font-size:9px;color:#999;text-transform:uppercase;letter-spacing:.1em;margin-bottom:8px;font-weight:600}
+.card-value{font-size:20px;font-weight:700;font-family:'Poppins',sans-serif;color:#111;line-height:1}
 .card-value.highlight{color:${office.color}}
-.divider{height:1px;background:rgba(255,255,255,0.04);margin:28px 0}
+.divider{height:1px;background:#eee;margin:28px 0}
 .ventas-table{width:100%;border-collapse:collapse;margin-top:4px}
-.ventas-table th{font-size:9px;color:#444;text-transform:uppercase;letter-spacing:.1em;padding:8px 12px;text-align:left;border-bottom:1px solid rgba(255,255,255,0.07);font-weight:600}
-.ventas-table td{font-size:12px;color:#bbb;padding:11px 12px;border-bottom:1px solid rgba(255,255,255,0.04)}
-.ventas-table tr.odd td{background:rgba(255,255,255,0.01)}
-.ventas-table td.name{color:#fff;font-weight:500}
-.ventas-table td.mono{font-family:monospace;color:#666}
+.ventas-table th{font-size:9px;color:#999;text-transform:uppercase;letter-spacing:.1em;padding:8px 12px;text-align:left;border-bottom:1px solid #e8e8ee;font-weight:600}
+.ventas-table td{font-size:12px;color:#444;padding:11px 12px;border-bottom:1px solid #f0f0f0}
+.ventas-table tr.odd td{background:#fafafa}
+.ventas-table td.name{color:#111;font-weight:500}
+.ventas-table td.mono{font-family:monospace;color:#888}
 .badge-status{display:inline-block;padding:3px 10px;border-radius:20px;font-size:10px;font-weight:600}
-.badge-status.pagada{background:rgba(74,222,128,0.1);border:1px solid rgba(74,222,128,0.3);color:#4ADE80}
-.badge-status.venta{background:rgba(250,204,21,0.1);border:1px solid rgba(250,204,21,0.3);color:#FACC15}
-.footer{margin-top:40px;padding-top:16px;border-top:1px solid rgba(255,255,255,0.05);display:flex;justify-content:space-between;align-items:center}
-.footer-left{font-size:10px;color:#333}
-.footer-right{font-size:10px;color:#333}
+.badge-status.pagada{background:#dcfce7;border:1px solid #86efac;color:#16a34a}
+.badge-status.venta{background:#fef9c3;border:1px solid #fde047;color:#854d0e}
+.footer{margin-top:40px;padding-top:16px;border-top:1px solid #eee;display:flex;justify-content:space-between;align-items:center}
+.footer-left{font-size:10px;color:#aaa}
+.footer-right{font-size:10px;color:#aaa}
 </style>
 </head>
 <body>
@@ -490,98 +537,161 @@ body{background:#080a0d;color:#fff;font-family:'Roboto',sans-serif;padding:36px 
   const btnP=c=>({padding:'10px 20px',borderRadius:8,border:`1px solid ${c}55`,background:c+'20',color:c,fontSize:13,fontWeight:600,fontFamily:"'Roboto',sans-serif",cursor:'pointer'});
 
   if (!authed) return (
-    <div style={{minHeight:'100vh',background:'#080a0d',display:'flex',alignItems:'center',justifyContent:'center',fontFamily:"'Roboto',sans-serif"}}>
-      <style>{'@import url(\'https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&family=Roboto:wght@300;400;500&display=swap\');*{box-sizing:border-box;margin:0;padding:0}input:focus{outline:none}'}</style>
-      <div style={{background:'rgba(255,255,255,0.03)',border:'1px solid rgba(255,255,255,0.08)',borderRadius:20,padding:'40px 36px',width:380,maxWidth:'90vw'}}>
-        <img src={LOGOS_INIT.STC} alt="SetToClose" style={{height:36,objectFit:'contain',marginBottom:28,display:'block'}}/>
-        <div style={{fontSize:18,fontWeight:700,fontFamily:"'Poppins',sans-serif",color:'#fff',marginBottom:6}}>Bienvenido</div>
-        <div style={{fontSize:13,color:'#444',marginBottom:28}}>Ingresa tus credenciales para continuar</div>
-        <div style={{marginBottom:14}}>
-          <div style={{fontSize:11,color:'#555',marginBottom:6,textTransform:'uppercase',letterSpacing:'0.1em'}}>Usuario</div>
-          <input value={loginUser} onChange={e=>setLoginUser(e.target.value)} onKeyDown={e=>e.key==='Enter'&&doLogin()} placeholder="Usuario" style={{width:'100%',background:'rgba(255,255,255,0.05)',border:`1px solid ${loginErr?'rgba(248,113,113,0.5)':'rgba(255,255,255,0.1)'}`,borderRadius:8,padding:'11px 14px',color:'#fff',fontSize:13,fontFamily:"'Roboto',sans-serif"}}/>
+    <div style={{minHeight:'100vh',background:'#050508',display:'flex',alignItems:'center',justifyContent:'center',fontFamily:"'Roboto',sans-serif",position:'relative',overflow:'hidden'}}>
+      <style>{`@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&family=Roboto:wght@300;400;500&display=swap');*{box-sizing:border-box;margin:0;padding:0}input:focus{outline:none}@keyframes pulse{0%,100%{opacity:.3}50%{opacity:.6}}@keyframes fadeIn{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}`}</style>
+      {/* Background grid */}
+      <div style={{position:'absolute',inset:0,backgroundImage:'linear-gradient(rgba(139,92,246,0.04) 1px, transparent 1px),linear-gradient(90deg,rgba(139,92,246,0.04) 1px,transparent 1px)',backgroundSize:'40px 40px',pointerEvents:'none'}}/>
+      {/* Glow blobs */}
+      <div style={{position:'absolute',top:'15%',left:'20%',width:320,height:320,borderRadius:'50%',background:'radial-gradient(circle,rgba(139,92,246,0.08) 0%,transparent 70%)',pointerEvents:'none'}}/>
+      <div style={{position:'absolute',bottom:'20%',right:'18%',width:240,height:240,borderRadius:'50%',background:'radial-gradient(circle,rgba(16,185,129,0.07) 0%,transparent 70%)',pointerEvents:'none'}}/>
+      {/* Card */}
+      <div style={{animation:'fadeIn .4s ease',position:'relative',width:340,maxWidth:'90vw'}}>
+        <div style={{marginBottom:32,textAlign:'center'}}>
+          <img src={LOGOS_INIT.STC} alt="SetToClose" style={{height:32,objectFit:'contain',display:'inline-block',filter:'brightness(1.1)'}}/>
         </div>
-        <div style={{marginBottom:20}}>
-          <div style={{fontSize:11,color:'#555',marginBottom:6,textTransform:'uppercase',letterSpacing:'0.1em'}}>Contraseña</div>
-          <input type="password" value={loginPass} onChange={e=>setLoginPass(e.target.value)} onKeyDown={e=>e.key==='Enter'&&doLogin()} placeholder="Contraseña" style={{width:'100%',background:'rgba(255,255,255,0.05)',border:`1px solid ${loginErr?'rgba(248,113,113,0.5)':'rgba(255,255,255,0.1)'}`,borderRadius:8,padding:'11px 14px',color:'#fff',fontSize:13,fontFamily:"'Roboto',sans-serif"}}/>
+        <div style={{marginBottom:8,fontSize:22,fontWeight:600,fontFamily:"'Poppins',sans-serif",color:'#fff',letterSpacing:'-0.02em'}}>Iniciar sesión</div>
+        <div style={{fontSize:12,color:'#3a3a4a',marginBottom:32,lineHeight:1.5}}>Accede a tu dashboard de métricas</div>
+        <div style={{marginBottom:16}}>
+          <input value={loginUser} onChange={e=>setLoginUser(e.target.value)} onKeyDown={e=>e.key==='Enter'&&doLogin()} placeholder="Usuario" autoComplete="username" style={{width:'100%',background:'rgba(139,92,246,0.05)',border:`1px solid ${loginErr?'rgba(248,113,113,0.4)':'rgba(139,92,246,0.18)'}`,borderRadius:10,padding:'12px 16px',color:'#e8e8f0',fontSize:13,fontFamily:"'Roboto',sans-serif",transition:'border-color .2s'}}/>
         </div>
-        {loginErr&&<div style={{fontSize:12,color:'#F87171',marginBottom:16}}>Usuario o contraseña incorrectos</div>}
-        <button onClick={doLogin} style={{width:'100%',padding:'12px',borderRadius:8,border:'none',background:'#38BDF8',color:'#000',fontSize:14,fontWeight:700,fontFamily:"'Poppins',sans-serif",cursor:'pointer'}}>Ingresar</button>
+        <div style={{marginBottom:24}}>
+          <input type="password" value={loginPass} onChange={e=>setLoginPass(e.target.value)} onKeyDown={e=>e.key==='Enter'&&doLogin()} placeholder="Contraseña" autoComplete="current-password" style={{width:'100%',background:'rgba(139,92,246,0.05)',border:`1px solid ${loginErr?'rgba(248,113,113,0.4)':'rgba(139,92,246,0.18)'}`,borderRadius:10,padding:'12px 16px',color:'#e8e8f0',fontSize:13,fontFamily:"'Roboto',sans-serif",transition:'border-color .2s'}}/>
+        </div>
+        {loginErr&&<div style={{fontSize:12,color:'#F87171',marginBottom:18,display:'flex',alignItems:'center',gap:6}}><span>⚠</span>Usuario o contraseña incorrectos</div>}
+        <button onClick={doLogin} disabled={loginLoading} style={{width:'100%',padding:'13px',borderRadius:10,border:'1px solid rgba(139,92,246,0.4)',background:'linear-gradient(135deg,rgba(139,92,246,0.25),rgba(16,185,129,0.15))',color:'#d4b8ff',fontSize:13,fontWeight:600,fontFamily:"'Poppins',sans-serif",cursor:loginLoading?'not-allowed':'pointer',letterSpacing:'0.02em',opacity:loginLoading?.7:1}}>{loginLoading?'Verificando...':'Ingresar'}</button>
       </div>
     </div>
   );
 
   return (
-    <div style={{minHeight:'100vh',background:'#080a0d',color:'#fff',fontFamily:"'Roboto',sans-serif"}}>
-      <style>{'@import url(\'https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&family=Roboto:wght@300;400;500&display=swap\');*{box-sizing:border-box;margin:0;padding:0}::-webkit-scrollbar{width:3px}::-webkit-scrollbar-thumb{background:#222}input:focus,select:focus,textarea:focus{outline:none}.hov:hover{background:rgba(255,255,255,0.06)!important}.arow:hover{background:rgba(255,255,255,0.04)!important;cursor:pointer}'}</style>
+    <div style={{minHeight:'100vh',background:'#050508',color:'#fff',fontFamily:"'Roboto',sans-serif",display:'flex'}}>
+      <style>{`@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&family=Roboto:wght@300;400;500&display=swap');*{box-sizing:border-box;margin:0;padding:0}::-webkit-scrollbar{width:3px}::-webkit-scrollbar-thumb{background:#1a1a2e}input:focus,select:focus,textarea:focus{outline:none}.hov:hover{background:rgba(255,255,255,0.06)!important}.arow:hover{background:rgba(255,255,255,0.04)!important;cursor:pointer}.snav:hover{background:rgba(139,92,246,0.08)!important;color:#a78bfa!important}`}</style>
 
-      {/* NAV */}
-      <div style={{position:'sticky',top:0,zIndex:300,background:'rgba(8,10,13,0.97)',backdropFilter:'blur(16px)',borderBottom:'1px solid rgba(255,255,255,0.07)',display:'flex',alignItems:'center',padding:'0 24px',height:58,gap:16,flexWrap:'wrap'}}>
-        <img src={logos.STC} alt="SetToClose" style={{height:32,objectFit:'contain',flexShrink:0}}/>
-        <div style={{width:1,height:26,background:'rgba(255,255,255,0.07)'}}/>
+      {/* ── SIDEBAR ──────────────────────────────────────── */}
+      <div style={{width:220,position:'fixed',top:0,left:0,bottom:0,background:'#0b0c0f',borderRight:'1px solid rgba(255,255,255,0.06)',display:'flex',flexDirection:'column',zIndex:200,overflowY:'auto'}}>
+        {/* Logo */}
+        <div style={{padding:'20px 20px 16px',borderBottom:'1px solid rgba(255,255,255,0.05)',flexShrink:0}}>
+          <img src={logos.STC} alt="STC" style={{height:28,objectFit:'contain',display:'block'}}/>
+        </div>
 
-        {/* Clients dropdown */}
-        <div style={{position:'relative'}}>
-          <button className="hov" onClick={()=>setMenuOpen(p=>!p)} style={{padding:'6px 12px',borderRadius:8,border:'1px solid rgba(255,255,255,0.08)',background:menuOpen?'rgba(255,255,255,0.06)':'transparent',color:'#aaa',fontSize:13,cursor:'pointer',display:'flex',alignItems:'center',gap:8,fontFamily:"'Roboto',sans-serif"}}>
-            {office?(<><img src={logos[office.id]||''} alt="" style={{width:20,height:20,borderRadius:'50%',objectFit:'cover'}}/><span style={{color:office.color,fontWeight:600}}>{office.id}</span><span style={{color:'#555',fontSize:11}}>{office.name}</span></>):(<><span>👥</span>Clients</>)}
-            <span style={{fontSize:9,color:'#444',display:'inline-block',transition:'transform .2s',transform:menuOpen?'rotate(180deg)':'none'}}>▼</span>
-          </button>
-          {menuOpen&&(
-            <div style={{position:'absolute',top:'calc(100% + 8px)',left:0,background:'#0f1115',border:'1px solid rgba(255,255,255,0.09)',borderRadius:12,padding:8,minWidth:220,zIndex:400,boxShadow:'0 20px 60px rgba(0,0,0,0.6)'}}>
-              <button className="hov" onClick={()=>{setActiveId('STC');setMenuOpen(false);}} style={{width:'100%',padding:'9px 12px',borderRadius:8,border:'none',cursor:'pointer',background:activeId==='STC'?'rgba(255,255,255,0.08)':'transparent',display:'flex',alignItems:'center',gap:10,marginBottom:6,borderLeft:activeId==='STC'?'2px solid #fff':'2px solid transparent',transition:'all .15s'}}>
-                  <img src={LOGOS_INIT.STC} alt="" style={{width:20,height:20,borderRadius:'50%',objectFit:'contain',background:'#111',padding:2}}/>
-                  <span style={{fontSize:13,fontWeight:600,color:'#fff',fontFamily:"'Roboto',sans-serif"}}>SetToClose</span>
-                </button>
-                <div style={{borderTop:'1px solid rgba(255,255,255,0.06)',marginBottom:6,marginTop:2}}/>
-                {offices.map(o=>(
-                <button key={o.id} className="hov" onClick={()=>{setActiveId(o.id);setMenuOpen(false);}} style={{width:'100%',padding:'9px 12px',borderRadius:8,border:'none',cursor:'pointer',background:activeId===o.id?o.color+'15':'transparent',display:'flex',alignItems:'center',gap:10,marginBottom:2,borderLeft:activeId===o.id?`2px solid ${o.color}`:'2px solid transparent',transition:'all .15s'}}>
-                  <img src={logos[o.id]||`https://ui-avatars.com/api/?name=${o.id}&background=222&color=fff&size=64`} alt="" style={{width:28,height:28,borderRadius:'50%',objectFit:'cover',border:`1px solid ${o.color}33`}}/>
-                  <div style={{textAlign:'left',flex:1}}>
-                    <div style={{fontWeight:600,fontSize:13,color:activeId===o.id?o.color:'#bbb',fontFamily:"'Poppins',sans-serif"}}>{o.id}</div>
-                    <div style={{fontSize:11,color:'#444'}}>{o.name}</div>
-                  </div>
-                  <button onClick={e=>{e.stopPropagation();setEditing(o);setMenuOpen(false);}} style={{background:'none',border:'none',color:'#333',fontSize:12,cursor:'pointer',padding:'2px 6px'}}>✏️</button>
-                </button>
-              ))}
-              <div style={{borderTop:'1px solid rgba(255,255,255,0.06)',marginTop:4,paddingTop:4}}>
-                <button className="hov" onClick={()=>{setShowAdd(true);setMenuOpen(false);}} style={{width:'100%',padding:'9px 12px',borderRadius:8,border:'none',cursor:'pointer',background:'transparent',color:'#555',fontSize:13,display:'flex',alignItems:'center',gap:8,fontFamily:"'Roboto',sans-serif"}}>
-                  <span style={{fontSize:16}}>＋</span> Add client
-                </button>
+        {/* Active client pill */}
+        {activeId&&(
+          <div style={{padding:'10px 14px',borderBottom:'1px solid rgba(255,255,255,0.04)',background:'rgba(255,255,255,0.02)',flexShrink:0}}>
+            <div style={{display:'flex',alignItems:'center',gap:8}}>
+              <img src={activeId==='STC'?logos.STC:(logos[activeId]||'')} alt="" style={{width:22,height:22,borderRadius:'50%',objectFit:'cover',border:`1px solid ${activeId==='STC'?'rgba(255,255,255,0.15)':(office?.color+'44'||'transparent')}`}}/>
+              <div>
+                <div style={{fontSize:11,fontWeight:600,color:activeId==='STC'?'#fff':(office?.color||'#fff'),fontFamily:"'Poppins',sans-serif",lineHeight:1.2}}>{activeId==='STC'?'SetToClose':office?.id}</div>
+                <div style={{fontSize:9,color:'#333',lineHeight:1.2}}>{activeId==='STC'?'Agencia':office?.name}</div>
               </div>
             </div>
-          )}
-        </div>
-
-        <div style={{width:1,height:26,background:'rgba(255,255,255,0.07)'}}/>
-
-        {/* Date range - single calendar picker */}
-        <div style={{display:'flex',alignItems:'center',gap:8,flexWrap:'wrap',position:'relative'}}>
-          <span style={{fontSize:12}}>📅</span>
-          <button className="hov" onClick={()=>setCalOpen(p=>!p)} style={{padding:'5px 12px',borderRadius:7,border:'1px solid rgba(255,255,255,0.08)',background:'rgba(255,255,255,0.04)',color:'#aaa',fontSize:12,fontFamily:'monospace',cursor:'pointer'}}>
-            {dateFrom} to {dateTo}
-          </button>
-          <div style={{display:'flex',gap:4}}>
-            {PRESETS.map(p=>(
-              <button key={p.days} onClick={()=>{applyPreset(p.days);setCalOpen(false);}} style={{padding:'4px 9px',borderRadius:6,border:`1px solid ${preset===p.days?'rgba(255,255,255,0.2)':'rgba(255,255,255,0.07)'}`,background:preset===p.days?'rgba(255,255,255,0.1)':'transparent',color:preset===p.days?'#fff':'#444',fontSize:11,cursor:'pointer',fontFamily:'monospace'}}>{p.label}</button>
-            ))}
           </div>
-          {calOpen&&(
-            <div style={{position:'absolute',top:'calc(100% + 8px)',left:0,zIndex:500,background:'#0f1115',border:'1px solid rgba(255,255,255,0.1)',borderRadius:14,padding:16,boxShadow:'0 20px 60px rgba(0,0,0,0.7)',minWidth:280}}>
-              <CalendarPicker dateFrom={dateFrom} dateTo={dateTo} onSelect={(from,to)=>{setDateFrom(from);setDateTo(to);setPreset(null);if(from&&to)setCalOpen(false);}}/>
+        )}
+
+        {/* Navigation */}
+        <nav style={{flex:1,padding:'8px 0',overflowY:'auto'}}>
+          {[
+            {id:'clients',  icon:'⊞', label:'Clientes',  adminOnly:true},
+            {id:'dashboard',icon:'◈', label:'Dashboard',  adminOnly:false},
+            {id:'actionlog',icon:'≡', label:'Action Log', adminOnly:false},
+            {id:'ads',      icon:'◉', label:'Ads',        adminOnly:false},
+            {id:'config',   icon:'◎', label:'Configuración', adminOnly:true},
+          ].filter(item=>isAdmin||!item.adminOnly).map(item=>(
+            <button key={item.id} className="snav" onClick={()=>setSidebarTab(item.id)} style={{width:'100%',padding:'11px 20px',border:'none',cursor:'pointer',background:sidebarTab===item.id?'rgba(139,92,246,0.13)':'transparent',color:sidebarTab===item.id?'#c4b5fd':'#555',display:'flex',alignItems:'center',gap:10,borderLeft:sidebarTab===item.id?'2px solid #8b5cf6':'2px solid transparent',textAlign:'left',transition:'all .12s',fontSize:13,fontFamily:"'Roboto',sans-serif",fontWeight:sidebarTab===item.id?500:400}}>
+              <span style={{fontSize:13,opacity:sidebarTab===item.id?1:.6}}>{item.icon}</span>
+              {item.label}
+            </button>
+          ))}
+        </nav>
+
+        {/* Logout */}
+        <div style={{padding:'12px 16px',borderTop:'1px solid rgba(255,255,255,0.05)',flexShrink:0}}>
+          <button onClick={()=>setAuthed(false)} style={{width:'100%',padding:'8px 12px',borderRadius:8,border:'1px solid rgba(255,255,255,0.07)',background:'transparent',color:'#333',fontSize:12,cursor:'pointer',fontFamily:"'Roboto',sans-serif",textAlign:'center'}}>
+            Cerrar sesión
+          </button>
+        </div>
+      </div>
+
+      {/* ── MAIN CONTENT ─────────────────────────────────── */}
+      <div style={{flex:1,marginLeft:220,minHeight:'100vh',display:'flex',flexDirection:'column'}}>
+
+        {/* TOP HEADER BAR */}
+        <div style={{position:'sticky',top:0,zIndex:100,background:'rgba(5,5,8,0.96)',backdropFilter:'blur(16px)',borderBottom:'1px solid rgba(255,255,255,0.06)',display:'flex',alignItems:'center',padding:'0 24px',height:52,gap:12,flexWrap:'wrap',flexShrink:0}}>
+          <div style={{display:'flex',alignItems:'center',gap:6,position:'relative'}}>
+            <button className="hov" onClick={()=>setCalOpen(p=>!p)} style={{padding:'5px 11px',borderRadius:7,border:'1px solid rgba(255,255,255,0.07)',background:'rgba(255,255,255,0.03)',color:'#888',fontSize:11,fontFamily:'monospace',cursor:'pointer'}}>
+              {dateFrom} → {dateTo}
+            </button>
+            <div style={{display:'flex',gap:3}}>
+              {PRESETS.map(p=>(
+                <button key={p.days} onClick={()=>{applyPreset(p.days);setCalOpen(false);}} style={{padding:'3px 8px',borderRadius:5,border:`1px solid ${preset===p.days?'rgba(139,92,246,0.4)':'rgba(255,255,255,0.06)'}`,background:preset===p.days?'rgba(139,92,246,0.15)':'transparent',color:preset===p.days?'#c4b5fd':'#444',fontSize:10,cursor:'pointer',fontFamily:'monospace'}}>{p.label}</button>
+              ))}
+            </div>
+            {calOpen&&(
+              <div style={{position:'absolute',top:'calc(100% + 8px)',left:0,zIndex:500,background:'#0f1115',border:'1px solid rgba(255,255,255,0.1)',borderRadius:14,padding:16,boxShadow:'0 20px 60px rgba(0,0,0,0.8)',minWidth:280}}>
+                <CalendarPicker dateFrom={dateFrom} dateTo={dateTo} onSelect={(from,to)=>{setDateFrom(from);setDateTo(to);setPreset(null);if(from&&to)setCalOpen(false);}}/>
+              </div>
+            )}
+          </div>
+          <div style={{flex:1}}/>
+          {sidebarTab==='dashboard'&&office&&(
+            <div style={{display:'flex',gap:8}}>
+              <button className="hov" onClick={()=>setShowManual(true)} style={{padding:'5px 12px',borderRadius:7,border:'1px solid rgba(255,255,255,0.09)',background:'rgba(255,255,255,0.03)',color:'#666',fontSize:11,cursor:'pointer',fontFamily:"'Roboto',sans-serif",whiteSpace:'nowrap'}}>+ Appts/Sales</button>
+              <button className="hov" onClick={doExport} style={{padding:'5px 12px',borderRadius:7,border:`1px solid ${office.color}44`,background:office.color+'12',color:office.color,fontSize:11,cursor:'pointer',fontFamily:"'Roboto',sans-serif",whiteSpace:'nowrap'}}>⬇ PDF</button>
             </div>
           )}
         </div>
 
-        <div style={{flex:1}}/>
-        {office&&(
-          <div style={{display:'flex',gap:8}}>
-            <button className="hov" onClick={()=>setShowManual(true)} style={{padding:'6px 14px',borderRadius:8,border:'1px solid rgba(255,255,255,0.1)',background:'rgba(255,255,255,0.04)',color:'#888',fontSize:12,cursor:'pointer',fontFamily:"'Roboto',sans-serif",whiteSpace:'nowrap'}}>+ Appts / Sales</button>
-            <button className="hov" onClick={doExport} style={{padding:'6px 14px',borderRadius:8,border:`1px solid ${office.color}44`,background:office.color+'15',color:office.color,fontSize:12,cursor:'pointer',fontFamily:"'Roboto',sans-serif",whiteSpace:'nowrap'}}>⬇ Export PDF</button>
+        {/* ── CLIENTS TAB ─────────────────────────────── */}
+        {sidebarTab==='clients'&&(
+          <div style={{padding:'28px 28px 60px'}}>
+            <div style={{fontSize:11,fontWeight:600,color:'#444',letterSpacing:'.1em',textTransform:'uppercase',marginBottom:20}}>Clientes</div>
+            {/* SetToClose Agency Card */}
+            <div style={{marginBottom:16}}>
+              <button onClick={()=>{setActiveId('STC');setSidebarTab('dashboard');}} style={{width:'100%',background:activeId==='STC'?'rgba(255,255,255,0.05)':'rgba(255,255,255,0.02)',border:`1px solid ${activeId==='STC'?'rgba(255,255,255,0.18)':'rgba(255,255,255,0.06)'}`,borderRadius:14,padding:'16px 20px',cursor:'pointer',display:'flex',alignItems:'center',gap:14,textAlign:'left',transition:'all .15s'}}>
+                <img src={LOGOS_INIT.STC} alt="" style={{width:44,height:44,borderRadius:10,objectFit:'contain',background:'rgba(255,255,255,0.04)',padding:6,border:'1px solid rgba(255,255,255,0.08)'}}/>
+                <div style={{flex:1}}>
+                  <div style={{fontSize:15,fontWeight:700,color:'#fff',fontFamily:"'Poppins',sans-serif",marginBottom:2}}>SetToClose</div>
+                  <div style={{fontSize:11,color:'#444'}}>{offices.length} oficinas · Vista agencia</div>
+                </div>
+                <span style={{fontSize:11,color:'#444'}}>→</span>
+              </button>
+            </div>
+            <div style={{fontSize:10,fontWeight:600,color:'#333',letterSpacing:'.1em',textTransform:'uppercase',marginBottom:12}}>Clientes</div>
+            <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fill,minmax(260px,1fr))',gap:12}}>
+              {offices.map(o=>(
+                <div key={o.id} style={{background:'rgba(255,255,255,0.02)',border:`1px solid ${activeId===o.id?o.color+'44':'rgba(255,255,255,0.06)'}`,borderRadius:14,padding:'18px 20px',cursor:'pointer',transition:'all .15s',position:'relative',overflow:'hidden'}} onClick={()=>{setActiveId(o.id);setSidebarTab('dashboard');}}>
+                  <div style={{position:'absolute',top:0,left:0,right:0,height:2,background:o.color,opacity:.5}}/>
+                  <div style={{display:'flex',alignItems:'center',gap:12,marginBottom:14}}>
+                    <img src={logos[o.id]||''} alt="" style={{width:40,height:40,borderRadius:'50%',objectFit:'cover',border:`2px solid ${o.color}44`}}/>
+                    <div>
+                      <div style={{fontSize:14,fontWeight:700,color:o.color,fontFamily:"'Poppins',sans-serif"}}>{o.id}</div>
+                      <div style={{fontSize:11,color:'#555'}}>{o.name}</div>
+                    </div>
+                  </div>
+                  <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:8}}>
+                    {[{l:'Spend',v:fmt$(allOfficesData.find(x=>x.id===o.id)?.spend||0)},{l:'Leads',v:fmtN(allOfficesData.find(x=>x.id===o.id)?.leads||0)},{l:'Deals',v:fmtN(allOfficesData.find(x=>x.id===o.id)?.sales||0)},{l:'Cash',v:fmt$(allOfficesData.find(x=>x.id===o.id)?.cashTiago||0)}].map(m=>(
+                      <div key={m.l} style={{background:'rgba(255,255,255,0.02)',borderRadius:8,padding:'8px 10px'}}>
+                        <div style={{fontSize:9,color:'#444',textTransform:'uppercase',letterSpacing:'.1em',marginBottom:4}}>{m.l}</div>
+                        <div style={{fontSize:13,fontWeight:700,color:'#fff',fontFamily:"'Poppins',sans-serif"}}>{m.v}</div>
+                      </div>
+                    ))}
+                  </div>
+                  <div style={{display:'flex',gap:6,marginTop:12}}>
+                    <button onClick={e=>{e.stopPropagation();setActiveId(o.id);setSidebarTab('dashboard');}} style={{flex:1,padding:'6px',borderRadius:7,border:`1px solid ${o.color}33`,background:o.color+'10',color:o.color,fontSize:11,cursor:'pointer',fontFamily:"'Roboto',sans-serif"}}>Dashboard</button>
+                    <button onClick={e=>{e.stopPropagation();setEditing(o);}} style={{padding:'6px 10px',borderRadius:7,border:'1px solid rgba(255,255,255,0.08)',background:'transparent',color:'#444',fontSize:11,cursor:'pointer'}}>✏️</button>
+                  </div>
+                </div>
+              ))}
+              <div onClick={()=>setShowAdd(true)} style={{background:'rgba(255,255,255,0.01)',border:'1px dashed rgba(255,255,255,0.08)',borderRadius:14,padding:'18px 20px',cursor:'pointer',display:'flex',alignItems:'center',justifyContent:'center',flexDirection:'column',gap:8,minHeight:160,transition:'all .15s'}}>
+                <span style={{fontSize:24,color:'#333'}}>+</span>
+                <span style={{fontSize:12,color:'#333',fontFamily:"'Roboto',sans-serif"}}>Agregar cliente</span>
+              </div>
+            </div>
           </div>
         )}
-      </div>
 
-      {/* CONTENT */}
-      <div style={{padding:'24px 24px 60px',maxWidth:1440,margin:'0 auto'}}>
+        {/* ── DASHBOARD TAB ────────────────────────────── */}
+        {sidebarTab==='dashboard'&&(
+        <div style={{padding:'24px 24px 60px',maxWidth:1440,margin:'0 auto',width:'100%'}}>
         {!activeId?(
           <div style={{display:'flex',alignItems:'center',justifyContent:'center',height:'70vh',flexDirection:'column',gap:16}}>
             <img src={logos.STC} alt="" style={{height:48,opacity:.15}}/>
@@ -597,8 +707,25 @@ body{background:#080a0d;color:#fff;font-family:'Roboto',sans-serif;padding:36px 
                 <div style={{fontSize:12,color:'#444',marginTop:2}}>{dateFrom} to {dateTo} · {offices.length} oficinas activas</div>
               </div>
             </div>
-            <div style={{fontSize:11,fontWeight:600,color:'#555',letterSpacing:'.1em',textTransform:'uppercase',marginBottom:14}}>Métricas Globales</div>
-            <div style={{display:'grid',gridTemplateColumns:'repeat(4,1fr)',gap:12,marginBottom:32}}>
+            <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',marginBottom:14}}>
+              <div style={{fontSize:11,fontWeight:600,color:'#555',letterSpacing:'.1em',textTransform:'uppercase'}}>Métricas Globales</div>
+              <button onClick={()=>setStcCustomizing(p=>!p)} style={{padding:'5px 12px',borderRadius:7,border:'1px solid rgba(139,92,246,0.3)',background:stcCustomizing?'rgba(139,92,246,0.15)':'transparent',color:stcCustomizing?'#c4b5fd':'#555',fontSize:11,cursor:'pointer',fontFamily:"'Roboto',sans-serif"}}>
+                {stcCustomizing?'✓ Listo':'⊞ Personalizar'}
+              </button>
+            </div>
+            {stcCustomizing&&(
+              <div style={{background:'rgba(139,92,246,0.06)',border:'1px solid rgba(139,92,246,0.2)',borderRadius:12,padding:'14px 18px',marginBottom:16}}>
+                <div style={{fontSize:11,color:'#8b5cf6',marginBottom:10,fontWeight:600}}>Selecciona las métricas a mostrar:</div>
+                <div style={{display:'flex',flexWrap:'wrap',gap:8}}>
+                  {[{id:'spend',l:'Ad Spend'},{id:'leads',l:'Leads'},{id:'cpl',l:'CPL'},{id:'apps',l:'Apps Booked'},{id:'showed',l:'Apps Showed'},{id:'sales',l:'Deals'},{id:'cash',l:'Cash Tiago'},{id:'impressions',l:'Impresiones'}].map(m=>(
+                    <button key={m.id} onClick={()=>setStcVisibleMetrics(p=>({...p,[m.id]:!p[m.id]}))} style={{padding:'5px 12px',borderRadius:20,border:`1px solid ${stcVisibleMetrics[m.id]?'rgba(139,92,246,0.5)':'rgba(255,255,255,0.1)'}`,background:stcVisibleMetrics[m.id]?'rgba(139,92,246,0.2)':'transparent',color:stcVisibleMetrics[m.id]?'#c4b5fd':'#444',fontSize:11,cursor:'pointer',fontFamily:"'Roboto',sans-serif",transition:'all .1s'}}>
+                      {stcVisibleMetrics[m.id]?'✓ ':''}{m.l}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+            <div style={{display:'grid',gridTemplateColumns:'repeat(4,1fr)',gap:10,marginBottom:32}}>
               {[
                 { id:'spend',      label:'Ad Spend Total',   value: fmt$(stcTotals.spend),       sub: `${offices.length} cuentas`,                                                             vals: allOfficesData.map(o=>({id:o.id,name:o.name,color:o.color,v:fmt$(o.spend)})) },
                 { id:'leads',      label:'Total Leads',      value: fmtN(stcTotals.leads),       sub: `CPL: ${fmt$(stcTotals.leads>0?stcTotals.spend/stcTotals.leads:0)}`,                    vals: allOfficesData.map(o=>({id:o.id,name:o.name,color:o.color,v:fmtN(o.leads)})) },
@@ -608,7 +735,7 @@ body{background:#080a0d;color:#fff;font-family:'Roboto',sans-serif;padding:36px 
                 { id:'sales',      label:'Deals Cerrados',   value: fmtN(stcTotals.sales),       sub: `Close: ${stcTotals.appsShowed>0?((stcTotals.sales/stcTotals.appsShowed)*100).toFixed(1):0}%`, vals: allOfficesData.map(o=>({id:o.id,name:o.name,color:o.color,v:fmtN(o.sales)})) },
                 { id:'cash',       label:'Cash Tiago Total', value: fmt$(stcTotals.cashTiago),   sub: 'Tu revenue personal',                                                                  vals: allOfficesData.map(o=>({id:o.id,name:o.name,color:o.color,v:fmt$(o.cashTiago)})) },
                 { id:'impressions',label:'Impresiones',      value: fmtN(stcTotals.impressions), sub: 'Total alcance',                                                                        vals: allOfficesData.map(o=>({id:o.id,name:o.name,color:o.color,v:fmtN(o.impressions)})) },
-              ].map(kpi=>(
+              ].filter(kpi=>stcVisibleMetrics[kpi.id]).map(kpi=>(
                 <div key={kpi.id} onClick={()=>setExpandedKpi(expandedKpi===kpi.id?null:kpi.id)} style={{background:'rgba(255,255,255,0.03)',border:`1px solid ${expandedKpi===kpi.id?'rgba(255,255,255,0.2)':'rgba(255,255,255,0.07)'}`,borderRadius:14,padding:'16px 18px',cursor:'pointer',transition:'all .2s',position:'relative'}}>
                   <div style={{fontSize:10,color:'#555',textTransform:'uppercase',letterSpacing:'.1em',marginBottom:8,fontWeight:600}}>{kpi.label}</div>
                   <div style={{fontSize:24,fontWeight:700,fontFamily:"'Poppins',sans-serif",color:'#fff',marginBottom:4}}>{kpi.value}</div>
@@ -689,33 +816,33 @@ body{background:#080a0d;color:#fff;font-family:'Roboto',sans-serif;padding:36px 
               <>
                 <Sec title="Meta Ads"/>
                 <div style={{display:'grid',gridTemplateColumns:'repeat(4,1fr)',gap:10,marginBottom:10}}>
-                  <KPI label="Ad Spend"    value={fmtK(T.spent)}          sub={`${T.leads} leads`}               color={office.color}/>
-                  <KPI label="Impressions" value={fmtN(T.impressions)}    sub="Total impressions"                color={office.color}/>
-                  <KPI label="Link Clicks" value={fmtN(T.linkClicks)}     sub="Clicks on link"                   color={office.color}/>
-                  <KPI label="CPC (Link)"  value={fmt$(cpcLink)}          sub="Cost per link click"              color={office.color}/>
+                  <KPI label="Ad Spend"    value={fmtK(T.spent)}          sub={`${T.leads} leads`}               color={office.color} sparkData={data} sparkKey="spent"/>
+                  <KPI label="Impressions" value={fmtN(T.impressions)}    sub="Total impressions"                color={office.color} sparkData={data} sparkKey="impressions"/>
+                  <KPI label="Link Clicks" value={fmtN(T.linkClicks)}     sub="Clicks on link"                   color={office.color} sparkData={data} sparkKey="linkClicks"/>
+                  <KPI label="CPC (Link)"  value={fmt$(cpcLink)}          sub="Cost per link click"              color={office.color} sparkData={data} sparkKey="cpcLink"/>
                 </div>
-                <div style={{display:'grid',gridTemplateColumns:'repeat(4,1fr)',gap:10,marginBottom:20}}>
-                  <KPI label="CTR (Link)"  value={ctrLink.toFixed(2)+'%'} sub="Link click-through rate"          color={office.color}/>
+                <div style={{display:'grid',gridTemplateColumns:'repeat(4,1fr)',gap:8,marginBottom:18}}>
+                  <KPI label="CTR (Link)"  value={ctrLink.toFixed(2)+'%'} sub="Link click-through rate"          color={office.color} sparkData={data} sparkKey="ctrLink"/>
                   <KPI label="Frequency"   value={freq.toFixed(2)}        sub="Avg impressions/person"           color={office.color}/>
-                  <KPI label="CPL"         value={fmt$(cpl)}              sub="Cost per lead"                    color={office.color}/>
-                  <KPI label="Leads"       value={T.leads}                sub="Generated"                        color={office.color}/>
+                  <KPI label="CPL"         value={fmt$(cpl)}              sub="Cost per lead"                    color={office.color} sparkData={data} sparkKey="cpl"/>
+                  <KPI label="Leads"       value={T.leads}                sub="Generated"                        color={office.color} sparkData={data} sparkKey="leads"/>
                 </div>
 
                 <Sec title="Appointments & Sales"/>
-                <div style={{display:'grid',gridTemplateColumns:'repeat(5,1fr)',gap:10,marginBottom:20}}>
-                  <KPI label="Apps Booked"  value={T.appsBooked}             sub="Total scheduled"                    color="#FB923C"/>
-                  <KPI label="Apps Showed"  value={T.appsShowed}             sub={`${showRate.toFixed(1)}% show rate`} color="#FB923C"/>
+                <div style={{display:'grid',gridTemplateColumns:'repeat(5,1fr)',gap:8,marginBottom:18}}>
+                  <KPI label="Apps Booked"  value={T.appsBooked}             sub="Total scheduled"                    color="#FB923C" sparkData={data} sparkKey="appsBooked"/>
+                  <KPI label="Apps Showed"  value={T.appsShowed}             sub={`${showRate.toFixed(1)}% show rate`} color="#FB923C" sparkData={data} sparkKey="appsShowed"/>
                   <KPI label="Show Rate"    value={showRate.toFixed(1)+'%'}  sub="Showed / Booked"                    color="#FB923C"/>
-                  <KPI label="Deals Closed" value={T.sales}                  sub={`${closeRate.toFixed(1)}% close rate`} color="#FB923C"/>
+                  <KPI label="Deals Closed" value={T.sales}                  sub={`${closeRate.toFixed(1)}% close rate`} color="#FB923C" sparkData={data} sparkKey="sales"/>
                   <KPI label="Close Rate"   value={closeRate.toFixed(1)+'%'} sub="Closed / Showed"                    color="#FB923C"/>
                 </div>
 
                 <Sec title="Revenue & Cash"/>
-                <div style={{display:'grid',gridTemplateColumns:'repeat(5,1fr)',gap:10,marginBottom:24}}>
-                  <KPI label="Rev. Company"          value={fmtK(T.revCompany)}     sub={`${T.sales} × $7,990`}            color="#4ADE80"/>
-                  <KPI label="Rev. Office"           value={fmtK(T.revOffice)}      sub={`${T.sales} × $3,000`}            color="#4ADE80"/>
-                  <KPI label="Cash Tiago"            value={fmtK(T.cashTiago)}      sub={`${T.sales} × $${office.payout}`} color="#4ADE80"/>
-                  <KPI label="Cash Collected (Office)" value={fmtK(T.cashOffice)}   sub="Rev Office − Tiago − Spend"       color="#4ADE80"/>
+                <div style={{display:'grid',gridTemplateColumns:'repeat(5,1fr)',gap:8,marginBottom:22}}>
+                  <KPI label="Rev. Company"          value={fmtK(T.revCompany)}     sub={`${T.sales} × $7,990`}            color="#4ADE80" sparkData={data} sparkKey="revCompany"/>
+                  <KPI label="Rev. Office"           value={fmtK(T.revOffice)}      sub={`${T.sales} × $3,000`}            color="#4ADE80" sparkData={data} sparkKey="revOffice"/>
+                  <KPI label="Cash Tiago"            value={fmtK(T.cashTiago)}      sub={`${T.sales} × $${office.payout}`} color="#4ADE80" sparkData={data} sparkKey="cashTiago"/>
+                  <KPI label="Cash Collected"        value={fmtK(T.cashOffice)}     sub="Rev Office − Tiago − Spend"       color="#4ADE80"/>
                   <KPI label="ROAS (Cash)"           value={roasCash.toFixed(2)+'x'} sub="Cash Collected / Spend"          color="#4ADE80"/>
                 </div>
 
@@ -810,68 +937,241 @@ body{background:#080a0d;color:#fff;font-family:'Roboto',sans-serif;padding:36px 
                   </div>
                 )}
 
-                {/* Action Log */}
-                <div style={{background:'rgba(255,255,255,0.02)',border:'1px solid rgba(255,255,255,0.06)',borderRadius:14,padding:20}}>
-                  <div style={{fontSize:13,fontWeight:600,marginBottom:16,fontFamily:"'Poppins',sans-serif"}}>Action Log</div>
-                  <div style={{background:'rgba(255,255,255,0.02)',border:'1px solid rgba(255,255,255,0.07)',borderRadius:10,padding:16,marginBottom:16}}>
-                    <div style={{display:'flex',gap:8,marginBottom:10}}>
-                      <input type="date" value={newDate} onChange={e=>setNewDate(e.target.value)} style={{...inp,width:150,colorScheme:'dark'}}/>
-                      <select value={newType} onChange={e=>setNewType(e.target.value)} style={{...inp,width:120,cursor:'pointer'}}>
-                        {Object.entries(ACTION_TYPES).map(([k,v])=><option key={k} value={k} style={{background:'#111'}}>{v.label}</option>)}
-                      </select>
-                    </div>
-                    <textarea value={newText} onChange={e=>setNewText(e.target.value)} onKeyDown={e=>{if(e.key==='Enter'&&e.metaKey)addAction();}} placeholder="Describe la acción o decisión... (Cmd+Enter para guardar)" rows={4} style={{...inp,resize:'vertical',lineHeight:1.6,marginBottom:10}}/>
-                    <div style={{display:'flex',alignItems:'center',gap:10}}>
-                      <button onClick={()=>mediaRef.current?.click()} style={{padding:'7px 14px',borderRadius:7,border:'1px solid rgba(255,255,255,0.08)',background:'rgba(255,255,255,0.03)',color:'#666',fontSize:12,cursor:'pointer',fontFamily:"'Roboto',sans-serif"}}>📎 Adjuntar media</button>
-                      <input ref={mediaRef} type="file" accept="image/*,video/*" multiple onChange={e=>{Array.from(e.target.files).forEach(f=>{const r=new FileReader();r.onload=ev=>setPendMedia(p=>[...p,{name:f.name,type:f.type,url:ev.target.result}]);r.readAsDataURL(f);});}} style={{display:'none'}}/>
-                      {pendMedia.length>0&&<span style={{fontSize:11,color:'#555'}}>{pendMedia.length} archivo(s)</span>}
-                      <div style={{flex:1}}/>
-                      <button onClick={addAction} style={btnP(office.color)}>+ Guardar</button>
-                    </div>
-                  </div>
-                  <div style={{display:'flex',alignItems:'center',gap:10,marginBottom:14}}>
-                    <span style={{fontSize:11,color:'#444',textTransform:'uppercase',letterSpacing:'0.1em'}}>Filtrar:</span>
-                    <input type="date" value={filterDate} onChange={e=>setFilterDate(e.target.value)} style={{background:'rgba(255,255,255,0.04)',border:'1px solid rgba(255,255,255,0.07)',borderRadius:6,padding:'5px 10px',color:'#666',fontSize:12,fontFamily:'monospace',colorScheme:'dark',cursor:'pointer'}}/>
-                    {filterDate&&<button onClick={()=>setFilterDate('')} style={{background:'none',border:'none',color:'#444',fontSize:12,cursor:'pointer'}}>✕ Clear</button>}
-                    <span style={{fontSize:11,color:'#333',marginLeft:'auto'}}>{filtActions.length} entries</span>
-                  </div>
-                  <div style={{display:'flex',flexDirection:'column',gap:6}}>
-                    {filtActions.length===0&&<div style={{color:'#222',fontSize:13,textAlign:'center',padding:'24px 0'}}>No hay acciones registradas{filterDate?' para esta fecha':''}.</div>}
-                    {filtActions.map(a=>{
-                      const t=ACTION_TYPES[a.type]||ACTION_TYPES.test;
-                      const isExp=expanded===a.id;
-                      return(
-                        <div key={a.id} className="arow" onClick={()=>setExpanded(isExp?null:a.id)} style={{background:isExp?'rgba(255,255,255,0.04)':t.bg,borderLeft:`3px solid ${t.border}`,borderRadius:8,padding:'12px 16px',transition:'background .15s'}}>
-                          <div style={{display:'flex',gap:10}}>
-                            <div style={{width:6,height:6,borderRadius:'50%',background:t.dot,marginTop:6,flexShrink:0}}/>
-                            <div style={{flex:1,minWidth:0}}>
-                              <div style={{display:'flex',alignItems:'center',gap:8,marginBottom:4}}>
-                                <span style={{fontSize:11,color:t.border,fontFamily:'monospace'}}>{a.date}</span>
-                                <span style={{fontSize:10,color:'#333',background:'rgba(255,255,255,0.04)',padding:'1px 7px',borderRadius:4}}>{t.label}</span>
-                                {a.media?.length>0&&<span style={{fontSize:10,color:'#444'}}>📎 {a.media.length}</span>}
-                                <div style={{marginLeft:'auto',display:'flex',gap:6,alignItems:'center'}}>
-                  <button onClick={e=>{e.stopPropagation();setEditingAction(a.id);setEditText(a.text);setEditType(a.type);setEditDate(a.date);setEditMedia([]);}} style={{background:'none',border:'none',color:'#333',fontSize:11,cursor:'pointer',padding:'2px 6px'}}>✏️</button>
-                  <span style={{fontSize:10,color:'#333'}}>{isExp?'▲ cerrar':'▼ ver más'}</span>
-                </div>
-                              </div>
-                              <div style={{fontSize:13,color:isExp?'#ddd':'#888',lineHeight:1.6,whiteSpace:isExp?'pre-wrap':'nowrap',overflow:'hidden',textOverflow:'ellipsis'}}>{a.text}</div>
-                              {isExp&&a.media?.length>0&&(
-                                <div style={{display:'flex',gap:8,marginTop:12,flexWrap:'wrap'}}>
-                                  {a.media.map((m,i)=>m.type?.startsWith('image')?<img key={i} src={m.url} style={{maxWidth:200,maxHeight:150,borderRadius:8,objectFit:'cover',border:'1px solid rgba(255,255,255,0.1)'}}/>:<video key={i} src={m.url} controls style={{maxWidth:280,maxHeight:160,borderRadius:8}}/>)}
-                                </div>
-                              )}
-                            </div>
-                          </div>
-                        </div>
-                      );
-                    })}
-                  </div>
-                </div>
               </>
             )}
           </>
         )}
-      </div>
+        </div>
+        )} {/* end dashboard tab */}
+
+        {/* ── ACTION LOG TAB ────────────────────────────── */}
+        {sidebarTab==='actionlog'&&(
+          <div style={{padding:'28px',maxWidth:860,margin:'0 auto',width:'100%'}}>
+            {!activeId?(
+              <div style={{display:'flex',alignItems:'center',justifyContent:'center',height:'60vh',flexDirection:'column',gap:12}}>
+                <div style={{color:'#2a2a2a',fontSize:13}}>Selecciona un cliente primero</div>
+                <button onClick={()=>setSidebarTab('clients')} style={{padding:'8px 16px',borderRadius:8,border:'1px solid rgba(139,92,246,0.3)',background:'rgba(139,92,246,0.1)',color:'#a78bfa',fontSize:12,cursor:'pointer'}}>Ver Clientes</button>
+              </div>
+            ):(
+              <>
+                <div style={{display:'flex',alignItems:'center',gap:12,marginBottom:24}}>
+                  {activeId!=='STC'&&<img src={logos[activeId]||''} alt="" style={{width:36,height:36,borderRadius:'50%',objectFit:'cover',border:`2px solid ${office?.color}44`}}/>}
+                  <div>
+                    <div style={{fontSize:16,fontWeight:700,fontFamily:"'Poppins',sans-serif",color:'#fff'}}>{activeId==='STC'?'SetToClose':office?.name} — Action Log</div>
+                    <div style={{fontSize:11,color:'#444',marginTop:2}}>{dateFrom} → {dateTo}</div>
+                  </div>
+                </div>
+                <div style={{background:'rgba(255,255,255,0.02)',border:'1px solid rgba(255,255,255,0.07)',borderRadius:12,padding:16,marginBottom:16}}>
+                  <div style={{display:'flex',gap:8,marginBottom:10}}>
+                    <input type="date" value={newDate} onChange={e=>setNewDate(e.target.value)} style={{...inp,width:150,colorScheme:'dark'}}/>
+                    <select value={newType} onChange={e=>setNewType(e.target.value)} style={{...inp,width:120,cursor:'pointer'}}>
+                      {Object.entries(ACTION_TYPES).map(([k,v])=><option key={k} value={k} style={{background:'#111'}}>{v.label}</option>)}
+                    </select>
+                  </div>
+                  <textarea value={newText} onChange={e=>setNewText(e.target.value)} onKeyDown={e=>{if(e.key==='Enter'&&e.metaKey)addAction();}} placeholder="Describe la acción o decisión..." rows={4} style={{...inp,resize:'vertical',lineHeight:1.6,marginBottom:10}}/>
+                  <div style={{display:'flex',alignItems:'center',gap:10}}>
+                    <button onClick={()=>mediaRef.current?.click()} style={{padding:'7px 14px',borderRadius:7,border:'1px solid rgba(255,255,255,0.08)',background:'rgba(255,255,255,0.03)',color:'#666',fontSize:12,cursor:'pointer',fontFamily:"'Roboto',sans-serif"}}>📎 Adjuntar media</button>
+                    <input ref={mediaRef} type="file" accept="image/*,video/*" multiple onChange={e=>{Array.from(e.target.files).forEach(f=>{const r=new FileReader();r.onload=ev=>setPendMedia(p=>[...p,{name:f.name,type:f.type,url:ev.target.result}]);r.readAsDataURL(f);});}} style={{display:'none'}}/>
+                    {pendMedia.length>0&&<span style={{fontSize:11,color:'#555'}}>{pendMedia.length} archivo(s)</span>}
+                    <div style={{flex:1}}/>
+                    <button onClick={addAction} style={btnP(office?.color||'#8b5cf6')}>+ Guardar</button>
+                  </div>
+                </div>
+                <div style={{display:'flex',alignItems:'center',gap:10,marginBottom:14}}>
+                  <span style={{fontSize:11,color:'#444',textTransform:'uppercase',letterSpacing:'0.1em'}}>Filtrar:</span>
+                  <input type="date" value={filterDate} onChange={e=>setFilterDate(e.target.value)} style={{background:'rgba(255,255,255,0.04)',border:'1px solid rgba(255,255,255,0.07)',borderRadius:6,padding:'5px 10px',color:'#666',fontSize:12,fontFamily:'monospace',colorScheme:'dark',cursor:'pointer'}}/>
+                  {filterDate&&<button onClick={()=>setFilterDate('')} style={{background:'none',border:'none',color:'#444',fontSize:12,cursor:'pointer'}}>✕ Clear</button>}
+                  <span style={{fontSize:11,color:'#333',marginLeft:'auto'}}>{filtActions.length} entradas</span>
+                </div>
+                <div style={{display:'flex',flexDirection:'column',gap:6}}>
+                  {filtActions.length===0&&<div style={{color:'#222',fontSize:13,textAlign:'center',padding:'32px 0'}}>No hay acciones registradas{filterDate?' para esta fecha':''}.</div>}
+                  {filtActions.map(a=>{
+                    const t=ACTION_TYPES[a.type]||ACTION_TYPES.test;
+                    const isExp=expanded===a.id;
+                    return(
+                      <div key={a.id} className="arow" onClick={()=>setExpanded(isExp?null:a.id)} style={{background:isExp?'rgba(255,255,255,0.04)':t.bg,borderLeft:`3px solid ${t.border}`,borderRadius:8,padding:'12px 16px',transition:'background .15s'}}>
+                        <div style={{display:'flex',gap:10}}>
+                          <div style={{width:6,height:6,borderRadius:'50%',background:t.dot,marginTop:6,flexShrink:0}}/>
+                          <div style={{flex:1,minWidth:0}}>
+                            <div style={{display:'flex',alignItems:'center',gap:8,marginBottom:4}}>
+                              <span style={{fontSize:11,color:t.border,fontFamily:'monospace'}}>{a.date}</span>
+                              <span style={{fontSize:10,color:'#333',background:'rgba(255,255,255,0.04)',padding:'1px 7px',borderRadius:4}}>{t.label}</span>
+                              {a.media?.length>0&&<span style={{fontSize:10,color:'#444'}}>📎 {a.media.length}</span>}
+                              <div style={{marginLeft:'auto',display:'flex',gap:6,alignItems:'center'}}>
+                                <button onClick={e=>{e.stopPropagation();setEditingAction(a.id);setEditText(a.text);setEditType(a.type);setEditDate(a.date);setEditMedia([]);}} style={{background:'none',border:'none',color:'#333',fontSize:11,cursor:'pointer',padding:'2px 6px'}}>✏️</button>
+                                <span style={{fontSize:10,color:'#333'}}>{isExp?'▲ cerrar':'▼ ver más'}</span>
+                              </div>
+                            </div>
+                            <div style={{fontSize:13,color:isExp?'#ddd':'#888',lineHeight:1.6,whiteSpace:isExp?'pre-wrap':'nowrap',overflow:'hidden',textOverflow:'ellipsis'}}>{a.text}</div>
+                            {isExp&&a.media?.length>0&&(
+                              <div style={{display:'flex',gap:8,marginTop:12,flexWrap:'wrap'}}>
+                                {a.media.map((m,i)=>m.type?.startsWith('image')?<img key={i} src={m.url} style={{maxWidth:200,maxHeight:150,borderRadius:8,objectFit:'cover',border:'1px solid rgba(255,255,255,0.1)'}}/>:<video key={i} src={m.url} controls style={{maxWidth:280,maxHeight:160,borderRadius:8}}/>)}
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </>
+            )}
+          </div>
+        )}
+
+        {/* ── ADS TAB ──────────────────────────────────── */}
+        {sidebarTab==='ads'&&(
+          <div style={{padding:'28px'}}>
+            {!activeId||activeId==='STC'?(
+              <div style={{display:'flex',alignItems:'center',justifyContent:'center',height:'60vh',flexDirection:'column',gap:12}}>
+                <div style={{color:'#2a2a2a',fontSize:13}}>Selecciona un cliente para ver sus Ads</div>
+                <button onClick={()=>setSidebarTab('clients')} style={{padding:'8px 16px',borderRadius:8,border:'1px solid rgba(139,92,246,0.3)',background:'rgba(139,92,246,0.1)',color:'#a78bfa',fontSize:12,cursor:'pointer'}}>Ver Clientes</button>
+              </div>
+            ):(
+              <>
+                <div style={{display:'flex',alignItems:'center',gap:14,marginBottom:28}}>
+                  <img src={logos[activeId]||''} alt="" style={{width:40,height:40,borderRadius:'50%',objectFit:'cover',border:`2px solid ${office?.color}44`}}/>
+                  <div>
+                    <div style={{fontSize:18,fontWeight:700,fontFamily:"'Poppins',sans-serif",color:'#fff'}}>{office?.name} — Ads</div>
+                    <div style={{fontSize:11,color:'#444',marginTop:2}}>{dateFrom} → {dateTo}</div>
+                  </div>
+                </div>
+                {/* Resumen Ads */}
+                <div style={{display:'grid',gridTemplateColumns:'repeat(4,1fr)',gap:10,marginBottom:28}}>
+                  {[{l:'Ad Spend',v:fmtK(data.reduce((s,d)=>s+(d.spent||0),0)),c:office?.color},{l:'Leads',v:fmtN(data.reduce((s,d)=>s+(d.leads||0),0)),c:office?.color},{l:'CPL',v:fmt$(data.reduce((s,d)=>s+(d.leads||0),0)>0?data.reduce((s,d)=>s+(d.spent||0),0)/data.reduce((s,d)=>s+(d.leads||0),0):0),c:office?.color},{l:'CTR',v:(data.reduce((s,d)=>s+(d.impressions||0),0)>0?(data.reduce((s,d)=>s+(d.linkClicks||0),0)/data.reduce((s,d)=>s+(d.impressions||0),0)*100):0).toFixed(2)+'%',c:office?.color}].map(m=>(
+                    <div key={m.l} style={{background:'rgba(255,255,255,0.03)',border:`1px solid rgba(255,255,255,0.07)`,borderRadius:12,padding:'14px 16px',position:'relative',overflow:'hidden'}}>
+                      <div style={{position:'absolute',top:0,left:0,right:0,height:2,background:m.c,opacity:.5}}/>
+                      <div style={{fontSize:9,color:'#555',textTransform:'uppercase',letterSpacing:'.1em',marginBottom:6,fontWeight:600}}>{m.l}</div>
+                      <div style={{fontSize:20,fontWeight:700,color:'#fff',fontFamily:"'Poppins',sans-serif"}}>{m.v}</div>
+                    </div>
+                  ))}
+                </div>
+                {/* Top days por leads */}
+                <div style={{display:'grid',gridTemplateColumns:'1.5fr 1fr',gap:16,marginBottom:28}}>
+                  <div style={{background:'rgba(255,255,255,0.02)',border:'1px solid rgba(255,255,255,0.06)',borderRadius:14,padding:20}}>
+                    <div style={{fontSize:13,fontWeight:600,marginBottom:16,fontFamily:"'Poppins',sans-serif"}}>Leads por Día</div>
+                    <ResponsiveContainer width="100%" height={200}>
+                      <BarChart data={[...data].sort((a,b)=>a.date.localeCompare(b.date))} margin={{top:0,right:0,left:-20,bottom:0}}>
+                        <CartesianGrid strokeDasharray="2 4" stroke="rgba(255,255,255,0.04)" vertical={false}/>
+                        <XAxis dataKey="date" tick={{fill:'#333',fontSize:8}} axisLine={false} tickLine={false} interval={Math.max(0,Math.floor(data.length/6))}/>
+                        <YAxis tick={{fill:'#333',fontSize:8}} axisLine={false} tickLine={false}/>
+                        <Tooltip content={<Tip/>}/>
+                        <Bar dataKey="leads" name="Leads" fill={office?.color||'#8b5cf6'} radius={[3,3,0,0]} opacity={0.8}/>
+                      </BarChart>
+                    </ResponsiveContainer>
+                  </div>
+                  <div style={{background:'rgba(255,255,255,0.02)',border:'1px solid rgba(255,255,255,0.06)',borderRadius:14,padding:20}}>
+                    <div style={{fontSize:13,fontWeight:600,marginBottom:16,fontFamily:"'Poppins',sans-serif"}}>Top 5 Días (Leads)</div>
+                    {[...data].sort((a,b)=>(b.leads||0)-(a.leads||0)).slice(0,5).map((d,i)=>(
+                      <div key={d.date} style={{display:'flex',alignItems:'center',gap:10,marginBottom:10}}>
+                        <div style={{fontSize:11,color:'#444',fontFamily:'monospace',width:72}}>{d.date}</div>
+                        <div style={{flex:1,height:6,background:'rgba(255,255,255,0.04)',borderRadius:3}}>
+                          <div style={{height:'100%',width:`${Math.max((d.leads||0)/([...data].sort((a,b)=>(b.leads||0)-(a.leads||0))[0]?.leads||1)*100,2)}%`,background:office?.color||'#8b5cf6',borderRadius:3,opacity:.8}}/>
+                        </div>
+                        <div style={{fontSize:12,color:'#fff',fontWeight:600,width:28,textAlign:'right',fontFamily:"'Poppins',sans-serif"}}>{d.leads||0}</div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+                {/* Galería de Ads */}
+                <div style={{background:'rgba(255,255,255,0.02)',border:'1px solid rgba(255,255,255,0.06)',borderRadius:14,padding:20}}>
+                  <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',marginBottom:16}}>
+                    <div style={{fontSize:13,fontWeight:600,fontFamily:"'Poppins',sans-serif"}}>Creativos Ganadores</div>
+                    <button onClick={()=>adMediaRef.current?.click()} style={{padding:'6px 14px',borderRadius:8,border:`1px solid ${office?.color}44`,background:office?.color+'12',color:office?.color,fontSize:12,cursor:'pointer',fontFamily:"'Roboto',sans-serif"}}>+ Subir Ad</button>
+                  </div>
+                  <input ref={adMediaRef} type="file" accept="image/*,video/*" multiple onChange={e=>{Array.from(e.target.files).forEach(f=>{const r=new FileReader();r.onload=ev=>setAdMedia(p=>[...p,{id:genId(),name:f.name,type:f.type,url:ev.target.result,officeId:activeId,date:today()}]);r.readAsDataURL(f);});}} style={{display:'none'}}/>
+                  {adMedia.filter(m=>m.officeId===activeId).length===0?(
+                    <div style={{display:'flex',alignItems:'center',justifyContent:'center',height:120,border:'1px dashed rgba(255,255,255,0.07)',borderRadius:10,color:'#333',fontSize:12,flexDirection:'column',gap:8}}>
+                      <span style={{fontSize:20}}>◈</span>
+                      <span>Sube imágenes o videos de tus ads ganadores</span>
+                    </div>
+                  ):(
+                    <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fill,minmax(160px,1fr))',gap:10}}>
+                      {adMedia.filter(m=>m.officeId===activeId).map(m=>(
+                        <div key={m.id} style={{position:'relative',borderRadius:10,overflow:'hidden',border:'1px solid rgba(255,255,255,0.07)'}}>
+                          {m.type?.startsWith('image')?<img src={m.url} style={{width:'100%',height:120,objectFit:'cover',display:'block'}}/>:<video src={m.url} style={{width:'100%',height:120,objectFit:'cover',display:'block'}}/>}
+                          <div style={{padding:'6px 8px',background:'rgba(0,0,0,0.6)',fontSize:10,color:'#aaa',whiteSpace:'nowrap',overflow:'hidden',textOverflow:'ellipsis'}}>{m.name}</div>
+                          <button onClick={()=>setAdMedia(p=>p.filter(x=>x.id!==m.id))} style={{position:'absolute',top:4,right:4,background:'rgba(0,0,0,0.7)',border:'none',borderRadius:'50%',width:20,height:20,fontSize:10,cursor:'pointer',color:'#fff',display:'flex',alignItems:'center',justifyContent:'center'}}>✕</button>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </>
+            )}
+          </div>
+        )}
+
+        {/* ── CONFIG TAB ────────────────────────────────── */}
+        {sidebarTab==='config'&&(
+          <div style={{padding:'28px',maxWidth:800,margin:'0 auto',width:'100%'}}>
+            <div style={{fontSize:11,fontWeight:600,color:'#444',letterSpacing:'.1em',textTransform:'uppercase',marginBottom:20}}>Configuración</div>
+            {/* Clients management */}
+            <div style={{background:'rgba(255,255,255,0.02)',border:'1px solid rgba(255,255,255,0.06)',borderRadius:14,padding:20,marginBottom:16}}>
+              <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',marginBottom:16}}>
+                <div style={{fontSize:13,fontWeight:600,fontFamily:"'Poppins',sans-serif"}}>Gestión de Clientes</div>
+                <button onClick={()=>setShowAdd(true)} style={{padding:'7px 14px',borderRadius:8,border:'1px solid rgba(139,92,246,0.3)',background:'rgba(139,92,246,0.1)',color:'#a78bfa',fontSize:12,cursor:'pointer',fontFamily:"'Roboto',sans-serif"}}>+ Nuevo cliente</button>
+              </div>
+              <div style={{display:'flex',flexDirection:'column',gap:8}}>
+                {offices.map(o=>(
+                  <div key={o.id} style={{display:'flex',alignItems:'center',gap:12,padding:'10px 14px',background:'rgba(255,255,255,0.02)',borderRadius:10,border:'1px solid rgba(255,255,255,0.05)'}}>
+                    <img src={logos[o.id]||''} alt="" style={{width:32,height:32,borderRadius:'50%',objectFit:'cover',border:`1px solid ${o.color}33`}}/>
+                    <div style={{flex:1}}>
+                      <div style={{fontSize:13,fontWeight:600,color:o.color,fontFamily:"'Poppins',sans-serif"}}>{o.id}</div>
+                      <div style={{fontSize:11,color:'#444'}}>{o.name} · ${o.payout}/deal</div>
+                    </div>
+                    <button onClick={()=>setEditing(o)} style={{padding:'5px 12px',borderRadius:7,border:'1px solid rgba(255,255,255,0.08)',background:'transparent',color:'#555',fontSize:12,cursor:'pointer'}}>Editar</button>
+                  </div>
+                ))}
+              </div>
+            </div>
+            {/* Accesos por Cliente */}
+            <div style={{background:'rgba(255,255,255,0.02)',border:'1px solid rgba(255,255,255,0.06)',borderRadius:14,padding:20}}>
+              <div style={{fontSize:13,fontWeight:600,fontFamily:"'Poppins',sans-serif",marginBottom:4}}>Accesos por Cliente</div>
+              <div style={{fontSize:12,color:'#444',marginBottom:16}}>Asigna usuario y contraseña a tus clientes para que accedan solo a su dashboard.</div>
+              {offices.map(o=>{
+                const offUsers = clientUsers.filter(u=>u.officeId===o.id);
+                const managing = showUserMgmt===o.id;
+                return(
+                  <div key={o.id} style={{marginBottom:10,background:'rgba(255,255,255,0.02)',borderRadius:10,border:'1px solid rgba(255,255,255,0.05)',overflow:'hidden'}}>
+                    <div style={{display:'flex',alignItems:'center',gap:12,padding:'10px 14px'}}>
+                      <div style={{width:8,height:8,borderRadius:'50%',background:o.color,flexShrink:0}}/>
+                      <div style={{flex:1}}>
+                        <div style={{fontSize:13,color:'#ccc',fontFamily:"'Poppins',sans-serif",fontWeight:500}}>{o.name}</div>
+                        <div style={{fontSize:10,color:'#444',marginTop:2}}>{offUsers.length>0?`${offUsers.length} usuario(s) configurado(s)`:'Sin acceso configurado'}</div>
+                      </div>
+                      <button onClick={()=>setShowUserMgmt(managing?null:o.id)} style={{padding:'5px 12px',borderRadius:7,border:`1px solid ${o.color}44`,background:managing?o.color+'15':'transparent',color:managing?o.color:'#555',fontSize:11,cursor:'pointer'}}>
+                        {managing?'✕ Cerrar':'Gestionar'}
+                      </button>
+                    </div>
+                    {managing&&(
+                      <div style={{padding:'12px 14px 14px',borderTop:'1px solid rgba(255,255,255,0.05)',background:'rgba(0,0,0,0.2)'}}>
+                        {offUsers.length>0&&(
+                          <div style={{marginBottom:12}}>
+                            {offUsers.map((u,i)=>(
+                              <div key={i} style={{display:'flex',alignItems:'center',gap:8,marginBottom:6,padding:'6px 10px',background:'rgba(255,255,255,0.03)',borderRadius:7}}>
+                                <span style={{fontSize:12,color:'#888',flex:1,fontFamily:'monospace'}}>{u.username}</span>
+                                <span style={{fontSize:10,color:'#444'}}>••••••••</span>
+                                <button onClick={()=>saveClientUsers(clientUsers.filter((_,j)=>j!==clientUsers.indexOf(u)))} style={{background:'none',border:'none',color:'#F87171',fontSize:11,cursor:'pointer',padding:'2px 6px'}}>✕</button>
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                        <div style={{display:'flex',gap:8,alignItems:'center'}}>
+                          <input value={newUserLogin} onChange={e=>setNewUserLogin(e.target.value)} placeholder="Usuario" style={{...inp,flex:1,padding:'7px 10px',fontSize:12}}/>
+                          <input type="password" value={newUserPass} onChange={e=>setNewUserPass(e.target.value)} placeholder="Contraseña" style={{...inp,flex:1,padding:'7px 10px',fontSize:12}}/>
+                          <button onClick={()=>{if(!newUserLogin.trim()||!newUserPass.trim())return;saveClientUsers([...clientUsers,{username:newUserLogin.trim(),password:newUserPass.trim(),officeId:o.id,officeName:o.name}]);setNewUserLogin('');setNewUserPass('');}} style={{padding:'7px 14px',borderRadius:7,border:`1px solid ${o.color}44`,background:o.color+'15',color:o.color,fontSize:12,cursor:'pointer',whiteSpace:'nowrap'}}>+ Agregar</button>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        )}
+
+      </div> {/* end main content */}
 
       {/* MANUAL ENTRY MODAL */}
       {showManual&&(
