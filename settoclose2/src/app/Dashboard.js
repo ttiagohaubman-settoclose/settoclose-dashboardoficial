@@ -35,6 +35,15 @@ const today = () => new Date().toISOString().split('T')[0];
 const dAgo  = n => { const d=new Date(); d.setDate(d.getDate()-n+1); return d.toISOString().split('T')[0]; };
 const genId = () => Date.now() + Math.floor(Math.random() * 10000);
 
+const THEMES = {
+  futuristic:  {name:'Futurista',    bg:'#060610', sidebar:'#08080f', modal:'#0c0c18'},
+  minimal:     {name:'Minimalista',  bg:'#0d0d0d', sidebar:'#111111', modal:'#161616'},
+  basic:       {name:'Básico',       bg:'#111827', sidebar:'#0f172a', modal:'#1e293b'},
+  neon:        {name:'Neón',         bg:'#050510', sidebar:'#07071a', modal:'#0c0c20'},
+  galactic:    {name:'Galáctico',    bg:'#020308', sidebar:'#030408', modal:'#07070f'},
+  millionaire: {name:'Millonario',   bg:'#0a0800', sidebar:'#0d0a00', modal:'#151100'},
+};
+
 const KPI = ({label,value,sub,color,sparkData,sparkKey}) => (
   <div style={{background:'rgba(255,255,255,0.03)',border:'1px solid rgba(255,255,255,0.07)',borderRadius:10,padding:'11px 13px',position:'relative',overflow:'hidden',display:'flex',alignItems:'flex-start',gap:8}}>
     <div style={{position:'absolute',top:0,left:0,right:0,height:2,background:color,opacity:.7}}/>
@@ -70,6 +79,18 @@ const Spin = ({color}) => (
   </div>
 );
 
+
+const SideIcon = ({id, active}) => {
+  const c = active ? '#c4b5fd' : '#555';
+  const icons = {
+    person: <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke={c} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>,
+    chart:  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke={c} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="12" width="4" height="9"/><rect x="10" y="7" width="4" height="14"/><rect x="17" y="3" width="4" height="18"/></svg>,
+    pencil: <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke={c} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>,
+    money:  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke={c} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>,
+    gear:   <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke={c} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>,
+  };
+  return <span style={{display:'flex',alignItems:'center',flexShrink:0}}>{icons[id]||null}</span>;
+};
 
 // ── CALENDAR RANGE PICKER ────────────────────────────────────────────
 function CalendarPicker({ dateFrom, dateTo, onSelect }) {
@@ -143,7 +164,8 @@ export default function Dashboard() {
   const [activeId,  setActiveId]  = useState(null);
   const [menuOpen,  setMenuOpen]  = useState(false);
   const [sidebarTab, setSidebarTab] = useState('dashboard');
-  const [adMedia,   setAdMedia]   = useState([]);
+  const [adMedia,   setAdMedia]   = useState(()=>{try{const s=localStorage.getItem('stc_adMedia');return s?JSON.parse(s):[];}catch{return [];}});
+  const [adLightbox, setAdLightbox] = useState(null); // {url, type}
   const adMediaRef = useRef();
   const [apiData,   setApiData]   = useState({});
   const [manualData,setManualData]= useState({});
@@ -262,7 +284,13 @@ export default function Dashboard() {
 
   // ── GHL FETCH ────────────────────────────────────────────────────
   const [ghlData,   setGhlData]   = useState({});
-  const [ventas,    setVentas]    = useState({SC:[],VA:[],MD:[],NC:[]});
+  const [campaigns, setCampaigns] = useState({});
+  const [campaignsLoading, setCampaignsLoading] = useState(false);
+  const [ventas,        setVentas]        = useState({SC:[],VA:[],MD:[],NC:[]});
+  const [appointments,  setAppointments]  = useState({});
+  const [theme,         setTheme]         = useState(()=>{try{return localStorage.getItem('stc_theme')||'futuristic';}catch{return 'futuristic';}});
+  const [officeMetrics, setOfficeMetrics] = useState(()=>{try{const s=localStorage.getItem('stc_officeMetrics');return s?JSON.parse(s):{};}catch{return {};}});
+  const [showMetricEditor, setShowMetricEditor] = useState(null);
 
   const fetchGHL = useCallback(async (offId, from, to) => {
     try {
@@ -272,10 +300,27 @@ export default function Dashboard() {
       if (j.error) { console.warn('GHL:', j.error); return; }
       setGhlData(prev => ({ ...prev, [offId]: j.days || [] }));
       setVentas(prev => ({ ...prev, [offId]: j.ventas || [] }));
+      setAppointments(prev => ({ ...prev, [offId]: j.appointments || [] }));
     } catch(e) { console.warn('GHL fetch error:', e.message); }
   }, []);
 
   useEffect(() => { if(activeId && activeId!=='STC') fetchGHL(activeId, dateFrom, dateTo); }, [activeId, dateFrom, dateTo]);
+
+  const fetchCampaigns = useCallback(async (offId, from, to) => {
+    const off = offices.find(o=>o.id===offId); if(!off) return;
+    setCampaignsLoading(true);
+    try {
+      const p = new URLSearchParams({adAccountId:off.adAccountId, dateFrom:from, dateTo:to, type:'campaigns'});
+      const r = await fetch('/api/meta?'+p);
+      const j = await r.json();
+      if (!j.error) setCampaigns(prev=>({...prev,[offId]:j.campaigns||[]}));
+    } catch(e){}
+    setCampaignsLoading(false);
+  }, [offices]);
+
+  useEffect(() => {
+    if(activeId && activeId!=='STC' && sidebarTab==='ads') fetchCampaigns(activeId, dateFrom, dateTo);
+  }, [activeId, dateFrom, dateTo, sidebarTab]);
 
   // ── PERSIST ACTION LOGS via API ──────────────────────────────────
   // ── ALL OFFICES AGGREGATED DATA ────────────────────────────────
@@ -333,6 +378,9 @@ export default function Dashboard() {
   }, []);
 
   useEffect(() => { if(activeId) loadLogs(activeId); }, [activeId]);
+  useEffect(() => { try{localStorage.setItem('stc_adMedia', JSON.stringify(adMedia));}catch(e){} }, [adMedia]);
+  useEffect(() => { try{localStorage.setItem('stc_theme', theme);}catch(e){} }, [theme]);
+  useEffect(() => { try{localStorage.setItem('stc_officeMetrics', JSON.stringify(officeMetrics));}catch(e){} }, [officeMetrics]);
   // ────────────────────────────────────────────────────────────────
 
   const raw = useMemo(()=>{
@@ -533,11 +581,16 @@ body{background:#ffffff;color:#111;font-family:'Roboto',sans-serif;padding:36px 
     setTimeout(()=>popup.print(),800);
   };
 
+  const curTheme = THEMES[theme] || THEMES.futuristic;
+  const tBg      = curTheme.bg;
+  const tSidebar = curTheme.sidebar;
+  const tModal   = curTheme.modal;
+
   const inp={background:'rgba(255,255,255,0.05)',border:'1px solid rgba(255,255,255,0.1)',borderRadius:8,padding:'10px 14px',color:'#fff',fontSize:13,fontFamily:"'Roboto',sans-serif",width:'100%'};
   const btnP=c=>({padding:'10px 20px',borderRadius:8,border:`1px solid ${c}55`,background:c+'20',color:c,fontSize:13,fontWeight:600,fontFamily:"'Roboto',sans-serif",cursor:'pointer'});
 
   if (!authed) return (
-    <div style={{minHeight:'100vh',background:'#050508',display:'flex',alignItems:'center',justifyContent:'center',fontFamily:"'Roboto',sans-serif",position:'relative',overflow:'hidden'}}>
+    <div style={{minHeight:'100vh',background:tBg,display:'flex',alignItems:'center',justifyContent:'center',fontFamily:"'Roboto',sans-serif",position:'relative',overflow:'hidden'}}>
       <style>{`@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&family=Roboto:wght@300;400;500&display=swap');*{box-sizing:border-box;margin:0;padding:0}input:focus{outline:none}@keyframes pulse{0%,100%{opacity:.3}50%{opacity:.6}}@keyframes fadeIn{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}`}</style>
       {/* Background grid */}
       <div style={{position:'absolute',inset:0,backgroundImage:'linear-gradient(rgba(139,92,246,0.04) 1px, transparent 1px),linear-gradient(90deg,rgba(139,92,246,0.04) 1px,transparent 1px)',backgroundSize:'40px 40px',pointerEvents:'none'}}/>
@@ -564,11 +617,11 @@ body{background:#ffffff;color:#111;font-family:'Roboto',sans-serif;padding:36px 
   );
 
   return (
-    <div style={{minHeight:'100vh',background:'#050508',color:'#fff',fontFamily:"'Roboto',sans-serif",display:'flex'}}>
+    <div style={{minHeight:'100vh',background:tBg,color:'#fff',fontFamily:"'Roboto',sans-serif",display:'flex'}}>
       <style>{`@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&family=Roboto:wght@300;400;500&display=swap');*{box-sizing:border-box;margin:0;padding:0}::-webkit-scrollbar{width:3px}::-webkit-scrollbar-thumb{background:#1a1a2e}input:focus,select:focus,textarea:focus{outline:none}.hov:hover{background:rgba(255,255,255,0.06)!important}.arow:hover{background:rgba(255,255,255,0.04)!important;cursor:pointer}.snav:hover{background:rgba(139,92,246,0.08)!important;color:#a78bfa!important}`}</style>
 
       {/* ── SIDEBAR ──────────────────────────────────────── */}
-      <div style={{width:220,position:'fixed',top:0,left:0,bottom:0,background:'#0b0c0f',borderRight:'1px solid rgba(255,255,255,0.06)',display:'flex',flexDirection:'column',zIndex:200,overflowY:'auto'}}>
+      <div style={{width:220,position:'fixed',top:0,left:0,bottom:0,background:tSidebar,borderRight:'1px solid rgba(255,255,255,0.06)',display:'flex',flexDirection:'column',zIndex:200,overflowY:'auto'}}>
         {/* Logo */}
         <div style={{padding:'20px 20px 16px',borderBottom:'1px solid rgba(255,255,255,0.05)',flexShrink:0}}>
           <img src={logos.STC} alt="STC" style={{height:28,objectFit:'contain',display:'block'}}/>
@@ -590,14 +643,14 @@ body{background:#ffffff;color:#111;font-family:'Roboto',sans-serif;padding:36px 
         {/* Navigation */}
         <nav style={{flex:1,padding:'8px 0',overflowY:'auto'}}>
           {[
-            {id:'clients',  icon:'⊞', label:'Clientes',  adminOnly:true},
-            {id:'dashboard',icon:'◈', label:'Dashboard',  adminOnly:false},
-            {id:'actionlog',icon:'≡', label:'Action Log', adminOnly:false},
-            {id:'ads',      icon:'◉', label:'Ads',        adminOnly:false},
-            {id:'config',   icon:'◎', label:'Configuración', adminOnly:true},
+            {id:'clients',  icon:'person',  label:'Clientes',      adminOnly:true},
+            {id:'dashboard',icon:'chart',   label:'Dashboard',     adminOnly:false},
+            {id:'actionlog',icon:'pencil',  label:'Action Log',    adminOnly:true},
+            {id:'ads',      icon:'money',   label:'Ads',           adminOnly:false},
+            {id:'config',   icon:'gear',    label:'Configuración', adminOnly:true},
           ].filter(item=>isAdmin||!item.adminOnly).map(item=>(
             <button key={item.id} className="snav" onClick={()=>setSidebarTab(item.id)} style={{width:'100%',padding:'11px 20px',border:'none',cursor:'pointer',background:sidebarTab===item.id?'rgba(139,92,246,0.13)':'transparent',color:sidebarTab===item.id?'#c4b5fd':'#555',display:'flex',alignItems:'center',gap:10,borderLeft:sidebarTab===item.id?'2px solid #8b5cf6':'2px solid transparent',textAlign:'left',transition:'all .12s',fontSize:13,fontFamily:"'Roboto',sans-serif",fontWeight:sidebarTab===item.id?500:400}}>
-              <span style={{fontSize:13,opacity:sidebarTab===item.id?1:.6}}>{item.icon}</span>
+              <SideIcon id={item.icon} active={sidebarTab===item.id}/>
               {item.label}
             </button>
           ))}
@@ -626,7 +679,7 @@ body{background:#ffffff;color:#111;font-family:'Roboto',sans-serif;padding:36px 
               ))}
             </div>
             {calOpen&&(
-              <div style={{position:'absolute',top:'calc(100% + 8px)',left:0,zIndex:500,background:'#0f1115',border:'1px solid rgba(255,255,255,0.1)',borderRadius:14,padding:16,boxShadow:'0 20px 60px rgba(0,0,0,0.8)',minWidth:280}}>
+              <div style={{position:'absolute',top:'calc(100% + 8px)',left:0,zIndex:500,background:tModal,border:'1px solid rgba(255,255,255,0.1)',borderRadius:14,padding:16,boxShadow:'0 20px 60px rgba(0,0,0,0.8)',minWidth:280}}>
                 <CalendarPicker dateFrom={dateFrom} dateTo={dateTo} onSelect={(from,to)=>{setDateFrom(from);setDateTo(to);setPreset(null);if(from&&to)setCalOpen(false);}}/>
               </div>
             )}
@@ -814,37 +867,42 @@ body{background:#ffffff;color:#111;font-family:'Roboto',sans-serif;padding:36px 
 
             {loading?<Spin color={office.color}/>:(
               <>
+                {(()=>{
+                  const ALL_M=['spent','impressions','linkClicks','cpcLink','ctrLink','frequency','cpl','leads','appsBooked','appsShowed','showRate','sales','closeRate','revCompany','revOffice','cashTiago','cashOffice','roasCash'];
+                  const enabled = officeMetrics[activeId] || ALL_M;
+                  const mOk = k => enabled.includes(k);
+                  return(<>
                 <Sec title="Meta Ads"/>
-                <div style={{display:'grid',gridTemplateColumns:'repeat(4,1fr)',gap:10,marginBottom:10}}>
-                  <KPI label="Ad Spend"    value={fmtK(T.spent)}          sub={`${T.leads} leads`}               color={office.color} sparkData={data} sparkKey="spent"/>
-                  <KPI label="Impressions" value={fmtN(T.impressions)}    sub="Total impressions"                color={office.color} sparkData={data} sparkKey="impressions"/>
-                  <KPI label="Link Clicks" value={fmtN(T.linkClicks)}     sub="Clicks on link"                   color={office.color} sparkData={data} sparkKey="linkClicks"/>
-                  <KPI label="CPC (Link)"  value={fmt$(cpcLink)}          sub="Cost per link click"              color={office.color} sparkData={data} sparkKey="cpcLink"/>
-                </div>
-                <div style={{display:'grid',gridTemplateColumns:'repeat(4,1fr)',gap:8,marginBottom:18}}>
-                  <KPI label="CTR (Link)"  value={ctrLink.toFixed(2)+'%'} sub="Link click-through rate"          color={office.color} sparkData={data} sparkKey="ctrLink"/>
-                  <KPI label="Frequency"   value={freq.toFixed(2)}        sub="Avg impressions/person"           color={office.color}/>
-                  <KPI label="CPL"         value={fmt$(cpl)}              sub="Cost per lead"                    color={office.color} sparkData={data} sparkKey="cpl"/>
-                  <KPI label="Leads"       value={T.leads}                sub="Generated"                        color={office.color} sparkData={data} sparkKey="leads"/>
+                <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fill,minmax(160px,1fr))',gap:8,marginBottom:18}}>
+                  {mOk('spent')       && <KPI label="Ad Spend"    value={fmtK(T.spent)}          sub={`${T.leads} leads`}               color={office.color} sparkData={data} sparkKey="spent"/>}
+                  {mOk('impressions') && <KPI label="Impressions" value={fmtN(T.impressions)}    sub="Total impressions"                color={office.color} sparkData={data} sparkKey="impressions"/>}
+                  {mOk('linkClicks')  && <KPI label="Link Clicks" value={fmtN(T.linkClicks)}     sub="Clicks on link"                   color={office.color} sparkData={data} sparkKey="linkClicks"/>}
+                  {mOk('cpcLink')     && <KPI label="CPC (Link)"  value={fmt$(cpcLink)}          sub="Cost per link click"              color={office.color} sparkData={data} sparkKey="cpcLink"/>}
+                  {mOk('ctrLink')     && <KPI label="CTR (Link)"  value={ctrLink.toFixed(2)+'%'} sub="Link click-through rate"          color={office.color} sparkData={data} sparkKey="ctrLink"/>}
+                  {mOk('frequency')   && <KPI label="Frequency"   value={freq.toFixed(2)}        sub="Avg impressions/person"           color={office.color}/>}
+                  {mOk('cpl')         && <KPI label="CPL"         value={fmt$(cpl)}              sub="Cost per lead"                    color={office.color} sparkData={data} sparkKey="cpl"/>}
+                  {mOk('leads')       && <KPI label="Leads"       value={T.leads}                sub="Generated"                        color={office.color} sparkData={data} sparkKey="leads"/>}
                 </div>
 
                 <Sec title="Appointments & Sales"/>
-                <div style={{display:'grid',gridTemplateColumns:'repeat(5,1fr)',gap:8,marginBottom:18}}>
-                  <KPI label="Apps Booked"  value={T.appsBooked}             sub="Total scheduled"                    color="#FB923C" sparkData={data} sparkKey="appsBooked"/>
-                  <KPI label="Apps Showed"  value={T.appsShowed}             sub={`${showRate.toFixed(1)}% show rate`} color="#FB923C" sparkData={data} sparkKey="appsShowed"/>
-                  <KPI label="Show Rate"    value={showRate.toFixed(1)+'%'}  sub="Showed / Booked"                    color="#FB923C"/>
-                  <KPI label="Deals Closed" value={T.sales}                  sub={`${closeRate.toFixed(1)}% close rate`} color="#FB923C" sparkData={data} sparkKey="sales"/>
-                  <KPI label="Close Rate"   value={closeRate.toFixed(1)+'%'} sub="Closed / Showed"                    color="#FB923C"/>
+                <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fill,minmax(160px,1fr))',gap:8,marginBottom:18}}>
+                  {mOk('appsBooked')  && <KPI label="Apps Booked"  value={T.appsBooked}             sub="Total scheduled"                    color="#FB923C" sparkData={data} sparkKey="appsBooked"/>}
+                  {mOk('appsShowed')  && <KPI label="Apps Showed"  value={T.appsShowed}             sub={`${showRate.toFixed(1)}% show rate`} color="#FB923C" sparkData={data} sparkKey="appsShowed"/>}
+                  {mOk('showRate')    && <KPI label="Show Rate"    value={showRate.toFixed(1)+'%'}  sub="Showed / Booked"                    color="#FB923C"/>}
+                  {mOk('sales')       && <KPI label="Deals Closed" value={T.sales}                  sub={`${closeRate.toFixed(1)}% close rate`} color="#FB923C" sparkData={data} sparkKey="sales"/>}
+                  {mOk('closeRate')   && <KPI label="Close Rate"   value={closeRate.toFixed(1)+'%'} sub="Closed / Showed"                    color="#FB923C"/>}
                 </div>
 
                 <Sec title="Revenue & Cash"/>
-                <div style={{display:'grid',gridTemplateColumns:'repeat(5,1fr)',gap:8,marginBottom:22}}>
-                  <KPI label="Rev. Company"          value={fmtK(T.revCompany)}     sub={`${T.sales} × $7,990`}            color="#4ADE80" sparkData={data} sparkKey="revCompany"/>
-                  <KPI label="Rev. Office"           value={fmtK(T.revOffice)}      sub={`${T.sales} × $3,000`}            color="#4ADE80" sparkData={data} sparkKey="revOffice"/>
-                  <KPI label="Cash Tiago"            value={fmtK(T.cashTiago)}      sub={`${T.sales} × $${office.payout}`} color="#4ADE80" sparkData={data} sparkKey="cashTiago"/>
-                  <KPI label="Cash Collected"        value={fmtK(T.cashOffice)}     sub="Rev Office − Tiago − Spend"       color="#4ADE80"/>
-                  <KPI label="ROAS (Cash)"           value={roasCash.toFixed(2)+'x'} sub="Cash Collected / Spend"          color="#4ADE80"/>
+                <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fill,minmax(160px,1fr))',gap:8,marginBottom:22}}>
+                  {mOk('revCompany')  && <KPI label="Rev. Company"   value={fmtK(T.revCompany)}      sub={`${T.sales} × $7,990`}            color="#4ADE80" sparkData={data} sparkKey="revCompany"/>}
+                  {mOk('revOffice')   && <KPI label="Rev. Office"    value={fmtK(T.revOffice)}       sub={`${T.sales} × $3,000`}            color="#4ADE80" sparkData={data} sparkKey="revOffice"/>}
+                  {mOk('cashTiago')   && <KPI label="Cash Tiago"     value={fmtK(T.cashTiago)}       sub={`${T.sales} × $${office.payout}`} color="#4ADE80" sparkData={data} sparkKey="cashTiago"/>}
+                  {mOk('cashOffice')  && <KPI label="Cash Collected" value={fmtK(T.cashOffice)}      sub="Rev Office − Tiago − Spend"       color="#4ADE80"/>}
+                  {mOk('roasCash')    && <KPI label="ROAS (Cash)"    value={roasCash.toFixed(2)+'x'} sub="Cash Collected / Spend"           color="#4ADE80"/>}
                 </div>
+                  </>);
+                })()}
 
                 {/* Chart + Funnel */}
                 <div style={{display:'grid',gridTemplateColumns:'1.6fr 1fr',gap:16,marginBottom:16}}>
@@ -911,8 +969,8 @@ body{background:#ffffff;color:#111;font-family:'Roboto',sans-serif;padding:36px 
                       <table style={{width:'100%',borderCollapse:'collapse'}}>
                         <thead>
                           <tr style={{borderBottom:'1px solid rgba(255,255,255,0.06)'}}>
-                            {['Nombre','Teléfono','Email','Fecha','Estado'].map(h=>(
-                              <th key={h} style={{padding:'10px 16px',textAlign:'left',fontSize:10,color:'#444',fontWeight:600,letterSpacing:'.08em',textTransform:'uppercase'}}>{h}</th>
+                            {['Nombre','Teléfono','Email','Dirección','Fecha','Estado'].map(h=>(
+                              <th key={h} style={{padding:'10px 16px',textAlign:'left',fontSize:10,color:'#444',fontWeight:600,letterSpacing:'.08em',textTransform:'uppercase',whiteSpace:'nowrap'}}>{h}</th>
                             ))}
                           </tr>
                         </thead>
@@ -922,11 +980,51 @@ body{background:#ffffff;color:#111;font-family:'Roboto',sans-serif;padding:36px 
                               <td style={{padding:'12px 16px',fontSize:13,color:'#ddd',fontWeight:500}}>{v.name}</td>
                               <td style={{padding:'12px 16px',fontSize:12,color:'#666',fontFamily:'monospace'}}>{v.phone}</td>
                               <td style={{padding:'12px 16px',fontSize:12,color:'#666'}}>{v.email}</td>
+                              <td style={{padding:'12px 16px',fontSize:12,color:'#666'}}>{v.address||'—'}</td>
                               <td style={{padding:'12px 16px',fontSize:12,color:'#555',fontFamily:'monospace'}}>{v.date}</td>
                               <td style={{padding:'12px 16px'}}>
                                 {v.status==='pagada'
                                   ? <span style={{background:'rgba(74,222,128,0.1)',border:'1px solid rgba(74,222,128,0.3)',color:'#4ADE80',padding:'3px 10px',borderRadius:20,fontSize:11,fontWeight:600}}>✓ Pagada</span>
                                   : <span style={{background:'rgba(250,204,21,0.1)',border:'1px solid rgba(250,204,21,0.3)',color:'#FACC15',padding:'3px 10px',borderRadius:20,fontSize:11,fontWeight:600}}>● Venta</span>
+                                }
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+                )}
+
+                {/* Citas Agendadas */}
+                {(appointments[activeId]||[]).length > 0 && (
+                  <div style={{marginBottom:32}}>
+                    <div style={{fontSize:11,fontWeight:600,color:'#555',letterSpacing:'.1em',textTransform:'uppercase',marginBottom:14}}>Citas Agendadas</div>
+                    <div style={{background:'rgba(255,255,255,0.02)',border:'1px solid rgba(255,255,255,0.06)',borderRadius:14,overflow:'hidden',overflowX:'auto'}}>
+                      <table style={{width:'100%',borderCollapse:'collapse',minWidth:680}}>
+                        <thead>
+                          <tr style={{borderBottom:'1px solid rgba(255,255,255,0.06)'}}>
+                            {['Nombre','Teléfono','Email','Dirección','Fecha Cita','Estado'].map(h=>(
+                              <th key={h} style={{padding:'10px 16px',textAlign:'left',fontSize:10,color:'#444',fontWeight:600,letterSpacing:'.08em',textTransform:'uppercase',whiteSpace:'nowrap'}}>{h}</th>
+                            ))}
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {(appointments[activeId]||[]).map((a,i)=>(
+                            <tr key={a.id||i} style={{borderBottom:'1px solid rgba(255,255,255,0.04)',background:i%2===0?'transparent':'rgba(255,255,255,0.01)'}}>
+                              <td style={{padding:'12px 16px',fontSize:13,color:'#ddd',fontWeight:500}}>{a.name}</td>
+                              <td style={{padding:'12px 16px',fontSize:12,color:'#666',fontFamily:'monospace'}}>{a.phone||'—'}</td>
+                              <td style={{padding:'12px 16px',fontSize:12,color:'#666'}}>{a.email||'—'}</td>
+                              <td style={{padding:'12px 16px',fontSize:12,color:'#666'}}>{a.address||'—'}</td>
+                              <td style={{padding:'12px 16px',fontSize:12,color:'#555',fontFamily:'monospace',whiteSpace:'nowrap'}}>
+                                {a.date ? new Date(a.date).toLocaleDateString('es-ES',{day:'2-digit',month:'short',year:'numeric'})+' '+new Date(a.date).toLocaleTimeString('es-ES',{hour:'2-digit',minute:'2-digit'}) : '—'}
+                              </td>
+                              <td style={{padding:'12px 16px'}}>
+                                {a.status==='showed'||a.status==='completed'
+                                  ? <span style={{background:'rgba(74,222,128,0.1)',border:'1px solid rgba(74,222,128,0.3)',color:'#4ADE80',padding:'3px 10px',borderRadius:20,fontSize:11,fontWeight:600}}>✓ Asistió</span>
+                                  : a.status==='cancelled'||a.status==='noshow'
+                                  ? <span style={{background:'rgba(248,113,113,0.1)',border:'1px solid rgba(248,113,113,0.3)',color:'#F87171',padding:'3px 10px',borderRadius:20,fontSize:11,fontWeight:600}}>✗ No asistió</span>
+                                  : <span style={{background:'rgba(56,189,248,0.1)',border:'1px solid rgba(56,189,248,0.3)',color:'#38BDF8',padding:'3px 10px',borderRadius:20,fontSize:11,fontWeight:600}}>● Agendada</span>
                                 }
                               </td>
                             </tr>
@@ -1046,6 +1144,61 @@ body{background:#ffffff;color:#111;font-family:'Roboto',sans-serif;padding:36px 
                     </div>
                   ))}
                 </div>
+                {/* Campañas Activas */}
+                {campaignsLoading&&<div style={{textAlign:'center',padding:'20px 0',color:'#555',fontSize:12}}>Cargando campañas de Meta...</div>}
+                {!campaignsLoading&&(campaigns[activeId]||[]).length>0&&(
+                  <>
+                    {(()=>{
+                      const top=(campaigns[activeId]||[])[0];
+                      return(
+                        <div style={{background:`linear-gradient(135deg,${office?.color}12,${office?.color}06)`,border:`1px solid ${office?.color}35`,borderRadius:14,padding:'18px 22px',marginBottom:16}}>
+                          <div style={{fontSize:9,color:office?.color,fontWeight:700,letterSpacing:'.12em',textTransform:'uppercase',marginBottom:8}}>★ Campaña Top — Mayor Volumen de Leads</div>
+                          <div style={{fontSize:15,fontWeight:700,fontFamily:"'Poppins',sans-serif",marginBottom:14,color:'#fff',lineHeight:1.3}}>{top.name}</div>
+                          <div style={{display:'grid',gridTemplateColumns:'repeat(3,1fr)',gap:12}}>
+                            {[{l:'Presupuesto Invertido',v:fmtK(top.spent)},{l:'Leads Generados',v:String(top.leads)},{l:'CPL',v:fmt$(top.cpl)}].map(m=>(
+                              <div key={m.l} style={{textAlign:'center',padding:'10px',background:`${office?.color}08`,borderRadius:10,border:`1px solid ${office?.color}20`}}>
+                                <div style={{fontSize:9,color:'#666',textTransform:'uppercase',letterSpacing:'.08em',marginBottom:4}}>{m.l}</div>
+                                <div style={{fontSize:22,fontWeight:700,color:office?.color,fontFamily:"'Poppins',sans-serif"}}>{m.v}</div>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      );
+                    })()}
+                    <div style={{background:'rgba(255,255,255,0.02)',border:'1px solid rgba(255,255,255,0.06)',borderRadius:14,overflow:'hidden',marginBottom:28}}>
+                      <div style={{padding:'13px 20px',borderBottom:'1px solid rgba(255,255,255,0.05)',display:'flex',alignItems:'center',justifyContent:'space-between'}}>
+                        <div style={{fontSize:13,fontWeight:600,fontFamily:"'Poppins',sans-serif"}}>Campañas Activas</div>
+                        <div style={{fontSize:10,color:'#444'}}>{(campaigns[activeId]||[]).length} campañas · {dateFrom} → {dateTo}</div>
+                      </div>
+                      <div style={{overflowX:'auto'}}>
+                        <table style={{width:'100%',borderCollapse:'collapse',minWidth:580}}>
+                          <thead>
+                            <tr style={{borderBottom:'1px solid rgba(255,255,255,0.05)'}}>
+                              {['Campaña','Spend','Impresiones','Clicks','Leads','CPL','CTR'].map((h,hi)=>(
+                                <th key={h} style={{padding:'10px 16px',textAlign:hi===0?'left':'right',fontSize:10,color:'#444',fontWeight:600,letterSpacing:'.08em',textTransform:'uppercase',whiteSpace:'nowrap'}}>{h}</th>
+                              ))}
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {(campaigns[activeId]||[]).map((c,ci)=>(
+                              <tr key={c.id} style={{borderBottom:'1px solid rgba(255,255,255,0.03)',background:ci===0?`${office?.color}08`:'transparent'}}>
+                                <td style={{padding:'11px 16px',fontSize:12,color:ci===0?office?.color:'#ccc',fontWeight:ci===0?600:400,maxWidth:240,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>
+                                  {ci===0&&<span style={{fontSize:9,marginRight:5}}>★</span>}{c.name}
+                                </td>
+                                <td style={{padding:'11px 16px',fontSize:12,color:'#999',textAlign:'right',fontFamily:"'Poppins',sans-serif"}}>{fmtK(c.spent)}</td>
+                                <td style={{padding:'11px 16px',fontSize:12,color:'#999',textAlign:'right',fontFamily:"'Poppins',sans-serif"}}>{fmtN(c.impressions)}</td>
+                                <td style={{padding:'11px 16px',fontSize:12,color:'#999',textAlign:'right',fontFamily:"'Poppins',sans-serif"}}>{fmtN(c.linkClicks)}</td>
+                                <td style={{padding:'11px 16px',fontSize:12,color:ci===0?office?.color:'#ccc',textAlign:'right',fontWeight:ci===0?700:400,fontFamily:"'Poppins',sans-serif"}}>{c.leads}</td>
+                                <td style={{padding:'11px 16px',fontSize:12,color:'#999',textAlign:'right',fontFamily:"'Poppins',sans-serif"}}>{fmt$(c.cpl)}</td>
+                                <td style={{padding:'11px 16px',fontSize:12,color:'#999',textAlign:'right',fontFamily:"'Poppins',sans-serif"}}>{c.ctr.toFixed(2)}%</td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+                    </div>
+                  </>
+                )}
                 {/* Top days por leads */}
                 <div style={{display:'grid',gridTemplateColumns:'1.5fr 1fr',gap:16,marginBottom:28}}>
                   <div style={{background:'rgba(255,255,255,0.02)',border:'1px solid rgba(255,255,255,0.06)',borderRadius:14,padding:20}}>
@@ -1076,22 +1229,41 @@ body{background:#ffffff;color:#111;font-family:'Roboto',sans-serif;padding:36px 
                 {/* Galería de Ads */}
                 <div style={{background:'rgba(255,255,255,0.02)',border:'1px solid rgba(255,255,255,0.06)',borderRadius:14,padding:20}}>
                   <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',marginBottom:16}}>
-                    <div style={{fontSize:13,fontWeight:600,fontFamily:"'Poppins',sans-serif"}}>Creativos Ganadores</div>
+                    <div>
+                      <div style={{fontSize:13,fontWeight:600,fontFamily:"'Poppins',sans-serif"}}>Creativos Ganadores</div>
+                      <div style={{fontSize:10,color:'#444',marginTop:2}}>Se guardan localmente en este browser</div>
+                    </div>
                     <button onClick={()=>adMediaRef.current?.click()} style={{padding:'6px 14px',borderRadius:8,border:`1px solid ${office?.color}44`,background:office?.color+'12',color:office?.color,fontSize:12,cursor:'pointer',fontFamily:"'Roboto',sans-serif"}}>+ Subir Ad</button>
                   </div>
-                  <input ref={adMediaRef} type="file" accept="image/*,video/*" multiple onChange={e=>{Array.from(e.target.files).forEach(f=>{const r=new FileReader();r.onload=ev=>setAdMedia(p=>[...p,{id:genId(),name:f.name,type:f.type,url:ev.target.result,officeId:activeId,date:today()}]);r.readAsDataURL(f);});}} style={{display:'none'}}/>
+                  <input ref={adMediaRef} type="file" accept="image/*,video/*" multiple onChange={e=>{
+                    Array.from(e.target.files).forEach(f=>{
+                      const r=new FileReader();
+                      r.onload=ev=>{
+                        const url=ev.target.result;
+                        setAdMedia(p=>[...p,{id:genId(),name:f.name,type:f.type,url,officeId:activeId,date:today(),sizeMB:+(f.size/1024/1024).toFixed(1)}]);
+                      };
+                      r.readAsDataURL(f);
+                    });
+                    e.target.value='';
+                  }} style={{display:'none'}}/>
                   {adMedia.filter(m=>m.officeId===activeId).length===0?(
-                    <div style={{display:'flex',alignItems:'center',justifyContent:'center',height:120,border:'1px dashed rgba(255,255,255,0.07)',borderRadius:10,color:'#333',fontSize:12,flexDirection:'column',gap:8}}>
-                      <span style={{fontSize:20}}>◈</span>
-                      <span>Sube imágenes o videos de tus ads ganadores</span>
+                    <div onClick={()=>adMediaRef.current?.click()} style={{display:'flex',alignItems:'center',justifyContent:'center',height:120,border:'1px dashed rgba(255,255,255,0.07)',borderRadius:10,color:'#444',fontSize:12,flexDirection:'column',gap:8,cursor:'pointer',transition:'border-color .2s'}}>
+                      <span style={{fontSize:24}}>↑</span>
+                      <span>Click para subir imágenes o videos de tus ads ganadores</span>
                     </div>
                   ):(
                     <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fill,minmax(160px,1fr))',gap:10}}>
                       {adMedia.filter(m=>m.officeId===activeId).map(m=>(
-                        <div key={m.id} style={{position:'relative',borderRadius:10,overflow:'hidden',border:'1px solid rgba(255,255,255,0.07)'}}>
-                          {m.type?.startsWith('image')?<img src={m.url} style={{width:'100%',height:120,objectFit:'cover',display:'block'}}/>:<video src={m.url} style={{width:'100%',height:120,objectFit:'cover',display:'block'}}/>}
-                          <div style={{padding:'6px 8px',background:'rgba(0,0,0,0.6)',fontSize:10,color:'#aaa',whiteSpace:'nowrap',overflow:'hidden',textOverflow:'ellipsis'}}>{m.name}</div>
-                          <button onClick={()=>setAdMedia(p=>p.filter(x=>x.id!==m.id))} style={{position:'absolute',top:4,right:4,background:'rgba(0,0,0,0.7)',border:'none',borderRadius:'50%',width:20,height:20,fontSize:10,cursor:'pointer',color:'#fff',display:'flex',alignItems:'center',justifyContent:'center'}}>✕</button>
+                        <div key={m.id} style={{position:'relative',borderRadius:10,overflow:'hidden',border:'1px solid rgba(255,255,255,0.07)',cursor:'pointer'}} onClick={()=>setAdLightbox({url:m.url,type:m.type,name:m.name})}>
+                          {m.type?.startsWith('image')
+                            ?<img src={m.url} style={{width:'100%',height:130,objectFit:'cover',display:'block'}}/>
+                            :<div style={{width:'100%',height:130,background:'#111',display:'flex',alignItems:'center',justifyContent:'center',flexDirection:'column',gap:6}}>
+                              <span style={{fontSize:28,color:'#555'}}>▶</span>
+                              <span style={{fontSize:10,color:'#555'}}>{m.sizeMB}MB</span>
+                            </div>
+                          }
+                          <div style={{padding:'6px 8px',background:'rgba(0,0,0,0.7)',fontSize:10,color:'#aaa',whiteSpace:'nowrap',overflow:'hidden',textOverflow:'ellipsis'}}>{m.name}</div>
+                          <button onClick={e=>{e.stopPropagation();setAdMedia(p=>p.filter(x=>x.id!==m.id));}} style={{position:'absolute',top:4,right:4,background:'rgba(0,0,0,0.7)',border:'none',borderRadius:'50%',width:20,height:20,fontSize:10,cursor:'pointer',color:'#fff',display:'flex',alignItems:'center',justifyContent:'center'}}>✕</button>
                         </div>
                       ))}
                     </div>
@@ -1125,6 +1297,65 @@ body{background:#ffffff;color:#111;font-family:'Roboto',sans-serif;padding:36px 
                 ))}
               </div>
             </div>
+            {/* Tema Visual */}
+            <div style={{background:'rgba(255,255,255,0.02)',border:'1px solid rgba(255,255,255,0.06)',borderRadius:14,padding:20,marginBottom:16}}>
+              <div style={{fontSize:13,fontWeight:600,fontFamily:"'Poppins',sans-serif",marginBottom:4}}>Tema Visual</div>
+              <div style={{fontSize:12,color:'#444',marginBottom:14}}>Personaliza el diseño de la aplicación.</div>
+              <div style={{display:'grid',gridTemplateColumns:'repeat(3,1fr)',gap:8}}>
+                {Object.entries(THEMES).map(([key,t])=>(
+                  <button key={key} onClick={()=>setTheme(key)} style={{padding:'10px 12px',borderRadius:10,border:`2px solid ${theme===key?'#8b5cf6':'rgba(255,255,255,0.08)'}`,background:theme===key?'rgba(139,92,246,0.12)':t.bg,color:theme===key?'#c4b5fd':'#999',fontSize:12,cursor:'pointer',textAlign:'center',fontFamily:"'Poppins',sans-serif",fontWeight:theme===key?600:400,transition:'all .15s'}}>
+                    <div style={{width:20,height:20,borderRadius:'50%',background:t.sidebar,margin:'0 auto 6px',border:'1px solid rgba(255,255,255,0.12)'}}/>
+                    {t.name}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Métricas por Dashboard */}
+            <div style={{background:'rgba(255,255,255,0.02)',border:'1px solid rgba(255,255,255,0.06)',borderRadius:14,padding:20,marginBottom:16}}>
+              <div style={{fontSize:13,fontWeight:600,fontFamily:"'Poppins',sans-serif",marginBottom:4}}>Métricas por Dashboard</div>
+              <div style={{fontSize:12,color:'#444',marginBottom:14}}>Configura qué KPIs se muestran en cada dashboard de cliente.</div>
+              {offices.map(o=>{
+                const ALL_M=['spent','impressions','linkClicks','cpcLink','ctrLink','frequency','cpl','leads','appsBooked','appsShowed','showRate','sales','closeRate','revCompany','revOffice','cashTiago','cashOffice','roasCash'];
+                const M_LABELS={spent:'Ad Spend',impressions:'Impresiones',linkClicks:'Link Clicks',cpcLink:'CPC Link',ctrLink:'CTR Link',frequency:'Frecuencia',cpl:'CPL',leads:'Leads',appsBooked:'Apps Booked',appsShowed:'Apps Showed',showRate:'Show Rate',sales:'Deals Closed',closeRate:'Close Rate',revCompany:'Rev Company',revOffice:'Rev Office',cashTiago:'Cash Tiago',cashOffice:'Cash Collected',roasCash:'ROAS Cash'};
+                const enabled = officeMetrics[o.id] || ALL_M;
+                const isOpen  = showMetricEditor===o.id;
+                return(
+                  <div key={o.id} style={{marginBottom:8,background:'rgba(255,255,255,0.02)',borderRadius:10,border:'1px solid rgba(255,255,255,0.05)',overflow:'hidden'}}>
+                    <div style={{display:'flex',alignItems:'center',gap:10,padding:'10px 14px'}}>
+                      <div style={{width:8,height:8,borderRadius:'50%',background:o.color,flexShrink:0}}/>
+                      <div style={{flex:1,fontSize:13,color:'#ccc',fontFamily:"'Poppins',sans-serif",fontWeight:500}}>{o.name}</div>
+                      <span style={{fontSize:10,color:'#444',marginRight:6}}>{enabled.length}/{ALL_M.length} activas</span>
+                      <button onClick={()=>setShowMetricEditor(isOpen?null:o.id)} style={{padding:'4px 10px',borderRadius:7,border:`1px solid ${o.color}44`,background:isOpen?o.color+'15':'transparent',color:isOpen?o.color:'#555',fontSize:11,cursor:'pointer'}}>
+                        {isOpen?'Cerrar':'Editar'}
+                      </button>
+                    </div>
+                    {isOpen&&(
+                      <div style={{padding:'10px 14px 14px',borderTop:'1px solid rgba(255,255,255,0.05)',background:'rgba(0,0,0,0.15)'}}>
+                        <div style={{display:'flex',flexWrap:'wrap',gap:6,marginBottom:10}}>
+                          {ALL_M.map(k=>{
+                            const on=enabled.includes(k);
+                            return(
+                              <button key={k} onClick={()=>{
+                                const next=on?enabled.filter(x=>x!==k):[...enabled,k];
+                                setOfficeMetrics(p=>({...p,[o.id]:next}));
+                              }} style={{padding:'4px 10px',borderRadius:16,border:`1px solid ${on?o.color+'55':'rgba(255,255,255,0.08)'}`,background:on?o.color+'18':'transparent',color:on?o.color:'#444',fontSize:11,cursor:'pointer',transition:'all .1s'}}>
+                                {on?'✓ ':''}{M_LABELS[k]}
+                              </button>
+                            );
+                          })}
+                        </div>
+                        <div style={{display:'flex',gap:8}}>
+                          <button onClick={()=>setOfficeMetrics(p=>({...p,[o.id]:ALL_M}))} style={{padding:'4px 10px',borderRadius:7,border:'1px solid rgba(255,255,255,0.08)',background:'transparent',color:'#555',fontSize:11,cursor:'pointer'}}>Activar todas</button>
+                          <button onClick={()=>setOfficeMetrics(p=>({...p,[o.id]:[]}))} style={{padding:'4px 10px',borderRadius:7,border:'1px solid rgba(255,255,255,0.08)',background:'transparent',color:'#555',fontSize:11,cursor:'pointer'}}>Desactivar todas</button>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+
             {/* Accesos por Cliente */}
             <div style={{background:'rgba(255,255,255,0.02)',border:'1px solid rgba(255,255,255,0.06)',borderRadius:14,padding:20}}>
               <div style={{fontSize:13,fontWeight:600,fontFamily:"'Poppins',sans-serif",marginBottom:4}}>Accesos por Cliente</div>
@@ -1176,7 +1407,7 @@ body{background:#ffffff;color:#111;font-family:'Roboto',sans-serif;padding:36px 
       {/* MANUAL ENTRY MODAL */}
       {showManual&&(
         <div style={{position:'fixed',inset:0,background:'rgba(0,0,0,0.8)',zIndex:500,display:'flex',alignItems:'center',justifyContent:'center'}} onClick={()=>setShowManual(false)}>
-          <div style={{background:'#0f1115',border:'1px solid rgba(255,255,255,0.1)',borderRadius:16,padding:28,width:360,maxWidth:'90vw'}} onClick={e=>e.stopPropagation()}>
+          <div style={{background:tModal,border:'1px solid rgba(255,255,255,0.1)',borderRadius:16,padding:28,width:360,maxWidth:'90vw'}} onClick={e=>e.stopPropagation()}>
             <div style={{fontSize:16,fontWeight:700,fontFamily:"'Poppins',sans-serif",marginBottom:6}}>Appointments & Sales</div>
             <div style={{fontSize:12,color:'#444',marginBottom:20}}>Ingresa los datos que no vienen de Meta</div>
             <div style={{display:'flex',flexDirection:'column',gap:12}}>
@@ -1196,7 +1427,7 @@ body{background:#ffffff;color:#111;font-family:'Roboto',sans-serif;padding:36px 
       {/* ADD CLIENT MODAL */}
       {showAdd&&(
         <div style={{position:'fixed',inset:0,background:'rgba(0,0,0,0.8)',zIndex:500,display:'flex',alignItems:'center',justifyContent:'center'}} onClick={()=>setShowAdd(false)}>
-          <div style={{background:'#0f1115',border:'1px solid rgba(255,255,255,0.1)',borderRadius:16,padding:28,width:400,maxWidth:'90vw'}} onClick={e=>e.stopPropagation()}>
+          <div style={{background:tModal,border:'1px solid rgba(255,255,255,0.1)',borderRadius:16,padding:28,width:400,maxWidth:'90vw'}} onClick={e=>e.stopPropagation()}>
             <div style={{fontSize:16,fontWeight:700,fontFamily:"'Poppins',sans-serif",marginBottom:20}}>Add Client</div>
             <div style={{display:'flex',flexDirection:'column',gap:12}}>
               <div><div style={{fontSize:11,color:'#555',marginBottom:5}}>CLIENT ID (e.g. TX)</div><input value={nId} onChange={e=>setNId(e.target.value)} placeholder="TX" style={inp} maxLength={4}/></div>
@@ -1224,7 +1455,7 @@ body{background:#ffffff;color:#111;font-family:'Roboto',sans-serif;padding:36px 
       {/* EDIT CLIENT MODAL */}
       {editing&&(
         <div style={{position:'fixed',inset:0,background:'rgba(0,0,0,0.8)',zIndex:500,display:'flex',alignItems:'center',justifyContent:'center'}} onClick={()=>setEditing(null)}>
-          <div style={{background:'#0f1115',border:'1px solid rgba(255,255,255,0.1)',borderRadius:16,padding:28,width:360,maxWidth:'90vw'}} onClick={e=>e.stopPropagation()}>
+          <div style={{background:tModal,border:'1px solid rgba(255,255,255,0.1)',borderRadius:16,padding:28,width:360,maxWidth:'90vw'}} onClick={e=>e.stopPropagation()}>
             <div style={{fontSize:16,fontWeight:700,fontFamily:"'Poppins',sans-serif",marginBottom:20}}>Edit — {editing.id}</div>
             <div style={{display:'flex',flexDirection:'column',gap:14}}>
               <div style={{display:'flex',alignItems:'center',gap:16}}>
@@ -1249,7 +1480,7 @@ body{background:#ffffff;color:#111;font-family:'Roboto',sans-serif;padding:36px 
       {/* EDIT ACTION MODAL */}
       {editingAction&&(
         <div style={{position:'fixed',inset:0,background:'rgba(0,0,0,0.8)',zIndex:500,display:'flex',alignItems:'center',justifyContent:'center'}} onClick={()=>setEditingAction(null)}>
-          <div style={{background:'#0f1115',border:'1px solid rgba(255,255,255,0.1)',borderRadius:16,padding:28,width:480,maxWidth:'90vw'}} onClick={e=>e.stopPropagation()}>
+          <div style={{background:tModal,border:'1px solid rgba(255,255,255,0.1)',borderRadius:16,padding:28,width:480,maxWidth:'90vw'}} onClick={e=>e.stopPropagation()}>
             <div style={{fontSize:16,fontWeight:700,fontFamily:"'Poppins',sans-serif",marginBottom:16}}>Editar entrada</div>
             <div style={{display:'flex',gap:8,marginBottom:10}}>
               <input type="date" value={editDate} onChange={e=>setEditDate(e.target.value)} style={{background:'rgba(255,255,255,0.05)',border:'1px solid rgba(255,255,255,0.1)',borderRadius:8,padding:'10px 14px',color:'#fff',fontSize:13,fontFamily:"'Roboto',sans-serif",width:150,colorScheme:'dark'}}/>
@@ -1277,6 +1508,19 @@ body{background:#ffffff;color:#111;font-family:'Roboto',sans-serif;padding:36px 
               <button onClick={()=>{setEditingAction(null);setEditMedia([]);}} style={{flex:1,padding:'10px',borderRadius:8,border:'1px solid rgba(255,255,255,0.08)',background:'transparent',color:'#555',cursor:'pointer',fontFamily:"'Roboto',sans-serif"}}>Cancelar</button>
               <button onClick={saveEdit} style={{flex:1,padding:'10px',borderRadius:8,border:'1px solid rgba(56,189,248,0.4)',background:'rgba(56,189,248,0.15)',color:'#38BDF8',cursor:'pointer',fontWeight:600,fontFamily:"'Roboto',sans-serif"}}>Guardar cambios</button>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* AD MEDIA LIGHTBOX */}
+      {adLightbox&&(
+        <div style={{position:'fixed',inset:0,background:'rgba(0,0,0,0.92)',zIndex:600,display:'flex',alignItems:'center',justifyContent:'center',flexDirection:'column',gap:12}} onClick={()=>setAdLightbox(null)}>
+          <div style={{fontSize:11,color:'#555',marginBottom:4}}>{adLightbox.name} · Click fuera para cerrar</div>
+          <div onClick={e=>e.stopPropagation()} style={{maxWidth:'90vw',maxHeight:'80vh',display:'flex',alignItems:'center',justifyContent:'center'}}>
+            {adLightbox.type?.startsWith('image')
+              ?<img src={adLightbox.url} style={{maxWidth:'90vw',maxHeight:'80vh',borderRadius:10,objectFit:'contain'}}/>
+              :<video src={adLightbox.url} controls autoPlay style={{maxWidth:'90vw',maxHeight:'80vh',borderRadius:10}} onClick={e=>e.stopPropagation()}/>
+            }
           </div>
         </div>
       )}

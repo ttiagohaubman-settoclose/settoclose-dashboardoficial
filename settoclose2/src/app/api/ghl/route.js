@@ -108,12 +108,13 @@ export async function GET(request) {
       closedByDate[date] = (closedByDate[date] || 0) + 1
       const tags = c.tags || []
       ventasList.push({
-        id:     c.id,
-        name:   `${c.firstName || ''} ${c.lastName || ''}`.trim() || 'Sin nombre',
-        phone:  c.phone || '',
-        email:  c.email || '',
+        id:      c.id,
+        name:    `${c.firstName || ''} ${c.lastName || ''}`.trim() || 'Sin nombre',
+        phone:   c.phone || '',
+        email:   c.email || '',
+        address: [c.address1, c.city, c.state].filter(Boolean).join(', '),
         date,
-        status: tags.includes('pagada') ? 'pagada' : 'venta',
+        status:  tags.includes('pagada') ? 'pagada' : 'venta',
       })
     })
 
@@ -136,7 +137,25 @@ export async function GET(request) {
       cursor.setDate(cursor.getDate() + 1)
     }
 
-    return Response.json({ days, ventas: ventasList })
+    // ── 4. APPOINTMENTS LIST ─────────────────────────────────────────
+    const appointmentsList = allEvents
+      .filter(ev => ev.startTime || ev.dateAdded)
+      .map(ev => {
+        const ct = ev.contact || {}
+        const name = [ct.firstName, ct.lastName].filter(Boolean).join(' ') || ev.title || 'Sin nombre'
+        return {
+          id:      ev.id,
+          name,
+          phone:   ct.phone   || '',
+          email:   ct.email   || '',
+          address: [ct.address1, ct.city, ct.state].filter(Boolean).join(', '),
+          date:    ev.startTime || ev.dateAdded,
+          status:  ev.appointmentStatus || 'booked',
+        }
+      })
+      .sort((a, b) => new Date(b.date) - new Date(a.date))
+
+    return Response.json({ days, ventas: ventasList, appointments: appointmentsList })
 
   } catch (e) {
     return Response.json({ error: e.message }, { status: 500 })
