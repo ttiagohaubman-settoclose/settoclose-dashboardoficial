@@ -139,18 +139,23 @@ export async function GET(request) {
 
     // ── 4. APPOINTMENTS LIST ─────────────────────────────────────────
     const appointmentsList = allEvents
-      .filter(ev => ev.startTime || ev.dateAdded)
+      .filter(ev => {
+        if (!ev.startTime) return false;
+        const evMs = new Date(ev.startTime).getTime();
+        return evMs >= startTime && evMs <= endTime;
+      })
       .map(ev => {
         const ct = ev.contact || {}
-        const name = [ct.firstName, ct.lastName].filter(Boolean).join(' ') || ev.title || 'Sin nombre'
+        const firstName = ct.firstName || ''
+        const lastName  = ct.lastName  || ''
+        const name = (firstName + ' ' + lastName).trim() || ev.title || 'Sin nombre'
         return {
-          id:      ev.id,
+          id:       ev.id,
           name,
-          phone:   ct.phone   || '',
-          email:   ct.email   || '',
-          address: [ct.address1, ct.city, ct.state].filter(Boolean).join(', '),
-          date:    ev.startTime || ev.dateAdded,
-          status:  ev.appointmentStatus || 'booked',
+          phone:    ct.phone || '',
+          location: ev.address || [ct.city, ct.state].filter(Boolean).join(', ') || '',
+          date:     ev.startTime,
+          status:   ev.appointmentStatus || 'booked',
         }
       })
       .sort((a, b) => new Date(b.date) - new Date(a.date))

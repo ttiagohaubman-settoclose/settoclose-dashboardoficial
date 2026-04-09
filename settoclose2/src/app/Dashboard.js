@@ -35,6 +35,16 @@ const today = () => new Date().toISOString().split('T')[0];
 const dAgo  = n => { const d=new Date(); d.setDate(d.getDate()-n+1); return d.toISOString().split('T')[0]; };
 const genId = () => Date.now() + Math.floor(Math.random() * 10000);
 
+// Safe formula evaluator — only math + predefined vars
+const evalFormula = (formula, vars) => {
+  try {
+    const keys = Object.keys(vars);
+    const vals = Object.values(vars);
+    // eslint-disable-next-line no-new-func
+    return +new Function(...keys, `"use strict"; return (${formula})`)(...vals);
+  } catch(e) { return null; }
+};
+
 const THEMES = {
   futuristic:  {name:'Futurista',    bg:'#060610', sidebar:'#08080f', modal:'#0c0c18'},
   minimal:     {name:'Minimalista',  bg:'#0d0d0d', sidebar:'#111111', modal:'#161616'},
@@ -88,6 +98,7 @@ const SideIcon = ({id, active}) => {
     pencil: <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke={c} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>,
     money:  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke={c} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>,
     gear:   <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke={c} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>,
+    agency: <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke={c} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9,22 9,12 15,12 15,22"/></svg>,
   };
   return <span style={{display:'flex',alignItems:'center',flexShrink:0}}>{icons[id]||null}</span>;
 };
@@ -287,10 +298,23 @@ export default function Dashboard() {
   const [campaigns, setCampaigns] = useState({});
   const [campaignsLoading, setCampaignsLoading] = useState(false);
   const [ventas,        setVentas]        = useState({SC:[],VA:[],MD:[],NC:[]});
-  const [appointments,  setAppointments]  = useState({});
-  const [theme,         setTheme]         = useState(()=>{try{return localStorage.getItem('stc_theme')||'futuristic';}catch{return 'futuristic';}});
-  const [officeMetrics, setOfficeMetrics] = useState(()=>{try{const s=localStorage.getItem('stc_officeMetrics');return s?JSON.parse(s):{};}catch{return {};}});
-  const [showMetricEditor, setShowMetricEditor] = useState(null);
+  const [appointments,    setAppointments]    = useState({});
+  const [theme,           setTheme]           = useState(()=>{try{return localStorage.getItem('stc_theme')||'futuristic';}catch{return 'futuristic';}});
+  const [officeMetrics,   setOfficeMetrics]   = useState(()=>{try{const s=localStorage.getItem('stc_officeMetrics');return s?JSON.parse(s):{};}catch{return {};}});
+  const [showMetricEditor,setShowMetricEditor]= useState(null);
+  const [adsData,         setAdsData]         = useState({});
+  const [adsLoading,      setAdsLoading]      = useState(false);
+  const [chatMessages,    setChatMessages]    = useState({});
+  const [chatText,        setChatText]        = useState('');
+  const [chatLoading,     setChatLoading]     = useState(false);
+  const [customMetrics,   setCustomMetrics]   = useState(()=>{try{const s=localStorage.getItem('stc_customMetrics');return s?JSON.parse(s):{};}catch{return {};}});
+  const [showCustomMetricModal, setShowCustomMetricModal] = useState(null); // officeId
+  const [newMetricName,   setNewMetricName]   = useState('');
+  const [newMetricFormula,setNewMetricFormula]= useState('');
+  const [adsColsVisible,  setAdsColsVisible]  = useState(()=>{try{const s=localStorage.getItem('stc_adsCols');return s?JSON.parse(s):['spend','impressions','linkClicks','leads','cpl','ctr'];}catch{return ['spend','impressions','linkClicks','leads','cpl','ctr'];}});
+  const [agencyCustomizing, setAgencyCustomizing] = useState(false);
+  const [agencyMetrics,   setAgencyMetrics]   = useState(()=>{try{const s=localStorage.getItem('stc_agencyMetrics');return s?JSON.parse(s):{spend:true,leads:true,cpl:true,apps:true,showed:true,sales:true,cash:true,impressions:true};}catch{return {spend:true,leads:true,cpl:true,apps:true,showed:true,sales:true,cash:true,impressions:true};}});
+  const chatEndRef = useRef();
 
   const fetchGHL = useCallback(async (offId, from, to) => {
     try {
@@ -319,8 +343,52 @@ export default function Dashboard() {
   }, [offices]);
 
   useEffect(() => {
-    if(activeId && activeId!=='STC' && sidebarTab==='ads') fetchCampaigns(activeId, dateFrom, dateTo);
+    if(activeId && activeId!=='STC' && sidebarTab==='ads') {
+      fetchCampaigns(activeId, dateFrom, dateTo);
+      fetchAds(activeId, dateFrom, dateTo);
+      fetchChat(activeId);
+    }
   }, [activeId, dateFrom, dateTo, sidebarTab]);
+
+  const fetchAds = useCallback(async (offId, from, to) => {
+    const off = offices.find(o=>o.id===offId); if(!off?.adAccountId) return;
+    setAdsLoading(true);
+    try {
+      const p = new URLSearchParams({adAccountId:off.adAccountId, dateFrom:from, dateTo:to, type:'ads'});
+      const r = await fetch('/api/meta?'+p);
+      const j = await r.json();
+      if (!j.error) setAdsData(prev=>({...prev,[offId]:j.ads||[]}));
+    } catch(e){}
+    setAdsLoading(false);
+  }, [offices]);
+
+  const fetchChat = useCallback(async (offId) => {
+    try {
+      const r = await fetch(`/api/chat?officeId=${offId}`);
+      const j = await r.json();
+      setChatMessages(prev=>({...prev,[offId]:j.messages||[]}));
+    } catch(e){}
+  }, []);
+
+  const sendChat = async (offId) => {
+    if (!chatText.trim() || chatLoading) return;
+    setChatLoading(true);
+    const author = isAdmin ? 'SetToClose' : (clientUsers.find(u=>u.officeId===offId)?.username||'Cliente');
+    const role   = isAdmin ? 'admin' : 'client';
+    try {
+      const r = await fetch('/api/chat', {
+        method:'POST', headers:{'Content-Type':'application/json'},
+        body: JSON.stringify({officeId:offId, author, text:chatText, role})
+      });
+      const j = await r.json();
+      if (j.ok) {
+        setChatMessages(prev=>({...prev,[offId]:[...(prev[offId]||[]),j.message]}));
+        setChatText('');
+        setTimeout(()=>chatEndRef.current?.scrollIntoView({behavior:'smooth'}),50);
+      }
+    } catch(e){}
+    setChatLoading(false);
+  };
 
   // ── PERSIST ACTION LOGS via API ──────────────────────────────────
   // ── ALL OFFICES AGGREGATED DATA ────────────────────────────────
@@ -381,6 +449,9 @@ export default function Dashboard() {
   useEffect(() => { try{localStorage.setItem('stc_adMedia', JSON.stringify(adMedia));}catch(e){} }, [adMedia]);
   useEffect(() => { try{localStorage.setItem('stc_theme', theme);}catch(e){} }, [theme]);
   useEffect(() => { try{localStorage.setItem('stc_officeMetrics', JSON.stringify(officeMetrics));}catch(e){} }, [officeMetrics]);
+  useEffect(() => { try{localStorage.setItem('stc_customMetrics', JSON.stringify(customMetrics));}catch(e){} }, [customMetrics]);
+  useEffect(() => { try{localStorage.setItem('stc_adsCols', JSON.stringify(adsColsVisible));}catch(e){} }, [adsColsVisible]);
+  useEffect(() => { try{localStorage.setItem('stc_agencyMetrics', JSON.stringify(agencyMetrics));}catch(e){} }, [agencyMetrics]);
   // ────────────────────────────────────────────────────────────────
 
   const raw = useMemo(()=>{
@@ -643,6 +714,7 @@ body{background:#ffffff;color:#111;font-family:'Roboto',sans-serif;padding:36px 
         {/* Navigation */}
         <nav style={{flex:1,padding:'8px 0',overflowY:'auto'}}>
           {[
+            {id:'agency',   icon:'agency',  label:'Agencia',       adminOnly:true},
             {id:'clients',  icon:'person',  label:'Clientes',      adminOnly:true},
             {id:'dashboard',icon:'chart',   label:'Dashboard',     adminOnly:false},
             {id:'actionlog',icon:'pencil',  label:'Action Log',    adminOnly:true},
@@ -740,6 +812,92 @@ body{background:#ffffff;color:#111;font-family:'Roboto',sans-serif;padding:36px 
               </div>
             </div>
           </div>
+        )}
+
+        {/* ── AGENCY TAB ──────────────────────────────── */}
+        {sidebarTab==='agency'&&(
+        <div style={{padding:'24px 24px 60px',maxWidth:1440,margin:'0 auto',width:'100%'}}>
+          <div style={{display:'flex',alignItems:'center',gap:16,marginBottom:28}}>
+            <img src={LOGOS_INIT.STC} alt="STC" style={{width:52,height:52,borderRadius:12,objectFit:'contain',background:'rgba(255,255,255,0.04)',padding:6,border:'1px solid rgba(255,255,255,0.08)'}}/>
+            <div style={{flex:1}}>
+              <div style={{fontSize:22,fontWeight:700,fontFamily:"'Poppins',sans-serif",color:'#fff'}}>SetToClose — Agencia</div>
+              <div style={{fontSize:12,color:'#444',marginTop:2}}>{dateFrom} to {dateTo} · {offices.length} oficinas activas</div>
+            </div>
+            <div style={{display:'flex',gap:8,alignItems:'center'}}>
+              <button onClick={()=>setAgencyCustomizing(p=>!p)} style={{padding:'5px 12px',borderRadius:7,border:'1px solid rgba(139,92,246,0.3)',background:agencyCustomizing?'rgba(139,92,246,0.15)':'transparent',color:agencyCustomizing?'#c4b5fd':'#555',fontSize:11,cursor:'pointer'}}>
+                {agencyCustomizing?'✓ Listo':'⊞ Personalizar'}
+              </button>
+              <button onClick={()=>setShowCustomMetricModal('STC')} style={{padding:'5px 12px',borderRadius:7,border:'1px solid rgba(56,189,248,0.3)',background:'rgba(56,189,248,0.08)',color:'#38BDF8',fontSize:11,cursor:'pointer'}}>+ Métrica Custom</button>
+            </div>
+          </div>
+          {agencyCustomizing&&(
+            <div style={{background:'rgba(139,92,246,0.06)',border:'1px solid rgba(139,92,246,0.2)',borderRadius:12,padding:'14px 18px',marginBottom:16}}>
+              <div style={{fontSize:11,color:'#8b5cf6',marginBottom:10,fontWeight:600}}>Selecciona las métricas a mostrar:</div>
+              <div style={{display:'flex',flexWrap:'wrap',gap:8}}>
+                {[{id:'spend',l:'Ad Spend'},{id:'leads',l:'Leads'},{id:'cpl',l:'CPL'},{id:'apps',l:'Apps Booked'},{id:'showed',l:'Apps Showed'},{id:'sales',l:'Deals'},{id:'cash',l:'Cash Tiago'},{id:'impressions',l:'Impresiones'}].map(m=>(
+                  <button key={m.id} onClick={()=>setAgencyMetrics(p=>({...p,[m.id]:!p[m.id]}))} style={{padding:'5px 12px',borderRadius:20,border:`1px solid ${agencyMetrics[m.id]?'rgba(139,92,246,0.5)':'rgba(255,255,255,0.1)'}`,background:agencyMetrics[m.id]?'rgba(139,92,246,0.2)':'transparent',color:agencyMetrics[m.id]?'#c4b5fd':'#444',fontSize:11,cursor:'pointer',transition:'all .1s'}}>
+                    {agencyMetrics[m.id]?'✓ ':''}{m.l}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+          <div style={{display:'grid',gridTemplateColumns:'repeat(4,1fr)',gap:10,marginBottom:32}}>
+            {[
+              { id:'spend',       label:'Ad Spend Total',   value: fmt$(stcTotals.spend),       sub: `${offices.length} cuentas`,    vals: allOfficesData.map(o=>({id:o.id,name:o.name,color:o.color,v:fmt$(o.spend)})) },
+              { id:'leads',       label:'Total Leads',      value: fmtN(stcTotals.leads),       sub: `CPL: ${fmt$(stcTotals.leads>0?stcTotals.spend/stcTotals.leads:0)}`, vals: allOfficesData.map(o=>({id:o.id,name:o.name,color:o.color,v:fmtN(o.leads)})) },
+              { id:'cpl',         label:'CPL Promedio',     value: fmt$(stcTotals.leads>0?stcTotals.spend/stcTotals.leads:0), sub:'Costo por lead', vals: allOfficesData.map(o=>({id:o.id,name:o.name,color:o.color,v:fmt$(o.cpl)})) },
+              { id:'apps',        label:'Apps Booked',      value: fmtN(stcTotals.appsBooked),  sub: `Show rate: ${stcTotals.appsBooked>0?((stcTotals.appsShowed/stcTotals.appsBooked)*100).toFixed(1):0}%`, vals: allOfficesData.map(o=>({id:o.id,name:o.name,color:o.color,v:fmtN(o.appsBooked)})) },
+              { id:'showed',      label:'Apps Showed',      value: fmtN(stcTotals.appsShowed),  sub:'Total presentadas', vals: allOfficesData.map(o=>({id:o.id,name:o.name,color:o.color,v:fmtN(o.appsShowed)})) },
+              { id:'sales',       label:'Deals Cerrados',   value: fmtN(stcTotals.sales),       sub: `Close: ${stcTotals.appsShowed>0?((stcTotals.sales/stcTotals.appsShowed)*100).toFixed(1):0}%`, vals: allOfficesData.map(o=>({id:o.id,name:o.name,color:o.color,v:fmtN(o.sales)})) },
+              { id:'cash',        label:'Cash Tiago Total', value: fmt$(stcTotals.cashTiago),   sub:'Tu revenue personal', vals: allOfficesData.map(o=>({id:o.id,name:o.name,color:o.color,v:fmt$(o.cashTiago)})) },
+              { id:'impressions', label:'Impresiones',      value: fmtN(stcTotals.impressions), sub:'Total alcance', vals: allOfficesData.map(o=>({id:o.id,name:o.name,color:o.color,v:fmtN(o.impressions)})) },
+            ].filter(kpi=>agencyMetrics[kpi.id]).map(kpi=>(
+              <div key={kpi.id} onClick={()=>setExpandedKpi(expandedKpi===kpi.id?null:kpi.id)} style={{background:'rgba(255,255,255,0.03)',border:`1px solid ${expandedKpi===kpi.id?'rgba(255,255,255,0.2)':'rgba(255,255,255,0.07)'}`,borderRadius:14,padding:'16px 18px',cursor:'pointer',transition:'all .2s',position:'relative'}}>
+                <div style={{fontSize:10,color:'#555',textTransform:'uppercase',letterSpacing:'.1em',marginBottom:8,fontWeight:600}}>{kpi.label}</div>
+                <div style={{fontSize:24,fontWeight:700,fontFamily:"'Poppins',sans-serif",color:'#fff',marginBottom:4}}>{kpi.value}</div>
+                <div style={{fontSize:11,color:'#444'}}>{kpi.sub}</div>
+                <div style={{position:'absolute',top:12,right:12,fontSize:10,color:'#333'}}>{expandedKpi===kpi.id?'▲':'▼'}</div>
+                {expandedKpi===kpi.id&&(
+                  <div style={{marginTop:14,paddingTop:12,borderTop:'1px solid rgba(255,255,255,0.07)'}}>
+                    {kpi.vals.map(o=>(
+                      <div key={o.id} style={{display:'flex',alignItems:'center',justifyContent:'space-between',marginBottom:8}}>
+                        <div style={{display:'flex',alignItems:'center',gap:7}}>
+                          <img src={logos[o.id]||''} alt="" style={{width:18,height:18,borderRadius:'50%',objectFit:'cover'}}/>
+                          <span style={{fontSize:12,color:'#888'}}>{o.name}</span>
+                        </div>
+                        <span style={{fontSize:13,fontWeight:600,color:o.color}}>{o.v}</span>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            ))}
+            {/* Custom metrics for STC */}
+            {(customMetrics['STC']||[]).map(cm=>{
+              const vars={spend:stcTotals.spend,leads:stcTotals.leads,impressions:stcTotals.impressions,appsBooked:stcTotals.appsBooked,appsShowed:stcTotals.appsShowed,sales:stcTotals.sales,cashTiago:stcTotals.cashTiago};
+              const val=evalFormula(cm.formula,vars);
+              return(
+                <div key={cm.id} style={{background:'rgba(56,189,248,0.04)',border:'1px solid rgba(56,189,248,0.15)',borderRadius:14,padding:'16px 18px',position:'relative'}}>
+                  <div style={{fontSize:10,color:'#38BDF8',textTransform:'uppercase',letterSpacing:'.1em',marginBottom:8,fontWeight:600}}>{cm.name}</div>
+                  <div style={{fontSize:24,fontWeight:700,fontFamily:"'Poppins',sans-serif",color:'#38BDF8',marginBottom:4}}>{val!=null?isNaN(val)?'—':val.toFixed(2):'—'}</div>
+                  <div style={{fontSize:10,color:'#444',fontFamily:'monospace'}}>{cm.formula}</div>
+                  <button onClick={()=>setCustomMetrics(p=>({...p,STC:(p.STC||[]).filter(x=>x.id!==cm.id)}))} style={{position:'absolute',top:8,right:8,background:'none',border:'none',color:'#555',fontSize:11,cursor:'pointer'}}>✕</button>
+                </div>
+              );
+            })}
+          </div>
+          {/* Per-office table */}
+          <div style={{background:'rgba(255,255,255,0.02)',border:'1px solid rgba(255,255,255,0.06)',borderRadius:14,overflow:'hidden'}}>
+            <div style={{padding:'13px 20px',borderBottom:'1px solid rgba(255,255,255,0.05)'}}><div style={{fontSize:13,fontWeight:600,fontFamily:"'Poppins',sans-serif"}}>Rendimiento por Oficina</div></div>
+            <div style={{overflowX:'auto'}}>
+              <table style={{width:'100%',borderCollapse:'collapse',minWidth:600}}>
+                <thead><tr style={{borderBottom:'1px solid rgba(255,255,255,0.05)'}}>{['Oficina','Spend','Leads','CPL','Apps','Deals','Cash Tiago'].map((h,hi)=><th key={h} style={{padding:'10px 16px',textAlign:hi===0?'left':'right',fontSize:10,color:'#444',fontWeight:600,letterSpacing:'.08em',textTransform:'uppercase'}}>{h}</th>)}</tr></thead>
+                <tbody>{allOfficesData.map((o,i)=><tr key={o.id} style={{borderBottom:'1px solid rgba(255,255,255,0.03)',background:i%2===0?'transparent':'rgba(255,255,255,0.01)'}}><td style={{padding:'12px 16px',display:'flex',alignItems:'center',gap:8}}><div style={{width:8,height:8,borderRadius:'50%',background:o.color}}/><span style={{fontSize:13,color:o.color,fontWeight:600}}>{o.name}</span></td><td style={{padding:'12px 16px',fontSize:12,color:'#999',textAlign:'right',fontFamily:"'Poppins',sans-serif"}}>{fmt$(o.spend)}</td><td style={{padding:'12px 16px',fontSize:12,color:'#fff',textAlign:'right',fontFamily:"'Poppins',sans-serif",fontWeight:600}}>{o.leads}</td><td style={{padding:'12px 16px',fontSize:12,color:'#999',textAlign:'right',fontFamily:"'Poppins',sans-serif"}}>{fmt$(o.cpl)}</td><td style={{padding:'12px 16px',fontSize:12,color:'#999',textAlign:'right',fontFamily:"'Poppins',sans-serif"}}>{o.appsBooked}</td><td style={{padding:'12px 16px',fontSize:12,color:'#999',textAlign:'right',fontFamily:"'Poppins',sans-serif"}}>{o.sales}</td><td style={{padding:'12px 16px',fontSize:12,color:'#4ADE80',textAlign:'right',fontFamily:"'Poppins',sans-serif",fontWeight:600}}>{fmt$(o.cashTiago)}</td></tr>)}</tbody>
+              </table>
+            </div>
+          </div>
+        </div>
         )}
 
         {/* ── DASHBOARD TAB ────────────────────────────── */}
@@ -901,6 +1059,27 @@ body{background:#ffffff;color:#111;font-family:'Roboto',sans-serif;padding:36px 
                   {mOk('cashOffice')  && <KPI label="Cash Collected" value={fmtK(T.cashOffice)}      sub="Rev Office − Tiago − Spend"       color="#4ADE80"/>}
                   {mOk('roasCash')    && <KPI label="ROAS (Cash)"    value={roasCash.toFixed(2)+'x'} sub="Cash Collected / Spend"           color="#4ADE80"/>}
                 </div>
+                {/* Custom Metrics */}
+                {(customMetrics[activeId]||[]).length>0&&(
+                  <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fill,minmax(160px,1fr))',gap:8,marginBottom:18}}>
+                    {(customMetrics[activeId]||[]).map(cm=>{
+                      const vars={spent:T.spent,impressions:T.impressions,reach:T.reach||0,frequency:freq,linkClicks:T.linkClicks,ctrLink,cpcLink,leads:T.leads,cpl,appsBooked:T.appsBooked,appsShowed:T.appsShowed,showRate,sales:T.sales,closeRate,revCompany:T.revCompany,revOffice:T.revOffice,cashTiago:T.cashTiago,cashOffice:T.cashOffice,roasCash};
+                      const val=evalFormula(cm.formula,vars);
+                      return(
+                        <div key={cm.id} style={{background:'rgba(56,189,248,0.04)',border:'1px solid rgba(56,189,248,0.15)',borderRadius:10,padding:'11px 13px',position:'relative'}}>
+                          <div style={{position:'absolute',top:0,left:0,right:0,height:2,background:'#38BDF8',opacity:.6}}/>
+                          <div style={{fontSize:9,color:'#38BDF8',textTransform:'uppercase',letterSpacing:'.1em',marginBottom:6,fontWeight:600}}>{cm.name}</div>
+                          <div style={{fontSize:18,fontWeight:700,color:'#38BDF8',fontFamily:"'Poppins',sans-serif"}}>{val!=null&&!isNaN(val)?val.toFixed(2):'—'}</div>
+                          <div style={{fontSize:9,color:'#444',marginTop:4,fontFamily:'monospace',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{cm.formula}</div>
+                          <button onClick={()=>setCustomMetrics(p=>({...p,[activeId]:(p[activeId]||[]).filter(x=>x.id!==cm.id)}))} style={{position:'absolute',top:6,right:6,background:'none',border:'none',color:'#555',fontSize:10,cursor:'pointer'}}>✕</button>
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
+                <div style={{marginBottom:8,display:'flex',justifyContent:'flex-end'}}>
+                  <button onClick={()=>setShowCustomMetricModal(activeId)} style={{padding:'4px 12px',borderRadius:7,border:'1px solid rgba(56,189,248,0.3)',background:'rgba(56,189,248,0.06)',color:'#38BDF8',fontSize:11,cursor:'pointer',fontFamily:"'Roboto',sans-serif"}}>+ Métrica Custom</button>
+                </div>
                   </>);
                 })()}
 
@@ -1001,10 +1180,10 @@ body{background:#ffffff;color:#111;font-family:'Roboto',sans-serif;padding:36px 
                   <div style={{marginBottom:32}}>
                     <div style={{fontSize:11,fontWeight:600,color:'#555',letterSpacing:'.1em',textTransform:'uppercase',marginBottom:14}}>Citas Agendadas</div>
                     <div style={{background:'rgba(255,255,255,0.02)',border:'1px solid rgba(255,255,255,0.06)',borderRadius:14,overflow:'hidden',overflowX:'auto'}}>
-                      <table style={{width:'100%',borderCollapse:'collapse',minWidth:680}}>
+                      <table style={{width:'100%',borderCollapse:'collapse',minWidth:560}}>
                         <thead>
                           <tr style={{borderBottom:'1px solid rgba(255,255,255,0.06)'}}>
-                            {['Nombre','Teléfono','Email','Dirección','Fecha Cita','Estado'].map(h=>(
+                            {['Nombre','Teléfono','Ubicación','Hora Cita','Estado'].map(h=>(
                               <th key={h} style={{padding:'10px 16px',textAlign:'left',fontSize:10,color:'#444',fontWeight:600,letterSpacing:'.08em',textTransform:'uppercase',whiteSpace:'nowrap'}}>{h}</th>
                             ))}
                           </tr>
@@ -1014,10 +1193,9 @@ body{background:#ffffff;color:#111;font-family:'Roboto',sans-serif;padding:36px 
                             <tr key={a.id||i} style={{borderBottom:'1px solid rgba(255,255,255,0.04)',background:i%2===0?'transparent':'rgba(255,255,255,0.01)'}}>
                               <td style={{padding:'12px 16px',fontSize:13,color:'#ddd',fontWeight:500}}>{a.name}</td>
                               <td style={{padding:'12px 16px',fontSize:12,color:'#666',fontFamily:'monospace'}}>{a.phone||'—'}</td>
-                              <td style={{padding:'12px 16px',fontSize:12,color:'#666'}}>{a.email||'—'}</td>
-                              <td style={{padding:'12px 16px',fontSize:12,color:'#666'}}>{a.address||'—'}</td>
-                              <td style={{padding:'12px 16px',fontSize:12,color:'#555',fontFamily:'monospace',whiteSpace:'nowrap'}}>
-                                {a.date ? new Date(a.date).toLocaleDateString('es-ES',{day:'2-digit',month:'short',year:'numeric'})+' '+new Date(a.date).toLocaleTimeString('es-ES',{hour:'2-digit',minute:'2-digit'}) : '—'}
+                              <td style={{padding:'12px 16px',fontSize:12,color:'#666'}}>{a.location||'—'}</td>
+                              <td style={{padding:'12px 16px',fontSize:12,color:'#38BDF8',fontFamily:'monospace',whiteSpace:'nowrap',fontWeight:500}}>
+                                {a.date ? new Date(a.date).toLocaleDateString('es-ES',{weekday:'short',day:'2-digit',month:'short'})+' '+new Date(a.date).toLocaleTimeString('es-ES',{hour:'2-digit',minute:'2-digit'}) : '—'}
                               </td>
                               <td style={{padding:'12px 16px'}}>
                                 {a.status==='showed'||a.status==='completed'
@@ -1172,11 +1350,14 @@ body{background:#ffffff;color:#111;font-family:'Roboto',sans-serif;padding:36px 
                       </div>
                       <div style={{overflowX:'auto'}}>
                         <table style={{width:'100%',borderCollapse:'collapse',minWidth:580}}>
-                          <thead>
+                          {(()=>{
+                            const COLS=[{k:'spend',l:'Spend',fn:c=>fmtK(c.spent)},{k:'impressions',l:'Impresiones',fn:c=>fmtN(c.impressions)},{k:'reach',l:'Alcance',fn:c=>fmtN(c.reach)},{k:'linkClicks',l:'Clicks',fn:c=>fmtN(c.linkClicks)},{k:'leads',l:'Leads',fn:c=>String(c.leads)},{k:'cpl',l:'CPL',fn:c=>fmt$(c.cpl)},{k:'ctr',l:'CTR',fn:c=>c.ctr.toFixed(2)+'%'}];
+                            const vis=COLS.filter(col=>adsColsVisible.includes(col.k));
+                            return(
+                          <><thead>
                             <tr style={{borderBottom:'1px solid rgba(255,255,255,0.05)'}}>
-                              {['Campaña','Spend','Impresiones','Clicks','Leads','CPL','CTR'].map((h,hi)=>(
-                                <th key={h} style={{padding:'10px 16px',textAlign:hi===0?'left':'right',fontSize:10,color:'#444',fontWeight:600,letterSpacing:'.08em',textTransform:'uppercase',whiteSpace:'nowrap'}}>{h}</th>
-                              ))}
+                              <th style={{padding:'10px 16px',textAlign:'left',fontSize:10,color:'#444',fontWeight:600,letterSpacing:'.08em',textTransform:'uppercase',whiteSpace:'nowrap'}}>Campaña</th>
+                              {vis.map(col=><th key={col.k} style={{padding:'10px 16px',textAlign:'right',fontSize:10,color:'#444',fontWeight:600,letterSpacing:'.08em',textTransform:'uppercase',whiteSpace:'nowrap'}}>{col.l}</th>)}
                             </tr>
                           </thead>
                           <tbody>
@@ -1185,15 +1366,11 @@ body{background:#ffffff;color:#111;font-family:'Roboto',sans-serif;padding:36px 
                                 <td style={{padding:'11px 16px',fontSize:12,color:ci===0?office?.color:'#ccc',fontWeight:ci===0?600:400,maxWidth:240,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>
                                   {ci===0&&<span style={{fontSize:9,marginRight:5}}>★</span>}{c.name}
                                 </td>
-                                <td style={{padding:'11px 16px',fontSize:12,color:'#999',textAlign:'right',fontFamily:"'Poppins',sans-serif"}}>{fmtK(c.spent)}</td>
-                                <td style={{padding:'11px 16px',fontSize:12,color:'#999',textAlign:'right',fontFamily:"'Poppins',sans-serif"}}>{fmtN(c.impressions)}</td>
-                                <td style={{padding:'11px 16px',fontSize:12,color:'#999',textAlign:'right',fontFamily:"'Poppins',sans-serif"}}>{fmtN(c.linkClicks)}</td>
-                                <td style={{padding:'11px 16px',fontSize:12,color:ci===0?office?.color:'#ccc',textAlign:'right',fontWeight:ci===0?700:400,fontFamily:"'Poppins',sans-serif"}}>{c.leads}</td>
-                                <td style={{padding:'11px 16px',fontSize:12,color:'#999',textAlign:'right',fontFamily:"'Poppins',sans-serif"}}>{fmt$(c.cpl)}</td>
-                                <td style={{padding:'11px 16px',fontSize:12,color:'#999',textAlign:'right',fontFamily:"'Poppins',sans-serif"}}>{c.ctr.toFixed(2)}%</td>
+                                {vis.map(col=><td key={col.k} style={{padding:'11px 16px',fontSize:12,color:col.k==='leads'&&ci===0?office?.color:'#999',textAlign:'right',fontWeight:col.k==='leads'&&ci===0?700:400,fontFamily:"'Poppins',sans-serif"}}>{col.fn(c)}</td>)}
                               </tr>
                             ))}
-                          </tbody>
+                          </tbody></>);
+                          })()}
                         </table>
                       </div>
                     </div>
@@ -1269,6 +1446,61 @@ body{background:#ffffff;color:#111;font-family:'Roboto',sans-serif;padding:36px 
                     </div>
                   )}
                 </div>
+                {/* Anuncio Ganador (ad-level) */}
+                {(adsData[activeId]||[]).length>0&&(()=>{
+                  const topAd = (adsData[activeId]||[])[0];
+                  return(
+                    <div style={{background:`linear-gradient(135deg,rgba(251,146,60,0.1),rgba(251,146,60,0.04))`,border:`1px solid rgba(251,146,60,0.3)`,borderRadius:14,padding:'18px 22px',marginBottom:16}}>
+                      <div style={{fontSize:9,color:'#FB923C',fontWeight:700,letterSpacing:'.12em',textTransform:'uppercase',marginBottom:8}}>🏆 Anuncio Ganador — Más Leads (Consolidado)</div>
+                      <div style={{fontSize:14,fontWeight:700,fontFamily:"'Poppins',sans-serif",marginBottom:4,color:'#fff',lineHeight:1.3}}>{topAd.name}</div>
+                      {topAd.campaignName&&<div style={{fontSize:11,color:'#555',marginBottom:12}}>Campaña: {topAd.campaignName}</div>}
+                      <div style={{display:'grid',gridTemplateColumns:'repeat(4,1fr)',gap:10}}>
+                        {[{l:'Leads Totales',v:String(topAd.leads),c:'#FB923C'},{l:'Spend Total',v:fmtK(topAd.spent),c:'#FB923C'},{l:'CPL',v:fmt$(topAd.cpl),c:'#FB923C'},{l:'Impresiones',v:fmtN(topAd.impressions),c:'#FB923C'}].map(m=>(
+                          <div key={m.l} style={{textAlign:'center',padding:'10px',background:'rgba(251,146,60,0.06)',borderRadius:10,border:'1px solid rgba(251,146,60,0.15)'}}>
+                            <div style={{fontSize:9,color:'#666',textTransform:'uppercase',letterSpacing:'.08em',marginBottom:4}}>{m.l}</div>
+                            <div style={{fontSize:20,fontWeight:700,color:m.c,fontFamily:"'Poppins',sans-serif"}}>{m.v}</div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  );
+                })()}
+
+                {/* Selector de columnas */}
+                {(campaigns[activeId]||[]).length>0&&(
+                  <div style={{display:'flex',alignItems:'center',gap:8,marginBottom:8,flexWrap:'wrap'}}>
+                    <span style={{fontSize:10,color:'#444',letterSpacing:'.08em',textTransform:'uppercase'}}>Columnas:</span>
+                    {[{k:'spend',l:'Spend'},{k:'impressions',l:'Impresiones'},{k:'reach',l:'Alcance'},{k:'linkClicks',l:'Clicks'},{k:'leads',l:'Leads'},{k:'cpl',l:'CPL'},{k:'ctr',l:'CTR'}].map(col=>(
+                      <button key={col.k} onClick={()=>setAdsColsVisible(p=>p.includes(col.k)?p.filter(x=>x!==col.k):[...p,col.k])} style={{padding:'3px 9px',borderRadius:14,border:`1px solid ${adsColsVisible.includes(col.k)?office?.color+'55':'rgba(255,255,255,0.08)'}`,background:adsColsVisible.includes(col.k)?office?.color+'15':'transparent',color:adsColsVisible.includes(col.k)?office?.color:'#444',fontSize:10,cursor:'pointer',transition:'all .1s'}}>{adsColsVisible.includes(col.k)?'✓ ':''}{col.l}</button>
+                    ))}
+                  </div>
+                )}
+
+                {/* Chat de Análisis */}
+                <div style={{background:'rgba(255,255,255,0.02)',border:'1px solid rgba(255,255,255,0.06)',borderRadius:14,marginBottom:28}}>
+                  <div style={{padding:'13px 20px',borderBottom:'1px solid rgba(255,255,255,0.05)',display:'flex',alignItems:'center',justifyContent:'space-between'}}>
+                    <div>
+                      <div style={{fontSize:13,fontWeight:600,fontFamily:"'Poppins',sans-serif"}}>Chat de Análisis</div>
+                      <div style={{fontSize:10,color:'#444',marginTop:1}}>Registra decisiones y análisis sobre los anuncios</div>
+                    </div>
+                  </div>
+                  <div style={{height:240,overflowY:'auto',padding:'12px 16px',display:'flex',flexDirection:'column',gap:8}}>
+                    {(chatMessages[activeId]||[]).length===0?(
+                      <div style={{flex:1,display:'flex',alignItems:'center',justifyContent:'center',color:'#333',fontSize:12}}>Aún no hay mensajes. Empieza el análisis...</div>
+                    ):(chatMessages[activeId]||[]).map(msg=>(
+                      <div key={msg.id} style={{display:'flex',flexDirection:'column',alignItems:msg.role==='admin'?'flex-end':'flex-start',gap:2}}>
+                        <div style={{fontSize:9,color:'#444',marginBottom:1}}>{msg.author} · {new Date(msg.timestamp).toLocaleDateString('es-ES',{day:'2-digit',month:'short'})} {new Date(msg.timestamp).toLocaleTimeString('es-ES',{hour:'2-digit',minute:'2-digit'})}</div>
+                        <div style={{maxWidth:'72%',background:msg.role==='admin'?`${office?.color}20`:'rgba(255,255,255,0.04)',border:`1px solid ${msg.role==='admin'?office?.color+'30':'rgba(255,255,255,0.08)'}`,borderRadius:10,padding:'8px 12px',fontSize:12,color:msg.role==='admin'?office?.color:'#ccc',lineHeight:1.5}}>{msg.text}</div>
+                      </div>
+                    ))}
+                    <div ref={chatEndRef}/>
+                  </div>
+                  <div style={{padding:'10px 12px',borderTop:'1px solid rgba(255,255,255,0.05)',display:'flex',gap:8}}>
+                    <input value={chatText} onChange={e=>setChatText(e.target.value)} onKeyDown={e=>e.key==='Enter'&&!e.shiftKey&&sendChat(activeId)} placeholder="Escribe tu análisis o decisión..." style={{...inp,flex:1,padding:'8px 12px',fontSize:12}}/>
+                    <button onClick={()=>sendChat(activeId)} disabled={chatLoading||!chatText.trim()} style={{padding:'8px 16px',borderRadius:8,border:`1px solid ${office?.color}44`,background:office?.color+'15',color:office?.color,fontSize:12,cursor:'pointer',whiteSpace:'nowrap',opacity:chatLoading?0.6:1}}>{chatLoading?'...':'Enviar'}</button>
+                  </div>
+                </div>
+
               </>
             )}
           </div>
@@ -1507,6 +1739,43 @@ body{background:#ffffff;color:#111;font-family:'Roboto',sans-serif;padding:36px 
             <div style={{display:'flex',gap:8}}>
               <button onClick={()=>{setEditingAction(null);setEditMedia([]);}} style={{flex:1,padding:'10px',borderRadius:8,border:'1px solid rgba(255,255,255,0.08)',background:'transparent',color:'#555',cursor:'pointer',fontFamily:"'Roboto',sans-serif"}}>Cancelar</button>
               <button onClick={saveEdit} style={{flex:1,padding:'10px',borderRadius:8,border:'1px solid rgba(56,189,248,0.4)',background:'rgba(56,189,248,0.15)',color:'#38BDF8',cursor:'pointer',fontWeight:600,fontFamily:"'Roboto',sans-serif"}}>Guardar cambios</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* CUSTOM METRIC MODAL */}
+      {showCustomMetricModal&&(
+        <div style={{position:'fixed',inset:0,background:'rgba(0,0,0,0.8)',zIndex:500,display:'flex',alignItems:'center',justifyContent:'center'}} onClick={()=>setShowCustomMetricModal(null)}>
+          <div style={{background:tModal,border:'1px solid rgba(56,189,248,0.2)',borderRadius:16,padding:28,width:420,maxWidth:'90vw'}} onClick={e=>e.stopPropagation()}>
+            <div style={{fontSize:16,fontWeight:700,fontFamily:"'Poppins',sans-serif",marginBottom:4}}>Nueva Métrica Personalizada</div>
+            <div style={{fontSize:12,color:'#444',marginBottom:20}}>
+              Variables disponibles: <span style={{fontFamily:'monospace',color:'#38BDF8',fontSize:11}}>spent, leads, impressions, linkClicks, cpl, ctrLink, cpcLink, frequency, appsBooked, appsShowed, showRate, sales, closeRate, revCompany, revOffice, cashTiago, cashOffice, roasCash</span>
+            </div>
+            <div style={{display:'flex',flexDirection:'column',gap:12}}>
+              <div>
+                <div style={{fontSize:11,color:'#555',marginBottom:5}}>NOMBRE DE LA MÉTRICA</div>
+                <input value={newMetricName} onChange={e=>setNewMetricName(e.target.value)} placeholder="Ej: Lead Rate %" style={inp}/>
+              </div>
+              <div>
+                <div style={{fontSize:11,color:'#555',marginBottom:5}}>FÓRMULA</div>
+                <input value={newMetricFormula} onChange={e=>setNewMetricFormula(e.target.value)} placeholder="Ej: leads / impressions * 100" style={{...inp,fontFamily:'monospace',fontSize:12}}/>
+              </div>
+              {newMetricFormula&&(()=>{
+                const testVars={spent:1000,leads:20,impressions:5000,linkClicks:200,cpl:50,ctrLink:4,cpcLink:5,frequency:2,appsBooked:10,appsShowed:8,showRate:80,sales:5,closeRate:62.5,revCompany:39950,revOffice:15000,cashTiago:3750,cashOffice:7250,roasCash:7.25};
+                const v=evalFormula(newMetricFormula,testVars);
+                return <div style={{fontSize:11,color:v!=null&&!isNaN(v)?'#4ADE80':'#F87171',fontFamily:'monospace'}}>{v!=null&&!isNaN(v)?`Vista previa (demo): ${v.toFixed(2)}`:'⚠ Fórmula inválida'}</div>;
+              })()}
+              <div style={{display:'flex',gap:8,marginTop:4}}>
+                <button onClick={()=>setShowCustomMetricModal(null)} style={{flex:1,padding:'10px',borderRadius:8,border:'1px solid rgba(255,255,255,0.08)',background:'transparent',color:'#555',cursor:'pointer'}}>Cancelar</button>
+                <button onClick={()=>{
+                  if(!newMetricName.trim()||!newMetricFormula.trim())return;
+                  const offId=showCustomMetricModal;
+                  const nm={id:Date.now(),name:newMetricName.trim(),formula:newMetricFormula.trim()};
+                  setCustomMetrics(p=>({...p,[offId]:[...(p[offId]||[]),nm]}));
+                  setNewMetricName('');setNewMetricFormula('');setShowCustomMetricModal(null);
+                }} style={{flex:1,padding:'10px',borderRadius:8,border:'1px solid rgba(56,189,248,0.4)',background:'rgba(56,189,248,0.15)',color:'#38BDF8',cursor:'pointer',fontWeight:600}}>Crear Métrica</button>
+              </div>
             </div>
           </div>
         </div>

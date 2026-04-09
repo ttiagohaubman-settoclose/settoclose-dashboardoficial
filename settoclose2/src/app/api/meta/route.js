@@ -33,6 +33,56 @@ export async function GET(request) {
   }
 
   try {
+    if (type === 'ads') {
+      // ── Ad-level insights (grouped by ad name to consolidate duplicates) ──
+      const fields = [
+        'ad_id','ad_name','campaign_id','campaign_name',
+        'spend','impressions','reach','inline_link_clicks',
+        'actions','cost_per_action_type'
+      ].join(',')
+
+      const baseParams = new URLSearchParams({
+        fields,
+        time_range: JSON.stringify({ since: dateFrom, until: dateTo }),
+        level: 'ad',
+        limit: 100,
+        access_token: TOKEN,
+      })
+
+      let url = `https://graph.facebook.com/v19.0/act_${adAccountId}/insights?${baseParams}`
+      let allRows = []
+      while (url) {
+        const data = await fetchPage(url)
+        allRows = [...allRows, ...(data.data || [])]
+        url = data.paging?.next || null
+      }
+
+      // Group by normalized ad name to consolidate duplicates across campaigns
+      const adMap = {}
+      allRows.forEach(d => {
+        const spent = parseFloat(d.spend || 0)
+        const { leads } = extractLeads(d.actions, d.cost_per_action_type, spent)
+        const key = (d.ad_name || '').trim().toLowerCase()
+        if (!adMap[key]) {
+          adMap[key] = { id: d.ad_id, name: d.ad_name || 'Sin nombre', campaignName: d.campaign_name || '', spent: 0, impressions: 0, reach: 0, linkClicks: 0, leads: 0 }
+        }
+        adMap[key].spent       += spent
+        adMap[key].impressions += parseInt(d.impressions || 0)
+        adMap[key].reach       += parseInt(d.reach || 0)
+        adMap[key].linkClicks  += parseInt(d.inline_link_clicks || 0)
+        adMap[key].leads       += leads
+      })
+
+      const ads = Object.values(adMap).map(a => ({
+        ...a,
+        spent:  +a.spent.toFixed(2),
+        cpl:    a.leads > 0 ? +(a.spent / a.leads).toFixed(2) : 0,
+        ctr:    a.impressions > 0 ? +((a.linkClicks / a.impressions) * 100).toFixed(2) : 0,
+      })).sort((a, b) => b.leads - a.leads)
+
+      return Response.json({ ads })
+    }
+
     if (type === 'campaigns') {
       // ── Campaign-level insights ──────────────────────────────────
       const fields = [
