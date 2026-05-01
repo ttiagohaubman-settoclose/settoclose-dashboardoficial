@@ -1,6 +1,4 @@
 // src/app/api/logs/route.js
-// Saves and retrieves action logs from Upstash Redis
-
 const REDIS_URL   = process.env.KV_REST_API_URL
 const REDIS_TOKEN = process.env.KV_REST_API_TOKEN
 
@@ -14,12 +12,12 @@ async function redis(method, ...args) {
 
 export async function GET(request) {
   const { searchParams } = new URL(request.url)
-  const officeId = searchParams.get('officeId')
-  if (!officeId) return Response.json({ error: 'officeId required' }, { status: 400 })
+  const clientId = searchParams.get('clientId')
+  if (!clientId) return Response.json({ error: 'clientId required' }, { status: 400 })
   if (!REDIS_URL) return Response.json({ logs: [] })
 
   try {
-    const raw = await redis('get', `logs:${officeId}`)
+    const raw = await redis('get', `logs:${clientId}`)
     const logs = raw ? JSON.parse(raw) : []
     return Response.json({ logs })
   } catch (e) {
@@ -28,12 +26,12 @@ export async function GET(request) {
 }
 
 export async function POST(request) {
-  const { officeId, logs } = await request.json()
-  if (!officeId) return Response.json({ error: 'officeId required' }, { status: 400 })
+  const { clientId, logs } = await request.json()
+  if (!clientId) return Response.json({ error: 'clientId required' }, { status: 400 })
   if (!REDIS_URL) return Response.json({ ok: false, error: 'KV not configured' })
 
   try {
-    await redis('set', `logs:${officeId}`, JSON.stringify(logs))
+    await redis('set', `logs:${clientId}`, JSON.stringify(logs))
     return Response.json({ ok: true })
   } catch (e) {
     return Response.json({ ok: false, error: e.message })
