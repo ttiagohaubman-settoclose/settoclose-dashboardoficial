@@ -1,68 +1,49 @@
 export async function GET(request) {
   const { searchParams } = new URL(request.url)
-  const officeId = searchParams.get('officeId')
+  const clientId = searchParams.get('clientId')
   const dateFrom = searchParams.get('dateFrom')
   const dateTo   = searchParams.get('dateTo')
 
-  const CONFIG = {
-    SC: { locationId: 'cCytukkNAHUpNbtKDk2e', token: process.env.GHL_TOKEN_SC, calendarIds: ['Y7Syrvxv1KnzBfOmv4Vu','iWHyrsAK8e5D1GGDo3jO'] },
-    VA: { locationId: 'WqKinxJ77nKg9ppEQifq', token: process.env.GHL_TOKEN_VA, calendarIds: ['F6oJTEf1CoIgYeSnsTPZ','akCXPNaK4nkh4c11IBYo'] },
-    MD: { locationId: 'PBIUP5IiLK1GJTISSwOi', token: process.env.GHL_TOKEN_MD, calendarIds: ['sMPqiIGbiOH5hEV22zWA','M4hGQ2JFwGsdai8Zz5sy'] },
-    NC: { locationId: 'ZzYnwk1G9JMLRWYvoJJT', token: process.env.GHL_TOKEN_NC, calendarIds: ['iZLArVoRxshTpY9B36H9'] },
+  const LOCATION_ID = 'EiZQnibRq2k2C21iyxmd'
+  const TOKEN = process.env.GHL_TOKEN
+
+  // Mapeo de clientes a sus etiquetas
+  const CLIENT_CONFIG = {
+    jorge:   { label: 'va leads - jorge',  office: 'Virginia' },
+    fernando:{ label: 'md leads - fernando', office: 'Maryland' },
+    danelly: { label: 'nc leads - danelly', office: 'North Carolina' },
+    ay:      { label: 'sc leads - a&y',     office: 'South Carolina' },
   }
 
-  const cfg = CONFIG[officeId]
-  if (!cfg)       return Response.json({ error: 'Invalid officeId' }, { status: 400 })
-  if (!cfg.token) return Response.json({ error: `GHL_TOKEN_${officeId} not configured` }, { status: 500 })
+  if (clientId && !CLIENT_CONFIG[clientId]) {
+    return Response.json({ error: 'Invalid clientId' }, { status: 400 })
+  }
+
+  if (!TOKEN) {
+    return Response.json({ error: 'GHL_TOKEN not configured' }, { status: 500 })
+  }
 
   const headers = {
-    'Authorization': `Bearer ${cfg.token}`,
+    'Authorization': `Bearer ${TOKEN}`,
     'Version': '2021-07-28',
     'Content-Type': 'application/json',
   }
 
   try {
-    // Date range — use full day boundaries in UTC
-    const startTime = new Date(dateFrom + 'T00:00:00.000Z').getTime()
-    const endTime   = new Date(dateTo   + 'T23:59:59.999Z').getTime()
-    const fromDate  = new Date(dateFrom + 'T00:00:00.000Z')
-    const toDate    = new Date(dateTo   + 'T23:59:59.999Z')
+    const fromDate = new Date(dateFrom + 'T00:00:00.000Z')
+    const toDate   = new Date(dateTo   + 'T23:59:59.999Z')
 
-    // ── 1. APPOINTMENTS ──────────────────────────────────────────────
-    const allEvents = []
-    await Promise.all(cfg.calendarIds.map(async (calId) => {
-      try {
-        const p = new URLSearchParams({ locationId: cfg.locationId, calendarId: calId, startTime, endTime })
-        const r = await fetch(`https://services.leadconnectorhq.com/calendars/events?${p}`, { headers })
-        const j = await r.json()
-        if (j.events) allEvents.push(...j.events)
-      } catch(e) { console.warn(`Calendar ${calId} error:`, e.message) }
-    }))
-
-    const bookedByDate = {}
-    const showedByDate = {}
-    allEvents.forEach(ev => {
-      // Use startTime of appointment for the date
-      const raw = ev.startTime || ev.dateAdded
-      if (!raw) return
-      const date = new Date(raw).toISOString().split('T')[0]
-      bookedByDate[date] = (bookedByDate[date] || 0) + 1
-      if (ev.appointmentStatus === 'showed' || ev.appointmentStatus === 'completed') {
-        showedByDate[date] = (showedByDate[date] || 0) + 1
-      }
-    })
-
-    // ── 2. CONTACTS WITH TAG "venta" — full pagination ───────────────
+    // ── CONTACTS con tag "venta" ─────────────────────────────────────
+    // Si viene clientId, filtramos por su tag específica también
     let allContacts = []
-    // Use startAfterDate cursor-based pagination (more reliable than page)
     let startAfter = null
     let startAfterId = null
     let keepGoing = true
 
     while (keepGoing) {
       const p = new URLSearchParams({
-        locationId: cfg.locationId,
-        tags: 'venta',    // some GHL versions use 'tags' plural
+        locationId: LOCATION_ID,
+        tags: 'venta',
         limit: 100,
       })
       if (startAfter)   p.set('startAfter', startAfter)
@@ -79,24 +60,21 @@ export async function GET(request) {
         startAfter   = j.meta.startAfter
         startAfterId = j.meta.startAfterId || null
       }
-      if (allContacts.length > 2000) break // safety cap
+      if (allContacts.length > 5000) break
     }
 
-    // Also try with tag singular param in case of GHL version difference
-    if (allContacts.length === 0) {
-      const p2 = new URLSearchParams({ locationId: cfg.locationId, tag: 'venta', limit: 100 })
-      const r2 = await fetch(`https://services.leadconnectorhq.com/contacts/?${p2}`, { headers })
-      const j2 = await r2.json()
-      allContacts = j2.contacts || []
+    // Filtrar por cliente si viene clientId
+    if (clientId) {
+      const clientTag = CLIENT_CONFIG[clientId].label
+      allContacts = allContacts.filter(c =>
+        (c.tags || []).some(t => t.toLowerCase() === clientTag.toLowerCase())
+      )
     }
 
-    // Filter contacts by date range
-    // Use dateAdded as the "sale date" — more stable than dateUpdated
+    // Filtrar por rango de fechas
     const ventasInRange = allContacts.filter(c => {
-      // Prefer custom field "closeDate" if exists, fallback to dateAdded
-      const rawDate = c.dateAdded
-      if (!rawDate) return false
-      const d = new Date(rawDate)
+      if (!c.dateAdded) return false
+      const d = new Date(c.dateAdded)
       return d >= fromDate && d <= toDate
     })
 
@@ -104,35 +82,45 @@ export async function GET(request) {
     const ventasList = []
 
     ventasInRange.forEach(c => {
+      const tags = c.tags || []
       const date = new Date(c.dateAdded).toISOString().split('T')[0]
       closedByDate[date] = (closedByDate[date] || 0) + 1
-      const tags = c.tags || []
+
+      // Detectar a qué cliente pertenece
+      let clientName = 'General'
+      let officeName = 'General'
+      for (const [key, cfg] of Object.entries(CLIENT_CONFIG)) {
+        if (tags.some(t => t.toLowerCase() === cfg.label.toLowerCase())) {
+          clientName = key
+          officeName = cfg.office
+          break
+        }
+      }
+
       ventasList.push({
-        id:     c.id,
-        name:   `${c.firstName || ''} ${c.lastName || ''}`.trim() || 'Sin nombre',
-        phone:  c.phone || '',
-        email:  c.email || '',
+        id:       c.id,
+        name:     `${c.firstName || ''} ${c.lastName || ''}`.trim() || 'Sin nombre',
+        phone:    c.phone || '',
+        email:    c.email || '',
         date,
-        status: tags.includes('pagada') ? 'pagada' : 'venta',
+        client:   clientName,
+        office:   officeName,
+        language: tags.includes('english') ? 'English' : tags.includes('spanish') ? 'Spanish' : 'N/A',
+        status:   tags.includes('pagada') ? 'pagada' : 'venta',
+        scheduled: tags.includes('scheduled'),
       })
     })
 
     ventasList.sort((a, b) => new Date(b.date) - new Date(a.date))
 
-    // ── 3. DAILY ARRAY ───────────────────────────────────────────────
+    // ── DAILY ARRAY ──────────────────────────────────────────────────
     const days = []
     const cursor = new Date(dateFrom + 'T00:00:00.000Z')
     const end    = new Date(dateTo   + 'T00:00:00.000Z')
     while (cursor <= end) {
-      const date       = cursor.toISOString().split('T')[0]
-      const appsBooked = bookedByDate[date] || 0
-      const appsShowed = showedByDate[date] || 0
-      const sales      = closedByDate[date] || 0
-      days.push({
-        date, appsBooked, appsShowed,
-        showRate: appsBooked > 0 ? +((appsShowed / appsBooked) * 100).toFixed(1) : 0,
-        sales,
-      })
+      const date  = cursor.toISOString().split('T')[0]
+      const sales = closedByDate[date] || 0
+      days.push({ date, sales })
       cursor.setDate(cursor.getDate() + 1)
     }
 
