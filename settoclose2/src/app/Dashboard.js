@@ -3,10 +3,10 @@ import { useState, useMemo, useRef, useEffect, useCallback } from 'react';
 import { LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, AreaChart, Area } from 'recharts';
 
 const INIT_OFFICES = [
-  { id:'SC', name:'South Carolina', color:'#38BDF8', payout:750, adAccountId:'751411627703795'  },
-  { id:'VA', name:'Virginia',        color:'#4ADE80', payout:750, adAccountId:'1423143898800903' },
-  { id:'MD', name:'Maryland',        color:'#A78BFA', payout:500, adAccountId:'795631173072316'  },
-  { id:'NC', name:'North Carolina',  color:'#FACC15', payout:750, adAccountId:'1482791790226418' },
+  { id:'jorge',    name:'Virginia',       clientLabel:'va leads - jorge',    color:'#4ADE80', payout:750, adAccountId:'1423143898800903' },
+  { id:'fernando', name:'Maryland',       clientLabel:'md leads - fernando', color:'#A78BFA', payout:500, adAccountId:'795631173072316'  },
+  { id:'danelly',  name:'North Carolina', clientLabel:'nc leads - danelly',  color:'#FACC15', payout:750, adAccountId:'1482791790226418' },
+  { id:'ay',       name:'South Carolina', clientLabel:'sc leads - a&y',      color:'#38BDF8', payout:750, adAccountId:'751411627703795'  },
 ];
 
 const LOGOS_INIT = {
